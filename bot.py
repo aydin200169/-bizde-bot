@@ -1,13 +1,26 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 TOKEN = "8789277125:AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
+        [InlineKeyboardButton(
+            "📱 Открыть BIZDE",
+            web_app=WebAppInfo(
+                url="https://aydin200169.github.io/-bizde-bot/"
+            )
+        )],
         [InlineKeyboardButton("📂 Категории", callback_data="categories")],
         [InlineKeyboardButton("🏪 Партнёры", callback_data="partners")],
         [InlineKeyboardButton("🎟 Моя подписка", callback_data="subscription")],
+    ]
+
+    await update.message.reply_text(
+        "👋 Добро пожаловать в BIZDE.KZ!\n\n"
+        "Экономь вместе с нашими партнёрами 🇰🇿",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
     ]
 
     await update.message.reply_text(
