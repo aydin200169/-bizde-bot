@@ -3,24 +3,26 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 
 TOKEN = "8789277125:AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw"
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton(
-            "📱 Открыть BIZDE",
-            web_app=WebAppInfo(
-                url="https://aydin200169.github.io/-bizde-bot/"
+        [
+            InlineKeyboardButton(
+                "📱 Открыть BIZDE",
+                web_app=WebAppInfo(
+                    url="https://aydin200169.github.io/-bizde-bot/"
+                )
             )
-        )],
-        [InlineKeyboardButton("📂 Категории", callback_data="categories")],
-        [InlineKeyboardButton("🏪 Партнёры", callback_data="partners")],
-        [InlineKeyboardButton("🎟 Моя подписка", callback_data="subscription")],
-    ]
-
-    await update.message.reply_text(
-        "👋 Добро пожаловать в BIZDE.KZ!\n\n"
-        "Экономь вместе с нашими партнёрами 🇰🇿",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+        ],
+        [
+            InlineKeyboardButton("📂 Категории", callback_data="categories")
+        ],
+        [
+            InlineKeyboardButton("🏪 Партнёры", callback_data="partners")
+        ],
+        [
+            InlineKeyboardButton("🎟 Моя подписка", callback_data="subscription")
+        ],
     ]
 
     await update.message.reply_text(
@@ -36,10 +38,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "categories":
         keyboard = [
-            [InlineKeyboardButton("☕ Кафе и рестораны", callback_data="cafes")],
-            [InlineKeyboardButton("🛍 Магазины", callback_data="shops")],
-            [InlineKeyboardButton("🏋️ Спорт", callback_data="sport")],
-            [InlineKeyboardButton("⬅️ Назад", callback_data="back")],
+            [
+                InlineKeyboardButton(
+                    "☕ Кафе и рестораны",
+                    callback_data="cafes"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🛍 Магазины",
+                    callback_data="shops"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏋️ Спорт",
+                    callback_data="sport"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "⬅️ Назад",
+                    callback_data="back"
+                )
+            ],
         ]
 
         await query.edit_message_text(
@@ -68,9 +90,32 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "back":
         keyboard = [
-            [InlineKeyboardButton("📂 Категории", callback_data="categories")],
-            [InlineKeyboardButton("🏪 Партнёры", callback_data="partners")],
-            [InlineKeyboardButton("🎟 Моя подписка", callback_data="subscription")],
+            [
+                InlineKeyboardButton(
+                    "📱 Открыть BIZDE",
+                    web_app=WebAppInfo(
+                        url="https://aydin200169.github.io/-bizde-bot/"
+                    )
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📂 Категории",
+                    callback_data="categories"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏪 Партнёры",
+                    callback_data="partners"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎟 Моя подписка",
+                    callback_data="subscription"
+                )
+            ],
         ]
 
         await query.edit_message_text(
