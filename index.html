@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIZDE.KZ</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #111;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .category {
+            background: white;
+            border-radius: 18px;
+            padding: 22px 15px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            text-align: left;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        .emoji {
+            display: block;
+            font-size: 30px;
+            margin-bottom: 12px;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .partner {
+            background: white;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 12px;
+        }
+
+        .partner-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .partner-text {
+            color: #777;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .offer {
+            margin-top: 12px;
+            background: #111;
+            color: white;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">BIZDE.KZ</div>
+        <div class="subtitle">Экономь вместе с нами 🇰🇿</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Категории</div>
+
+        <div class="categories">
+
+            <button class="category">
+                <span class="emoji">☕</span>
+                Кафе и рестораны
+            </button>
+
+            <button class="category">
+                <span class="emoji">🛍️</span>
+                Магазины
+            </button>
+
+            <button class="category">
+                <span class="emoji">🏋️</span>
+                Спорт
+            </button>
+
+            <button class="category">
+                <span class="emoji">🎁</span>
+                Другое
+            </button>
+
+        </div>
+    </div>
+
+    <div class="section">
+
+        <div class="section-title">Популярные партнёры</div>
+
+        <div class="partner">
+            <div class="partner-name">Восточная кухня</div>
+            <div class="partner-text">
+                Ресторан • Павлодар
+            </div>
+
+            <div class="offer">
+                🎟 Скидка для участников BIZDE
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+    </script>
+
+</body>
+</html>
