@@ -1,78 +1,41 @@
 import os
-TOKEN = 8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw
 import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    WebAppInfo
-)
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    CallbackQueryHandler,
-    ContextTypes
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 
-# =========================
-# НАСТРОЙКИ
-# =========================
-
-
+TOKEN = "8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw"
+PORT = int(os.environ.get("PORT", 10000))
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
-PORT = int(os.getenv("PORT", "10000"))
 
-# =========================
-# WEB-СЕРВЕР RENDER
-# =========================
-
-class HealthHandler(BaseHTTPRequestHandler):
+class Server(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header(
-            "Content-Type",
-            "text/plain; charset=utf-8"
-        )
+        self.send_header("Content-Type", "text/plain")
         self.end_headers()
-
-        self.wfile.write(
-            b"BIZDE.KZ is running!"
-        )
+        self.wfile.write(b"BIZDE.KZ is running")
 
     def log_message(self, format, *args):
-        pass
+        return
 
 
-def start_web_server():
-    server = HTTPServer(
-        ("0.0.0.0", PORT),
-        HealthHandler
-    )
-
-    print(f"Web server started on port {PORT}")
-
+def start_server():
+    server = HTTPServer(("0.0.0.0", PORT), Server)
+    print("Web server started")
     server.serve_forever()
 
 
-# =========================
-# ГЛАВНОЕ МЕНЮ
-# =========================
-
-def main_menu():
-
-    keyboard = [
+def main_keyboard():
+    return InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
                 "📱 Открыть BIZDE",
-                web_app=WebAppInfo(
-                    url=WEB_APP_URL
-                )
+                web_app=WebAppInfo(url=WEB_APP_URL)
             )
         ],
         [
@@ -93,42 +56,23 @@ def main_menu():
                 callback_data="subscription"
             )
         ]
-    ]
-
-    return InlineKeyboardMarkup(keyboard)
+    ])
 
 
-# =========================
-# /START
-# =========================
-
-async def start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "👋 Добро пожаловать в BIZDE.KZ!\n\n"
         "Экономь вместе с нашими партнёрами 🇰🇿",
-        reply_markup=main_menu()
+        reply_markup=main_keyboard()
     )
 
 
-# =========================
-# КНОПКИ
-# =========================
-
-async def button_handler(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
-
     await query.answer()
 
-
-    # КАТЕГОРИИ
     if query.data == "categories":
 
         keyboard = [
@@ -153,7 +97,7 @@ async def button_handler(
             [
                 InlineKeyboardButton(
                     "⬅️ Назад",
-                    callback_data="back"
+                    callback_data="home"
                 )
             ]
         ]
@@ -163,129 +107,94 @@ async def button_handler(
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-
-    # ПАРТНЁРЫ
     elif query.data == "partners":
-
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад",
-                    callback_data="back"
-                )
-            ]
-        ]
 
         await query.edit_message_text(
             "🏪 Партнёры BIZDE.KZ\n\n"
-            "Пока здесь пусто.\n"
-            "Скоро добавим первых партнёров! 🔥",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            "Пока партнёров нет.\n"
+            "Скоро здесь появятся первые предложения 🔥",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "⬅️ Назад",
+                        callback_data="home"
+                    )
+                ]
+            ])
         )
 
-
-    # ПОДПИСКА
     elif query.data == "subscription":
-
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад",
-                    callback_data="back"
-                )
-            ]
-        ]
 
         await query.edit_message_text(
             "🎟 Моя подписка\n\n"
             "Статус: ❌ Не активна",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "⬅️ Назад",
+                        callback_data="home"
+                    )
+                ]
+            ])
         )
 
-
-    # КАТЕГОРИИ
-    elif query.data in [
-        "cafes",
-        "shops",
-        "sport"
-    ]:
-
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "⬅️ К категориям",
-                    callback_data="categories"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏠 Главное меню",
-                    callback_data="back"
-                )
-            ]
-        ]
+    elif query.data in ["cafes", "shops", "sport"]:
 
         await query.edit_message_text(
-            "🏪 Партнёры этой категории пока добавляются.\n\n"
-            "Скоро здесь появятся предложения 🔥",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            "🏪 В этой категории пока нет партнёров.\n\n"
+            "Скоро добавим первые предложения 🔥",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "⬅️ Категории",
+                        callback_data="categories"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        "🏠 Главное меню",
+                        callback_data="home"
+                    )
+                ]
+            ])
         )
 
-
-    # НАЗАД
-    elif query.data == "back":
+    elif query.data == "home":
 
         await query.edit_message_text(
             "🏠 Главное меню BIZDE.KZ",
-            reply_markup=main_menu()
+            reply_markup=main_keyboard()
         )
 
 
-# =========================
-# ЗАПУСК
-# =========================
+def run_bot():
 
-def main():
+    if not TOKEN:
+        print("ERROR: BOT_TOKEN не найден!")
+        return
 
-    # Запускаем сервер Render
-    web_thread = threading.Thread(
-        target=start_web_server,
-        daemon=True
-    )
+    app = Application.builder().token(TOKEN).build()
 
-    web_thread.start()
-
-
-    # Создаём Telegram-бота
-    app = (
-        Application.builder()
-        .token(TOKEN)
-        .build()
-    )
-
-
-    # Команды
     app.add_handler(
         CommandHandler("start", start)
     )
 
     app.add_handler(
-        CallbackQueryHandler(button_handler)
+        CallbackQueryHandler(buttons)
     )
 
+    print("BIZDE.KZ bot started!")
 
-    print("BIZDE.KZ запущен!")
+    app.run_polling()
 
-
-    # Запускаем бота
-    app.run_polling(
-        drop_pending_updates=True
-    )
-
-
-# =========================
-# START
-# =========================
 
 if __name__ == "__main__":
-    main()
+
+    server_thread = threading.Thread(
+        target=start_server,
+        daemon=True
+    )
+
+    server_thread.start()
+
+    run_bot()
