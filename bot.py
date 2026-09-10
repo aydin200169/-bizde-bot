@@ -27,7 +27,6 @@ WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
 PORT = int(os.getenv("PORT", "10000"))
 
-
 # =========================
 # WEB-СЕРВЕР RENDER
 # =========================
