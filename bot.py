@@ -7,31 +7,31 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 
 
 TOKEN = 8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw
-PORT = int(os.environ.get("PORT", 10000))
+PORT = int(os.getenv("PORT", "10000"))
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
 
-class Server(BaseHTTPRequestHandler):
+class HealthServer(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
         self.end_headers()
         self.wfile.write(b"BIZDE.KZ is running")
 
     def log_message(self, format, *args):
-        return
+        pass
 
 
 def start_server():
-    server = HTTPServer(("0.0.0.0", PORT), Server)
-    print("Web server started")
+    server = HTTPServer(("0.0.0.0", PORT), HealthServer)
+    print("Web server started on port", PORT)
     server.serve_forever()
 
 
-def main_keyboard():
-    return InlineKeyboardMarkup([
+def main_menu():
+    keyboard = [
         [
             InlineKeyboardButton(
                 "📱 Открыть BIZDE",
@@ -56,20 +56,20 @@ def main_keyboard():
                 callback_data="subscription"
             )
         ]
-    ])
+    ]
+
+    return InlineKeyboardMarkup(keyboard)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(
         "👋 Добро пожаловать в BIZDE.KZ!\n\n"
         "Экономь вместе с нашими партнёрами 🇰🇿",
-        reply_markup=main_keyboard()
+        reply_markup=main_menu()
     )
 
 
-async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
@@ -141,12 +141,12 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data in ["cafes", "shops", "sport"]:
 
         await query.edit_message_text(
-            "🏪 В этой категории пока нет партнёров.\n\n"
-            "Скоро добавим первые предложения 🔥",
+            "🏪 Партнёры этой категории пока добавляются.\n\n"
+            "Скоро здесь появятся предложения 🔥",
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton(
-                        "⬅️ Категории",
+                        "⬅️ К категориям",
                         callback_data="categories"
                     )
                 ],
@@ -163,14 +163,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.edit_message_text(
             "🏠 Главное меню BIZDE.KZ",
-            reply_markup=main_keyboard()
+            reply_markup=main_menu()
         )
 
 
 def run_bot():
 
     if not TOKEN:
-        print("ERROR: BOT_TOKEN не найден!")
+        print("ERROR: BOT_TOKEN не найден")
         return
 
     app = Application.builder().token(TOKEN).build()
@@ -180,10 +180,10 @@ def run_bot():
     )
 
     app.add_handler(
-        CallbackQueryHandler(buttons)
+        CallbackQueryHandler(button_handler)
     )
 
-    print("BIZDE.KZ bot started!")
+    print("BIZDE.KZ запущен!")
 
     app.run_polling()
 
