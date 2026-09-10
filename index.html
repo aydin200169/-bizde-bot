@@ -1,711 +1,1119 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>BIZDE.KZ</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-            background: #08090b;
-            color: #ffffff;
-            min-height: 100vh;
-            padding-bottom: 100px;
-        }
-
-        button,
-        input {
-            font-family: inherit;
-        }
-
-        /* HEADER */
-
-        .header {
-            padding: 22px 18px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: -1.5px;
-        }
-
-        .logo span {
-            color: #b7ff3c;
-        }
-
-        .profile {
-            width: 43px;
-            height: 43px;
-            border-radius: 50%;
-            border: 1px solid #292c32;
-            background: #15171b;
-            color: white;
-            font-size: 19px;
-        }
-
-        /* HERO */
-
-        .hero {
-            margin: 16px 18px 25px;
-            padding: 27px 23px;
-            border-radius: 28px;
-            background:
-                radial-gradient(circle at 90% 10%, rgba(183,255,60,.25), transparent 30%),
-                linear-gradient(135deg, #1b201b, #101216 70%);
-            border: 1px solid #282c31;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .hero-label {
-            color: #a5aab2;
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-
-        .hero h1 {
-            font-size: 32px;
-            line-height: 1.05;
-            letter-spacing: -1.5px;
-            max-width: 300px;
-        }
-
-        .hero h1 span {
-            color: #b7ff3c;
-        }
-
-        .hero p {
-            color: #9298a2;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-top: 13px;
-            max-width: 290px;
-        }
-
-        .hero-btn {
-            margin-top: 20px;
-            background: #b7ff3c;
-            color: #080a08;
-            border: none;
-            padding: 13px 18px;
-            border-radius: 13px;
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        /* SEARCH */
-
-        .search {
-            margin: 0 18px 28px;
-            height: 52px;
-            background: #131519;
-            border: 1px solid #272a30;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-        }
-
-        .search-icon {
-            font-size: 20px;
-            color: #858b95;
-            margin-right: 10px;
-        }
-
-        .search input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 14px;
-        }
-
-        .search input::placeholder {
-            color: #727781;
-        }
-
-        /* CONTENT */
-
-        .section {
-            margin: 0 18px 30px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 850;
-            letter-spacing: -.5px;
-        }
-
-        .see-all {
-            color: #b7ff3c;
-            font-size: 13px;
-            font-weight: 700;
-            background: none;
-            border: none;
-        }
-
-        /* CATEGORIES */
-
-        .categories {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 11px;
-        }
-
-        .category {
-            min-height: 125px;
-            text-align: left;
-            padding: 18px;
-            border-radius: 21px;
-            background: #131519;
-            border: 1px solid #272a30;
-            color: white;
-            transition: .15s;
-        }
-
-        .category:active {
-            transform: scale(.97);
-        }
-
-        .category-icon {
-            width: 43px;
-            height: 43px;
-            border-radius: 14px;
-            background: #1d2025;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
-
-        .category-name {
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .category-small {
-            color: #777d87;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-
-        /* PARTNER */
-
-        .partner {
-            background: #131519;
-            border: 1px solid #272a30;
-            border-radius: 24px;
-            padding: 17px;
-        }
-
-        .partner-top {
-            display: flex;
-            align-items: center;
-        }
-
-        .partner-logo {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            background: #22252a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 25px;
-            margin-right: 12px;
-        }
-
-        .partner-info {
-            flex: 1;
-        }
-
-        .partner-name {
-            font-size: 16px;
-            font-weight: 850;
-        }
-
-        .partner-location {
-            color: #777d87;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        .verified {
-            color: #b7ff3c;
-            font-size: 18px;
-        }
-
-        .offer-box {
-            margin-top: 17px;
-            padding: 15px;
-            border-radius: 17px;
-            background: #1b1e23;
-        }
-
-        .offer-label {
-            color: #777d87;
-            font-size: 11px;
-            margin-bottom: 6px;
-        }
-
-        .offer-title {
-            font-size: 17px;
-            font-weight: 850;
-        }
-
-        .offer-title span {
-            color: #b7ff3c;
-        }
-
-        .partner-btn {
-            width: 100%;
-            margin-top: 13px;
-            padding: 13px;
-            border: none;
-            border-radius: 13px;
-            background: #b7ff3c;
-            color: #080a08;
-            font-size: 13px;
-            font-weight: 850;
-        }
-
-        /* PREMIUM */
-
-        .premium {
-            padding: 22px;
-            border-radius: 24px;
-            background: linear-gradient(135deg, #b7ff3c, #77c91c);
-            color: #080a08;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .premium::after {
-            content: "B";
-            position: absolute;
-            right: 4px;
-            top: -32px;
-            font-size: 150px;
-            font-weight: 900;
-            opacity: .08;
-        }
-
-        .premium-title {
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .premium-text {
-            font-size: 13px;
-            line-height: 1.45;
-            opacity: .7;
-            margin-top: 7px;
-            max-width: 260px;
-        }
-
-        .premium-btn {
-            margin-top: 17px;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 16px;
-            background: #080a08;
-            color: white;
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        /* NAVIGATION */
-
-        .nav {
-            position: fixed;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            height: 68px;
-            border-radius: 23px;
-            background: rgba(20,22,26,.96);
-            border: 1px solid #2a2d33;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            padding: 7px;
-            z-index: 100;
-            backdrop-filter: blur(15px);
-        }
-
-        .nav-item {
-            border: none;
-            background: transparent;
-            color: #737984;
-            border-radius: 17px;
-            font-size: 10px;
-            font-weight: 700;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-item span {
-            font-size: 19px;
-        }
-
-        .nav-item.active {
-            background: #20242a;
-            color: #b7ff3c;
-        }
-
-        /* ANIMATION */
-
-        .hero {
-            animation: fadeUp .4s ease;
-        }
-
-        .search {
-            animation: fadeUp .5s ease;
-        }
-
-        .category,
-        .partner,
-        .premium {
-            animation: fadeUp .6s ease;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (min-width: 700px) {
-            body {
-                max-width: 650px;
-                margin: auto;
-            }
-
-            .nav {
-                max-width: 626px;
-                left: 50%;
-                right: auto;
-                width: calc(100% - 24px);
-                transform: translateX(-50%);
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>BIZDE.KZ</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    background:#08090b;
+    color:#fff;
+    min-height:100vh;
+    padding-bottom:100px;
+}
+
+button,input{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+/* HEADER */
+
+.header{
+    padding:22px 18px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:-1.5px;
+}
+
+.logo span{
+    color:#b7ff3c;
+}
+
+.profile{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:1px solid #292d34;
+    background:#15171b;
+    color:white;
+    font-size:19px;
+}
+
+/* HERO */
+
+.hero{
+    margin:14px 18px 24px;
+    padding:28px 23px;
+    border-radius:28px;
+    background:
+        radial-gradient(circle at 90% 5%,rgba(183,255,60,.24),transparent 32%),
+        linear-gradient(135deg,#1b201b,#101216 70%);
+    border:1px solid #292d32;
+    position:relative;
+    overflow:hidden;
+}
+
+.hero-label{
+    color:#a5aab2;
+    font-size:13px;
+    margin-bottom:10px;
+}
+
+.hero h1{
+    font-size:33px;
+    line-height:1.04;
+    letter-spacing:-1.7px;
+}
+
+.hero h1 span{
+    color:#b7ff3c;
+}
+
+.hero p{
+    color:#9298a2;
+    font-size:14px;
+    line-height:1.5;
+    margin-top:14px;
+    max-width:290px;
+}
+
+.hero-btn{
+    margin-top:20px;
+    background:#b7ff3c;
+    color:#080a08;
+    border:none;
+    padding:14px 18px;
+    border-radius:14px;
+    font-size:14px;
+    font-weight:850;
+}
+
+/* SEARCH */
+
+.search{
+    margin:0 18px 28px;
+    height:54px;
+    background:#131519;
+    border:1px solid #292d33;
+    border-radius:17px;
+    display:flex;
+    align-items:center;
+    padding:0 15px;
+}
+
+.search-icon{
+    font-size:21px;
+    color:#858b95;
+    margin-right:10px;
+}
+
+.search input{
+    width:100%;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:white;
+    font-size:14px;
+}
+
+.search input::placeholder{
+    color:#727781;
+}
+
+/* SECTION */
+
+.section{
+    margin:0 18px 30px;
+}
+
+.section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.section-title{
+    font-size:20px;
+    font-weight:850;
+    letter-spacing:-.5px;
+}
+
+.see-all{
+    border:none;
+    background:none;
+    color:#b7ff3c;
+    font-size:13px;
+    font-weight:750;
+}
+
+/* CATEGORIES */
+
+.categories{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px;
+}
+
+.category{
+    min-height:128px;
+    text-align:left;
+    padding:18px;
+    border-radius:21px;
+    background:#131519;
+    border:1px solid #292d33;
+    color:white;
+    transition:.15s;
+}
+
+.category:active{
+    transform:scale(.96);
+}
+
+.category-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    background:#1d2025;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    margin-bottom:15px;
+}
+
+.category-name{
+    font-size:14px;
+    font-weight:800;
+}
+
+.category-small{
+    color:#777d87;
+    font-size:11px;
+    margin-top:5px;
+}
+
+/* PARTNER */
+
+.partner{
+    background:#131519;
+    border:1px solid #292d33;
+    border-radius:24px;
+    padding:17px;
+    transition:.2s;
+}
+
+.partner:active{
+    transform:scale(.985);
+}
+
+.partner-top{
+    display:flex;
+    align-items:center;
+}
+
+.partner-logo{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    background:#22252a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+    margin-right:12px;
+}
+
+.partner-info{
+    flex:1;
+}
+
+.partner-name{
+    font-size:16px;
+    font-weight:850;
+}
+
+.partner-location{
+    color:#777d87;
+    font-size:12px;
+    margin-top:4px;
+}
+
+.verified{
+    color:#b7ff3c;
+    font-size:18px;
+}
+
+.offer-box{
+    margin-top:17px;
+    padding:15px;
+    border-radius:17px;
+    background:#1b1e23;
+}
+
+.offer-label{
+    color:#777d87;
+    font-size:10px;
+    margin-bottom:6px;
+    font-weight:700;
+}
+
+.offer-title{
+    font-size:17px;
+    font-weight:850;
+}
+
+.offer-title span{
+    color:#b7ff3c;
+}
+
+.partner-btn{
+    width:100%;
+    margin-top:13px;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#b7ff3c;
+    color:#080a08;
+    font-size:13px;
+    font-weight:850;
+}
+
+/* PREMIUM */
+
+.premium{
+    padding:23px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#b7ff3c,#77c91c);
+    color:#080a08;
+    position:relative;
+    overflow:hidden;
+}
+
+.premium:after{
+    content:"B";
+    position:absolute;
+    right:4px;
+    top:-32px;
+    font-size:150px;
+    font-weight:900;
+    opacity:.08;
+}
+
+.premium-title{
+    font-size:21px;
+    font-weight:900;
+}
+
+.premium-text{
+    font-size:13px;
+    line-height:1.45;
+    opacity:.72;
+    margin-top:7px;
+    max-width:270px;
+}
+
+.premium-btn{
+    margin-top:17px;
+    border:none;
+    border-radius:13px;
+    padding:12px 17px;
+    background:#080a08;
+    color:white;
+    font-size:13px;
+    font-weight:800;
+}
+
+/* EMPTY SEARCH */
+
+.empty{
+    display:none;
+    text-align:center;
+    padding:30px 15px;
+    color:#777d87;
+}
+
+.empty strong{
+    display:block;
+    color:#fff;
+    font-size:16px;
+    margin-bottom:6px;
+}
+
+/* NAVIGATION */
+
+.nav{
+    position:fixed;
+    left:12px;
+    right:12px;
+    bottom:12px;
+    height:68px;
+    border-radius:23px;
+    background:rgba(20,22,26,.96);
+    border:1px solid #2a2d33;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    padding:7px;
+    z-index:100;
+    backdrop-filter:blur(15px);
+}
+
+.nav-item{
+    border:none;
+    background:transparent;
+    color:#737984;
+    border-radius:17px;
+    font-size:10px;
+    font-weight:700;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:4px;
+}
+
+.nav-item span{
+    font-size:19px;
+}
+
+.nav-item.active{
+    background:#20242a;
+    color:#b7ff3c;
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(8px);
+    display:none;
+    align-items:flex-end;
+    z-index:200;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:100%;
+    background:#14161a;
+    border-radius:28px 28px 0 0;
+    border:1px solid #292d33;
+    padding:23px 20px 30px;
+    animation:modalUp .25s ease;
+}
+
+@keyframes modalUp{
+    from{
+        transform:translateY(100%);
+        opacity:0;
+    }
+    to{
+        transform:translateY(0);
+        opacity:1;
+    }
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.modal-title{
+    font-size:21px;
+    font-weight:900;
+}
+
+.close{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid #30343a;
+    background:#202329;
+    color:white;
+    font-size:17px;
+}
+
+.modal-text{
+    color:#969ca6;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.modal-button{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#b7ff3c;
+    color:#080a08;
+    font-weight:850;
+}
+
+/* PROFILE */
+
+.profile-card{
+    text-align:center;
+}
+
+.avatar{
+    width:70px;
+    height:70px;
+    margin:0 auto 13px;
+    border-radius:50%;
+    background:#24272d;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+}
+
+.profile-name{
+    font-size:20px;
+    font-weight:850;
+}
+
+.profile-status{
+    color:#777d87;
+    font-size:13px;
+    margin-top:5px;
+}
+
+/* ANIMATION */
+
+.hero,
+.search,
+.category,
+.partner,
+.premium{
+    animation:fadeUp .45s ease;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media(min-width:700px){
+
+    body{
+        max-width:650px;
+        margin:auto;
+    }
+
+    .nav{
+        max-width:626px;
+        left:50%;
+        right:auto;
+        width:calc(100% - 24px);
+        transform:translateX(-50%);
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <header class="header">
-        <div class="logo">
-            BIZDE<span>.KZ</span>
+<header class="header">
+
+    <div class="logo">
+        BIZDE<span>.KZ</span>
+    </div>
+
+    <button class="profile" onclick="openProfile()">
+        👤
+    </button>
+
+</header>
+
+
+<section class="hero">
+
+    <div class="hero-label">
+        BIZDE • Казахстан 🇰🇿
+    </div>
+
+    <h1>
+        Находи выгоду.<br>
+        <span>Экономь больше.</span>
+    </h1>
+
+    <p>
+        Лучшие предложения от местных компаний в одном месте.
+    </p>
+
+    <button class="hero-btn" onclick="scrollToCategories()">
+        Смотреть предложения →
+    </button>
+
+</section>
+
+
+<div class="search">
+
+    <div class="search-icon">
+        ⌕
+    </div>
+
+    <input
+        id="searchInput"
+        type="text"
+        placeholder="Поиск заведений и предложений..."
+        oninput="searchPartners()"
+    >
+
+</div>
+
+
+<section class="section" id="categories">
+
+    <div class="section-header">
+
+        <div class="section-title">
+            Категории
         </div>
 
-        <button class="profile" onclick="profile()">
-            👤
+        <button class="see-all" onclick="showAllCategories()">
+            Все
         </button>
-    </header>
 
-
-    <section class="hero">
-        <div class="hero-label">
-            BIZDE • Казахстан 🇰🇿
-        </div>
-
-        <h1>
-            Находи выгоду.<br>
-            <span>Экономь больше.</span>
-        </h1>
-
-        <p>
-            Лучшие предложения от местных компаний в одном месте.
-        </p>
-
-        <button class="hero-btn" onclick="scrollToCategories()">
-            Смотреть предложения →
-        </button>
-    </section>
-
-
-    <div class="search">
-        <div class="search-icon">⌕</div>
-
-        <input
-            id="searchInput"
-            type="text"
-            placeholder="Поиск заведений и предложений..."
-            oninput="search()"
-        >
     </div>
 
 
-    <section class="section" id="categories">
+    <div class="categories">
 
-        <div class="section-header">
-            <div class="section-title">
-                Категории
+        <button
+            class="category"
+            data-category="Кафе и рестораны"
+            onclick="openCategory('Кафе и рестораны')"
+        >
+
+            <div class="category-icon">☕</div>
+
+            <div class="category-name">
+                Кафе и рестораны
             </div>
 
-            <button class="see-all">
-                Все
-            </button>
-        </div>
-
-
-        <div class="categories">
-
-            <button class="category" onclick="category('Кафе и рестораны')">
-                <div class="category-icon">☕</div>
-
-                <div class="category-name">
-                    Кафе и рестораны
-                </div>
-
-                <div class="category-small">
-                    12 предложений
-                </div>
-            </button>
-
-
-            <button class="category" onclick="category('Магазины')">
-                <div class="category-icon">🛍️</div>
-
-                <div class="category-name">
-                    Магазины
-                </div>
-
-                <div class="category-small">
-                    8 предложений
-                </div>
-            </button>
-
-
-            <button class="category" onclick="category('Спорт')">
-                <div class="category-icon">🏋️</div>
-
-                <div class="category-name">
-                    Спорт
-                </div>
-
-                <div class="category-small">
-                    6 предложений
-                </div>
-            </button>
-
-
-            <button class="category" onclick="category('Другое')">
-                <div class="category-icon">✨</div>
-
-                <div class="category-name">
-                    Другое
-                </div>
-
-                <div class="category-small">
-                    Скоро больше
-                </div>
-            </button>
-
-        </div>
-    </section>
-
-
-    <section class="section">
-
-        <div class="section-header">
-            <div class="section-title">
-                🔥 Популярное
+            <div class="category-small">
+                12 предложений
             </div>
 
-            <button class="see-all">
-                Все
-            </button>
-        </div>
-
-
-        <div class="partner">
-
-            <div class="partner-top">
-
-                <div class="partner-logo">
-                    🍽️
-                </div>
-
-                <div class="partner-info">
-
-                    <div class="partner-name">
-                        Восточная кухня
-                    </div>
-
-                    <div class="partner-location">
-                        Ресторан • Павлодар
-                    </div>
-
-                </div>
-
-                <div class="verified">
-                    ✓
-                </div>
-
-            </div>
-
-
-            <div class="offer-box">
-
-                <div class="offer-label">
-                    СПЕЦИАЛЬНО ДЛЯ BIZDE
-                </div>
-
-                <div class="offer-title">
-                    Выгодное предложение <span>для участников</span>
-                </div>
-
-            </div>
-
-
-            <button class="partner-btn" onclick="partner()">
-                Открыть предложение →
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <section class="section">
-
-        <div class="premium">
-
-            <div class="premium-title">
-                🎟 BIZDE Premium
-            </div>
-
-            <div class="premium-text">
-                Получай больше специальных предложений от наших партнёров.
-            </div>
-
-            <button class="premium-btn" onclick="premium()">
-                Подробнее
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <nav class="nav">
-
-        <button class="nav-item active" onclick="home()">
-            <span>⌂</span>
-            Главная
         </button>
 
-        <button class="nav-item" onclick="scrollToCategories()">
-            <span>◫</span>
-            Категории
+
+        <button
+            class="category"
+            data-category="Магазины"
+            onclick="openCategory('Магазины')"
+        >
+
+            <div class="category-icon">🛍️</div>
+
+            <div class="category-name">
+                Магазины
+            </div>
+
+            <div class="category-small">
+                8 предложений
+            </div>
+
         </button>
 
-        <button class="nav-item" onclick="premium()">
-            <span>🎟</span>
-            Подписка
+
+        <button
+            class="category"
+            data-category="Спорт"
+            onclick="openCategory('Спорт')"
+        >
+
+            <div class="category-icon">🏋️</div>
+
+            <div class="category-name">
+                Спорт
+            </div>
+
+            <div class="category-small">
+                6 предложений
+            </div>
+
         </button>
 
-        <button class="nav-item" onclick="profile()">
-            <span>◉</span>
-            Профиль
+
+        <button
+            class="category"
+            data-category="Другое"
+            onclick="openCategory('Другое')"
+        >
+
+            <div class="category-icon">✨</div>
+
+            <div class="category-name">
+                Другое
+            </div>
+
+            <div class="category-small">
+                Скоро больше
+            </div>
+
         </button>
 
-    </nav>
+    </div>
+
+</section>
 
 
-    <script>
-        const tg = window.Telegram && window.Telegram.WebApp;
+<section class="section" id="partnersSection">
 
-        if (tg) {
-            tg.ready();
-            tg.expand();
+    <div class="section-header">
+
+        <div class="section-title">
+            🔥 Популярное
+        </div>
+
+        <button class="see-all" onclick="openPartner()">
+            Все
+        </button>
+
+    </div>
+
+
+    <div class="partner" data-search="восточная кухня ресторан павлодар">
+
+        <div class="partner-top">
+
+            <div class="partner-logo">
+                🍽️
+            </div>
+
+            <div class="partner-info">
+
+                <div class="partner-name">
+                    Восточная кухня
+                </div>
+
+                <div class="partner-location">
+                    Ресторан • Павлодар
+                </div>
+
+            </div>
+
+            <div class="verified">
+                ✓
+            </div>
+
+        </div>
+
+
+        <div class="offer-box">
+
+            <div class="offer-label">
+                СПЕЦИАЛЬНО ДЛЯ BIZDE
+            </div>
+
+            <div class="offer-title">
+                Выгодное предложение
+                <span>для участников</span>
+            </div>
+
+        </div>
+
+
+        <button class="partner-btn" onclick="openPartner()">
+            Открыть предложение →
+        </button>
+
+    </div>
+
+    <div class="empty" id="emptySearch">
+        <strong>Ничего не найдено</strong>
+        Попробуй изменить запрос.
+    </div>
+
+</section>
+
+
+<section class="section">
+
+    <div class="premium">
+
+        <div class="premium-title">
+            🎟 BIZDE Premium
+        </div>
+
+        <div class="premium-text">
+            Получай больше специальных предложений
+            от наших партнёров.
+        </div>
+
+        <button class="premium-btn" onclick="openPremium()">
+            Подробнее
+        </button>
+
+    </div>
+
+</section>
+
+
+<nav class="nav">
+
+    <button class="nav-item active" onclick="home()">
+        <span>⌂</span>
+        Главная
+    </button>
+
+    <button class="nav-item" onclick="scrollToCategories()">
+        <span>◫</span>
+        Категории
+    </button>
+
+    <button class="nav-item" onclick="openPremium()">
+        <span>🎟</span>
+        Подписка
+    </button>
+
+    <button class="nav-item" onclick="openProfile()">
+        <span>◉</span>
+        Профиль
+    </button>
+
+</nav>
+
+
+<!-- MODAL -->
+
+<div class="modal" id="modal" onclick="closeModal(event)">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+
+            <div class="modal-title" id="modalTitle">
+                BIZDE.KZ
+            </div>
+
+            <button class="close" onclick="closeModal()">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="modal-text" id="modalText">
+        </div>
+
+        <button
+            class="modal-button"
+            id="modalButton"
+            onclick="closeModal()"
+        >
+            Понятно
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* TELEGRAM */
+
+const tg = window.Telegram && window.Telegram.WebApp;
+
+if(tg){
+    tg.ready();
+    tg.expand();
+
+    try{
+        tg.setHeaderColor("#08090b");
+        tg.setBackgroundColor("#08090b");
+    }catch(e){}
+}
+
+
+/* MODAL */
+
+function showModal(title,text,buttonText="Понятно"){
+
+    document.getElementById("modalTitle").textContent = title;
+
+    document.getElementById("modalText").innerHTML = text;
+
+    document.getElementById("modalButton").textContent = buttonText;
+
+    document.getElementById("modal").classList.add("show");
+}
+
+
+function closeModal(event){
+
+    if(
+        !event ||
+        event.target.id === "modal" ||
+        event.target.classList.contains("close")
+    ){
+        document.getElementById("modal").classList.remove("show");
+    }
+
+}
+
+
+/* HOME */
+
+function home(){
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+    setActiveNav(0);
+}
+
+
+/* CATEGORIES */
+
+function scrollToCategories(){
+
+    document
+        .getElementById("categories")
+        .scrollIntoView({
+            behavior:"smooth"
+        });
+
+    setActiveNav(1);
+}
+
+
+function openCategory(name){
+
+    showModal(
+        name,
+        "<b>Предложения в категории</b><br><br>" +
+        "Здесь будут отображаться партнёры, " +
+        "скидки и специальные предложения категории " +
+        "<b>" + name + "</b>.<br><br>" +
+        "🔥 Скоро добавим новые предложения.",
+        "Вернуться"
+    );
+}
+
+
+function showAllCategories(){
+
+    scrollToCategories();
+
+}
+
+
+/* PARTNER */
+
+function openPartner(){
+
+    showModal(
+        "🍽️ Восточная кухня",
+        "<b>Ресторан • Павлодар</b><br><br>" +
+        "Специальное предложение для участников BIZDE.KZ.<br><br>" +
+        "🎟 Условия предложения появятся здесь после подключения партнёра.",
+        "Закрыть"
+    );
+}
+
+
+/* PREMIUM */
+
+function openPremium(){
+
+    showModal(
+        "🎟 BIZDE Premium",
+        "<b>Больше выгоды — больше возможностей.</b><br><br>" +
+        "С Premium пользователи смогут получать " +
+        "специальные предложения и скидки от партнёров BIZDE.KZ.<br><br>" +
+        "💳 Подключение подписки будет доступно после запуска оплаты.",
+        "Понятно"
+    );
+
+}
+
+
+/* PROFILE */
+
+function openProfile(){
+
+    let name = "Пользователь";
+    let username = "";
+
+    if(
+        tg &&
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+    ){
+
+        const user = tg.initDataUnsafe.user;
+
+        name = user.first_name || "Пользователь";
+
+        if(user.last_name){
+            name += " " + user.last_name;
         }
 
-        function scrollToCategories() {
-            document.getElementById("categories").scrollIntoView({
-                behavior: "smooth"
-            });
+        if(user.username){
+            username = "@" + user.username;
         }
 
-        function home() {
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
+    }
+
+    showModal(
+        "👤 Профиль",
+        "<div class='profile-card'>" +
+        "<div class='avatar'>👤</div>" +
+        "<div class='profile-name'>" +
+        name +
+        "</div>" +
+        "<div class='profile-status'>" +
+        (username || "Telegram пользователь") +
+        "</div><br>" +
+        "🎟 Подписка: <b>Не активна</b>" +
+        "</div>",
+        "Закрыть"
+    );
+
+}
+
+
+/* SEARCH */
+
+function searchPartners(){
+
+    const value =
+        document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const partners =
+        document.querySelectorAll(".partner");
+
+    let found = false;
+
+    partners.forEach(partner => {
+
+        const text =
+            partner
+            .getAttribute("data-search")
+            .toLowerCase();
+
+        if(!value || text.includes(value)){
+
+            partner.style.display = "block";
+
+            found = true;
+
+        }else{
+
+            partner.style.display = "none";
+
         }
 
-        function category(name) {
-            alert(name + "\n\nНовые предложения скоро появятся.");
-        }
+    });
 
-        function partner() {
-            alert(
-                "Восточная кухня\n\n" +
-                "Здесь будет подробная информация о предложении партнёра."
+    document.getElementById("emptySearch").style.display =
+        found ? "none" : "block";
+
+}
+
+
+/* NAV */
+
+function setActiveNav(index){
+
+    document
+        .querySelectorAll(".nav-item")
+        .forEach((item,i)=>{
+
+            item.classList.toggle(
+                "active",
+                i === index
             );
+
+        });
+
+}
+
+
+/* TELEGRAM BACK BUTTON */
+
+if(tg){
+
+    tg.BackButton.onClick(function(){
+
+        document
+            .getElementById("modal")
+            .classList.remove("show");
+
+        tg.BackButton.hide();
+
+    });
+
+}
+
+
+/* CLOSE MODAL WITH ESC */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Escape"){
+
+            document
+                .getElementById("modal")
+                .classList.remove("show");
+
         }
 
-        function premium() {
-            alert(
-                "BIZDE Premium\n\n" +
-                "Здесь будет информация о подписке и её преимуществах."
-            );
-        }
+    }
+);
 
-        function profile() {
-            alert(
-                "Профиль\n\n" +
-                "Здесь появится информация о пользователе и статусе подписки."
-            );
-        }
-
-        function search() {
-            const value = document
-                .getElementById("searchInput")
-                .value
-                .toLowerCase()
-                .trim();
-
-            console.log("Поиск:", value);
-        }
-    </script>
+</script>
 
 </body>
 </html>
