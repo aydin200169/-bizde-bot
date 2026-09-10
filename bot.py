@@ -1,4 +1,5 @@
 import os
+TOKEN = 8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -20,7 +21,7 @@ from telegram.ext import (
 # НАСТРОЙКИ
 # =========================
 
-TOKEN = 8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw
+
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
