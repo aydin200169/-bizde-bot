@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 
-TOKEN = "8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw"
+TOKEN = 8789277125: AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw
 PORT = int(os.environ.get("PORT", 10000))
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
