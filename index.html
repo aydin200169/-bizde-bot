@@ -1,156 +1,710 @@
-BIZDE.KZ</title>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BIZDE.KZ</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #111;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #08090b;
+            color: #ffffff;
+            min-height: 100vh;
+            padding-bottom: 100px;
         }
 
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        /* HEADER */
+
         .header {
-            margin-bottom: 25px;
+            padding: 22px 18px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .logo {
-            font-size: 28px;
+            font-size: 27px;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+        }
+
+        .logo span {
+            color: #b7ff3c;
+        }
+
+        .profile {
+            width: 43px;
+            height: 43px;
+            border-radius: 50%;
+            border: 1px solid #292c32;
+            background: #15171b;
+            color: white;
+            font-size: 19px;
+        }
+
+        /* HERO */
+
+        .hero {
+            margin: 16px 18px 25px;
+            padding: 27px 23px;
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 90% 10%, rgba(183,255,60,.25), transparent 30%),
+                linear-gradient(135deg, #1b201b, #101216 70%);
+            border: 1px solid #282c31;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-label {
+            color: #a5aab2;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 {
+            font-size: 32px;
+            line-height: 1.05;
+            letter-spacing: -1.5px;
+            max-width: 300px;
+        }
+
+        .hero h1 span {
+            color: #b7ff3c;
+        }
+
+        .hero p {
+            color: #9298a2;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 13px;
+            max-width: 290px;
+        }
+
+        .hero-btn {
+            margin-top: 20px;
+            background: #b7ff3c;
+            color: #080a08;
+            border: none;
+            padding: 13px 18px;
+            border-radius: 13px;
+            font-size: 14px;
             font-weight: 800;
         }
 
-        .subtitle {
-            color: #777;
-            margin-top: 5px;
+        /* SEARCH */
+
+        .search {
+            margin: 0 18px 28px;
+            height: 52px;
+            background: #131519;
+            border: 1px solid #272a30;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
         }
+
+        .search-icon {
+            font-size: 20px;
+            color: #858b95;
+            margin-right: 10px;
+        }
+
+        .search input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 14px;
+        }
+
+        .search input::placeholder {
+            color: #727781;
+        }
+
+        /* CONTENT */
+
+        .section {
+            margin: 0 18px 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 850;
+            letter-spacing: -.5px;
+        }
+
+        .see-all {
+            color: #b7ff3c;
+            font-size: 13px;
+            font-weight: 700;
+            background: none;
+            border: none;
+        }
+
+        /* CATEGORIES */
 
         .categories {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
+            gap: 11px;
         }
 
         .category {
-            background: white;
-            border-radius: 18px;
-            padding: 22px 15px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
+            min-height: 125px;
             text-align: left;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+            padding: 18px;
+            border-radius: 21px;
+            background: #131519;
+            border: 1px solid #272a30;
+            color: white;
+            transition: .15s;
         }
 
-        .emoji {
-            display: block;
-            font-size: 30px;
-            margin-bottom: 12px;
+        .category:active {
+            transform: scale(.97);
         }
 
-        .section {
-            margin-top: 30px;
+        .category-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 14px;
+            background: #1d2025;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 15px;
         }
 
-        .section-title {
-            font-size: 21px;
+        .category-name {
+            font-size: 14px;
             font-weight: 800;
-            margin-bottom: 14px;
         }
+
+        .category-small {
+            color: #777d87;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        /* PARTNER */
 
         .partner {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            margin-bottom: 12px;
+            background: #131519;
+            border: 1px solid #272a30;
+            border-radius: 24px;
+            padding: 17px;
+        }
+
+        .partner-top {
+            display: flex;
+            align-items: center;
+        }
+
+        .partner-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: #22252a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+            margin-right: 12px;
+        }
+
+        .partner-info {
+            flex: 1;
         }
 
         .partner-name {
+            font-size: 16px;
+            font-weight: 850;
+        }
+
+        .partner-location {
+            color: #777d87;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .verified {
+            color: #b7ff3c;
             font-size: 18px;
-            font-weight: 700;
         }
 
-        .partner-text {
-            color: #777;
-            margin-top: 6px;
-            font-size: 14px;
+        .offer-box {
+            margin-top: 17px;
+            padding: 15px;
+            border-radius: 17px;
+            background: #1b1e23;
         }
 
-        .offer {
-            margin-top: 12px;
-            background: #111;
-            color: white;
+        .offer-label {
+            color: #777d87;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .offer-title {
+            font-size: 17px;
+            font-weight: 850;
+        }
+
+        .offer-title span {
+            color: #b7ff3c;
+        }
+
+        .partner-btn {
+            width: 100%;
+            margin-top: 13px;
+            padding: 13px;
+            border: none;
+            border-radius: 13px;
+            background: #b7ff3c;
+            color: #080a08;
+            font-size: 13px;
+            font-weight: 850;
+        }
+
+        /* PREMIUM */
+
+        .premium {
+            padding: 22px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #b7ff3c, #77c91c);
+            color: #080a08;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium::after {
+            content: "B";
+            position: absolute;
+            right: 4px;
+            top: -32px;
+            font-size: 150px;
+            font-weight: 900;
+            opacity: .08;
+        }
+
+        .premium-title {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .premium-text {
+            font-size: 13px;
+            line-height: 1.45;
+            opacity: .7;
+            margin-top: 7px;
+            max-width: 260px;
+        }
+
+        .premium-btn {
+            margin-top: 17px;
+            border: none;
             border-radius: 12px;
-            padding: 12px;
-            text-align: center;
+            padding: 12px 16px;
+            background: #080a08;
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* NAVIGATION */
+
+        .nav {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            height: 68px;
+            border-radius: 23px;
+            background: rgba(20,22,26,.96);
+            border: 1px solid #2a2d33;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 7px;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+
+        .nav-item {
+            border: none;
+            background: transparent;
+            color: #737984;
+            border-radius: 17px;
+            font-size: 10px;
             font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item span {
+            font-size: 19px;
+        }
+
+        .nav-item.active {
+            background: #20242a;
+            color: #b7ff3c;
+        }
+
+        /* ANIMATION */
+
+        .hero {
+            animation: fadeUp .4s ease;
+        }
+
+        .search {
+            animation: fadeUp .5s ease;
+        }
+
+        .category,
+        .partner,
+        .premium {
+            animation: fadeUp .6s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-width: 700px) {
+            body {
+                max-width: 650px;
+                margin: auto;
+            }
+
+            .nav {
+                max-width: 626px;
+                left: 50%;
+                right: auto;
+                width: calc(100% - 24px);
+                transform: translateX(-50%);
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <div class="logo">BIZDE.KZ</div>
-        <div class="subtitle">Экономь вместе с нами 🇰🇿</div>
+    <header class="header">
+        <div class="logo">
+            BIZDE<span>.KZ</span>
+        </div>
+
+        <button class="profile" onclick="profile()">
+            👤
+        </button>
+    </header>
+
+
+    <section class="hero">
+        <div class="hero-label">
+            BIZDE • Казахстан 🇰🇿
+        </div>
+
+        <h1>
+            Находи выгоду.<br>
+            <span>Экономь больше.</span>
+        </h1>
+
+        <p>
+            Лучшие предложения от местных компаний в одном месте.
+        </p>
+
+        <button class="hero-btn" onclick="scrollToCategories()">
+            Смотреть предложения →
+        </button>
+    </section>
+
+
+    <div class="search">
+        <div class="search-icon">⌕</div>
+
+        <input
+            id="searchInput"
+            type="text"
+            placeholder="Поиск заведений и предложений..."
+            oninput="search()"
+        >
     </div>
 
-    <div class="section">
-        <div class="section-title">Категории</div>
+
+    <section class="section" id="categories">
+
+        <div class="section-header">
+            <div class="section-title">
+                Категории
+            </div>
+
+            <button class="see-all">
+                Все
+            </button>
+        </div>
+
 
         <div class="categories">
 
-            <button class="category">
-                <span class="emoji">☕</span>
-                Кафе и рестораны
+            <button class="category" onclick="category('Кафе и рестораны')">
+                <div class="category-icon">☕</div>
+
+                <div class="category-name">
+                    Кафе и рестораны
+                </div>
+
+                <div class="category-small">
+                    12 предложений
+                </div>
             </button>
 
-            <button class="category">
-                <span class="emoji">🛍️</span>
-                Магазины
+
+            <button class="category" onclick="category('Магазины')">
+                <div class="category-icon">🛍️</div>
+
+                <div class="category-name">
+                    Магазины
+                </div>
+
+                <div class="category-small">
+                    8 предложений
+                </div>
             </button>
 
-            <button class="category">
-                <span class="emoji">🏋️</span>
-                Спорт
+
+            <button class="category" onclick="category('Спорт')">
+                <div class="category-icon">🏋️</div>
+
+                <div class="category-name">
+                    Спорт
+                </div>
+
+                <div class="category-small">
+                    6 предложений
+                </div>
             </button>
 
-            <button class="category">
-                <span class="emoji">🎁</span>
-                Другое
+
+            <button class="category" onclick="category('Другое')">
+                <div class="category-icon">✨</div>
+
+                <div class="category-name">
+                    Другое
+                </div>
+
+                <div class="category-small">
+                    Скоро больше
+                </div>
             </button>
 
         </div>
-    </div>
+    </section>
 
-    <div class="section">
 
-        <div class="section-title">Популярные партнёры</div>
+    <section class="section">
+
+        <div class="section-header">
+            <div class="section-title">
+                🔥 Популярное
+            </div>
+
+            <button class="see-all">
+                Все
+            </button>
+        </div>
+
 
         <div class="partner">
-            <div class="partner-name">Восточная кухня</div>
-            <div class="partner-text">
-                Ресторан • Павлодар
+
+            <div class="partner-top">
+
+                <div class="partner-logo">
+                    🍽️
+                </div>
+
+                <div class="partner-info">
+
+                    <div class="partner-name">
+                        Восточная кухня
+                    </div>
+
+                    <div class="partner-location">
+                        Ресторан • Павлодар
+                    </div>
+
+                </div>
+
+                <div class="verified">
+                    ✓
+                </div>
+
             </div>
 
-            <div class="offer">
-                🎟 Скидка для участников BIZDE
+
+            <div class="offer-box">
+
+                <div class="offer-label">
+                    СПЕЦИАЛЬНО ДЛЯ BIZDE
+                </div>
+
+                <div class="offer-title">
+                    Выгодное предложение <span>для участников</span>
+                </div>
+
             </div>
+
+
+            <button class="partner-btn" onclick="partner()">
+                Открыть предложение →
+            </button>
+
         </div>
 
-    </div>
+    </section>
+
+
+    <section class="section">
+
+        <div class="premium">
+
+            <div class="premium-title">
+                🎟 BIZDE Premium
+            </div>
+
+            <div class="premium-text">
+                Получай больше специальных предложений от наших партнёров.
+            </div>
+
+            <button class="premium-btn" onclick="premium()">
+                Подробнее
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <nav class="nav">
+
+        <button class="nav-item active" onclick="home()">
+            <span>⌂</span>
+            Главная
+        </button>
+
+        <button class="nav-item" onclick="scrollToCategories()">
+            <span>◫</span>
+            Категории
+        </button>
+
+        <button class="nav-item" onclick="premium()">
+            <span>🎟</span>
+            Подписка
+        </button>
+
+        <button class="nav-item" onclick="profile()">
+            <span>◉</span>
+            Профиль
+        </button>
+
+    </nav>
+
 
     <script>
-        const tg = window.Telegram.WebApp;
+        const tg = window.Telegram && window.Telegram.WebApp;
 
-        tg.ready();
-        tg.expand();
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        function scrollToCategories() {
+            document.getElementById("categories").scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+
+        function home() {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+        function category(name) {
+            alert(name + "\n\nНовые предложения скоро появятся.");
+        }
+
+        function partner() {
+            alert(
+                "Восточная кухня\n\n" +
+                "Здесь будет подробная информация о предложении партнёра."
+            );
+        }
+
+        function premium() {
+            alert(
+                "BIZDE Premium\n\n" +
+                "Здесь будет информация о подписке и её преимуществах."
+            );
+        }
+
+        function profile() {
+            alert(
+                "Профиль\n\n" +
+                "Здесь появится информация о пользователе и статусе подписки."
+            );
+        }
+
+        function search() {
+            const value = document
+                .getElementById("searchInput")
+                .value
+                .toLowerCase()
+                .trim();
+
+            console.log("Поиск:", value);
+        }
     </script>
 
 </body>
