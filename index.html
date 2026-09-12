@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,542 +9,642 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-html{
-    scroll-behavior:smooth;
+:root {
+    --green: #004f4d;
+    --green-dark: #003b3a;
+    --green-light: #0b7772;
+    --gold: #d9a928;
+    --gold-light: #f0ca5b;
+    --bg: #f7f8f6;
+    --card: #ffffff;
+    --text: #17201f;
+    --muted: #7b8583;
+    --border: #e8ecea;
 }
 
-body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    background:#08090b;
-    color:#fff;
-    min-height:100vh;
-    padding-bottom:100px;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding-bottom: 90px;
 }
 
-button,input{
-    font-family:inherit;
+button {
+    font-family: inherit;
+    border: none;
 }
 
-button{
-    cursor:pointer;
+.app {
+    max-width: 520px;
+    margin: auto;
+    min-height: 100vh;
 }
 
 /* HEADER */
 
-.header{
-    padding:22px 18px 12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.header {
+    padding: 22px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.logo{
-    font-size:28px;
-    font-weight:900;
-    letter-spacing:-1.5px;
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
 }
 
-.logo span{
-    color:#b7ff3c;
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--green);
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 900;
 }
 
-.profile{
-    width:44px;
-    height:44px;
-    border-radius:50%;
-    border:1px solid #292d34;
-    background:#15171b;
-    color:white;
-    font-size:19px;
+.logo-text {
+    font-size: 23px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.logo-text span {
+    color: var(--gold);
+}
+
+.lang {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 /* HERO */
 
-.hero{
-    margin:14px 18px 24px;
-    padding:28px 23px;
-    border-radius:28px;
-    background:
-        radial-gradient(circle at 90% 5%,rgba(183,255,60,.24),transparent 32%),
-        linear-gradient(135deg,#1b201b,#101216 70%);
-    border:1px solid #292d32;
-    position:relative;
-    overflow:hidden;
+.hero {
+    padding: 10px 20px 18px;
 }
 
-.hero-label{
-    color:#a5aab2;
-    font-size:13px;
-    margin-bottom:10px;
+.hero h1 {
+    font-size: 27px;
+    line-height: 1.1;
+    margin-bottom: 6px;
 }
 
-.hero h1{
-    font-size:33px;
-    line-height:1.04;
-    letter-spacing:-1.7px;
-}
-
-.hero h1 span{
-    color:#b7ff3c;
-}
-
-.hero p{
-    color:#9298a2;
-    font-size:14px;
-    line-height:1.5;
-    margin-top:14px;
-    max-width:290px;
-}
-
-.hero-btn{
-    margin-top:20px;
-    background:#b7ff3c;
-    color:#080a08;
-    border:none;
-    padding:14px 18px;
-    border-radius:14px;
-    font-size:14px;
-    font-weight:850;
+.hero p {
+    color: var(--muted);
+    font-size: 14px;
 }
 
 /* SEARCH */
 
-.search{
-    margin:0 18px 28px;
-    height:54px;
-    background:#131519;
-    border:1px solid #292d33;
-    border-radius:17px;
-    display:flex;
-    align-items:center;
-    padding:0 15px;
+.search {
+    margin: 0 20px 14px;
+    background: white;
+    border: 1px solid var(--border);
+    height: 50px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
 }
 
-.search-icon{
-    font-size:21px;
-    color:#858b95;
-    margin-right:10px;
+.search span {
+    font-size: 19px;
 }
 
-.search input{
-    width:100%;
-    background:transparent;
-    border:none;
-    outline:none;
-    color:white;
-    font-size:14px;
+.search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
 }
 
-.search input::placeholder{
-    color:#727781;
+/* LOCATION */
+
+.location {
+    margin: 0 20px 22px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.location-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.location-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 11px;
+    background: #edf5f3;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.location strong {
+    font-size: 14px;
 }
 
 /* SECTION */
 
-.section{
-    margin:0 18px 30px;
+.section {
+    padding: 0 20px;
 }
 
-.section-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:14px;
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
 }
 
-.section-title{
-    font-size:20px;
-    font-weight:850;
-    letter-spacing:-.5px;
+.section-title h2 {
+    font-size: 20px;
 }
 
-.see-all{
-    border:none;
-    background:none;
-    color:#b7ff3c;
-    font-size:13px;
-    font-weight:750;
+.section-title button {
+    background: transparent;
+    color: var(--green);
+    font-weight: 700;
 }
 
 /* CATEGORIES */
 
-.categories{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:11px;
+.categories {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
 }
 
-.category{
-    min-height:128px;
-    text-align:left;
-    padding:18px;
-    border-radius:21px;
-    background:#131519;
-    border:1px solid #292d33;
-    color:white;
-    transition:.15s;
+.category {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    min-height: 84px;
+    padding: 11px 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: .2s;
 }
 
-.category:active{
-    transform:scale(.96);
+.category:active {
+    transform: scale(.96);
 }
 
-.category-icon{
-    width:44px;
-    height:44px;
-    border-radius:14px;
-    background:#1d2025;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    margin-bottom:15px;
+.category-icon {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 7px;
+    border-radius: 12px;
+    background: #edf5f3;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
 }
 
-.category-name{
-    font-size:14px;
-    font-weight:800;
+.category p {
+    font-size: 11px;
+    font-weight: 600;
 }
 
-.category-small{
-    color:#777d87;
-    font-size:11px;
-    margin-top:5px;
+/* PROMO */
+
+.promo {
+    margin-bottom: 28px;
+    height: 170px;
+    border-radius: 22px;
+    overflow: hidden;
+    position: relative;
+    background:
+        linear-gradient(90deg, rgba(0,59,58,.96), rgba(0,79,77,.65)),
+        radial-gradient(circle at right, #d9a928, transparent 40%);
+    color: white;
+    padding: 24px;
 }
 
-/* PARTNER */
-
-.partner{
-    background:#131519;
-    border:1px solid #292d33;
-    border-radius:24px;
-    padding:17px;
-    transition:.2s;
+.promo:after {
+    content: "B";
+    position: absolute;
+    right: 10px;
+    bottom: -25px;
+    font-size: 180px;
+    line-height: 1;
+    font-weight: 900;
+    color: rgba(255,255,255,.06);
 }
 
-.partner:active{
-    transform:scale(.985);
+.promo small {
+    color: var(--gold-light);
+    font-weight: 800;
 }
 
-.partner-top{
-    display:flex;
-    align-items:center;
+.promo h2 {
+    margin-top: 8px;
+    max-width: 230px;
+    font-size: 23px;
+    line-height: 1.1;
 }
 
-.partner-logo{
-    width:54px;
-    height:54px;
-    border-radius:16px;
-    background:#22252a;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:25px;
-    margin-right:12px;
+.promo button {
+    margin-top: 15px;
+    background: var(--gold);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 11px;
+    font-weight: 700;
 }
 
-.partner-info{
-    flex:1;
+/* PARTNERS */
+
+.partners {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
 }
 
-.partner-name{
-    font-size:16px;
-    font-weight:850;
+.partner {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 10px;
+    display: flex;
+    gap: 12px;
+    position: relative;
+    cursor: pointer;
 }
 
-.partner-location{
-    color:#777d87;
-    font-size:12px;
-    margin-top:4px;
+.partner-image {
+    width: 84px;
+    height: 84px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #003b3a, #0d7772);
 }
 
-.verified{
-    color:#b7ff3c;
-    font-size:18px;
+.partner-info {
+    flex: 1;
+    padding-top: 3px;
 }
 
-.offer-box{
-    margin-top:17px;
-    padding:15px;
-    border-radius:17px;
-    background:#1b1e23;
+.partner-info h3 {
+    font-size: 15px;
+    margin-bottom: 5px;
 }
 
-.offer-label{
-    color:#777d87;
-    font-size:10px;
-    margin-bottom:6px;
-    font-weight:700;
+.partner-info p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
 }
 
-.offer-title{
-    font-size:17px;
-    font-weight:850;
+.discount {
+    display: inline-block;
+    background: #edf5f3;
+    color: var(--green);
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
 }
 
-.offer-title span{
-    color:#b7ff3c;
+.heart {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    font-size: 18px;
+    color: var(--green);
 }
 
-.partner-btn{
-    width:100%;
-    margin-top:13px;
-    padding:14px;
-    border:none;
-    border-radius:14px;
-    background:#b7ff3c;
-    color:#080a08;
-    font-size:13px;
-    font-weight:850;
+/* CARD */
+
+.member-card {
+    margin: 0 20px 28px;
+    min-height: 205px;
+    border-radius: 24px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    color: white;
+    background:
+        linear-gradient(135deg, #003d3b, #005957);
+    box-shadow: 0 12px 30px rgba(0,79,77,.18);
 }
 
-/* PREMIUM */
-
-.premium{
-    padding:23px;
-    border-radius:24px;
-    background:linear-gradient(135deg,#b7ff3c,#77c91c);
-    color:#080a08;
-    position:relative;
-    overflow:hidden;
+.member-card:after {
+    content: "B";
+    position: absolute;
+    right: -15px;
+    top: 15px;
+    font-size: 190px;
+    font-weight: 900;
+    color: rgba(255,255,255,.05);
 }
 
-.premium:after{
-    content:"B";
-    position:absolute;
-    right:4px;
-    top:-32px;
-    font-size:150px;
-    font-weight:900;
-    opacity:.08;
+.card-logo {
+    font-size: 19px;
+    font-weight: 900;
 }
 
-.premium-title{
-    font-size:21px;
-    font-weight:900;
+.card-logo span {
+    color: var(--gold-light);
 }
 
-.premium-text{
-    font-size:13px;
-    line-height:1.45;
-    opacity:.72;
-    margin-top:7px;
-    max-width:270px;
+.card-chip {
+    margin-top: 30px;
+    width: 48px;
+    height: 35px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #d9a928, #f1d36d);
 }
 
-.premium-btn{
-    margin-top:17px;
-    border:none;
-    border-radius:13px;
-    padding:12px 17px;
-    background:#080a08;
-    color:white;
-    font-size:13px;
-    font-weight:800;
+.card-number {
+    margin-top: 15px;
+    font-size: 18px;
+    letter-spacing: 2px;
+    font-weight: 600;
 }
 
-/* EMPTY SEARCH */
-
-.empty{
-    display:none;
-    text-align:center;
-    padding:30px 15px;
-    color:#777d87;
+.card-bottom {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
 }
 
-.empty strong{
-    display:block;
-    color:#fff;
-    font-size:16px;
-    margin-bottom:6px;
+.card-bottom small {
+    font-size: 9px;
+    opacity: .7;
 }
 
-/* NAVIGATION */
-
-.nav{
-    position:fixed;
-    left:12px;
-    right:12px;
-    bottom:12px;
-    height:68px;
-    border-radius:23px;
-    background:rgba(20,22,26,.96);
-    border:1px solid #2a2d33;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    padding:7px;
-    z-index:100;
-    backdrop-filter:blur(15px);
+.card-bottom strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
 }
 
-.nav-item{
-    border:none;
-    background:transparent;
-    color:#737984;
-    border-radius:17px;
-    font-size:10px;
-    font-weight:700;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    gap:4px;
+/* FEATURES */
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+    margin-bottom: 28px;
 }
 
-.nav-item span{
-    font-size:19px;
+.feature {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    padding: 16px;
 }
 
-.nav-item.active{
-    background:#20242a;
-    color:#b7ff3c;
+.feature-icon {
+    font-size: 23px;
+    margin-bottom: 8px;
 }
 
-/* MODAL */
-
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.72);
-    backdrop-filter:blur(8px);
-    display:none;
-    align-items:flex-end;
-    z-index:200;
+.feature strong {
+    display: block;
+    font-size: 14px;
 }
 
-.modal.show{
-    display:flex;
+.feature p {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
 }
 
-.modal-box{
-    width:100%;
-    background:#14161a;
-    border-radius:28px 28px 0 0;
-    border:1px solid #292d33;
-    padding:23px 20px 30px;
-    animation:modalUp .25s ease;
+/* PAGES */
+
+.page {
+    display: none;
 }
 
-@keyframes modalUp{
-    from{
-        transform:translateY(100%);
-        opacity:0;
-    }
-    to{
-        transform:translateY(0);
-        opacity:1;
-    }
+.page.active {
+    display: block;
 }
 
-.modal-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:18px;
+/* MAP */
+
+.map {
+    margin: 10px 20px;
+    height: 450px;
+    border-radius: 22px;
+    background:
+        linear-gradient(35deg, transparent 47%, rgba(0,79,77,.12) 48%, transparent 49%),
+        linear-gradient(120deg, transparent 47%, rgba(0,79,77,.1) 48%, transparent 49%),
+        #e9eeeb;
+    background-size: 80px 80px;
+    position: relative;
+    overflow: hidden;
 }
 
-.modal-title{
-    font-size:21px;
-    font-weight:900;
+.pin {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--green);
+    color: white;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.close{
-    width:36px;
-    height:36px;
-    border-radius:50%;
-    border:1px solid #30343a;
-    background:#202329;
-    color:white;
-    font-size:17px;
+.pin span {
+    transform: rotate(45deg);
 }
 
-.modal-text{
-    color:#969ca6;
-    font-size:14px;
-    line-height:1.6;
-}
+.pin1 { left: 25%; top: 25%; }
+.pin2 { left: 60%; top: 42%; }
+.pin3 { left: 42%; top: 65%; }
+.pin4 { left: 75%; top: 72%; }
 
-.modal-button{
-    width:100%;
-    margin-top:20px;
-    padding:14px;
-    border:none;
-    border-radius:14px;
-    background:#b7ff3c;
-    color:#080a08;
-    font-weight:850;
+.map-card {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    background: white;
+    border-radius: 17px;
+    padding: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.12);
 }
 
 /* PROFILE */
 
-.profile-card{
-    text-align:center;
+.profile-head {
+    margin: 20px;
+    background: var(--green);
+    color: white;
+    border-radius: 22px;
+    padding: 22px;
+    text-align: center;
 }
 
-.avatar{
-    width:70px;
-    height:70px;
-    margin:0 auto 13px;
-    border-radius:50%;
-    background:#24272d;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:30px;
+.avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: white;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 27px;
+    font-weight: 900;
 }
 
-.profile-name{
-    font-size:20px;
-    font-weight:850;
+.profile-head h2 {
+    font-size: 20px;
 }
 
-.profile-status{
-    color:#777d87;
-    font-size:13px;
-    margin-top:5px;
+.profile-head p {
+    opacity: .7;
+    margin-top: 4px;
+    font-size: 13px;
 }
 
-/* ANIMATION */
-
-.hero,
-.search,
-.category,
-.partner,
-.premium{
-    animation:fadeUp .45s ease;
+.menu-item {
+    margin: 0 20px 10px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 17px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
 }
 
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(10px);
+/* BOTTOM NAV */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 520px;
+    height: 75px;
+    background: rgba(255,255,255,.96);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    z-index: 100;
+    backdrop-filter: blur(12px);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #929a98;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nav-item span {
+    font-size: 22px;
+}
+
+.nav-item.active {
+    color: var(--green);
+}
+
+.nav-item.active span {
+    transform: translateY(-2px);
+}
+
+/* LANGUAGE POPUP */
+
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+}
+
+.language-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 25px 25px 0 0;
+    padding: 25px 20px 35px;
+}
+
+.language-box h2 {
+    margin-bottom: 18px;
+}
+
+.language-option {
+    width: 100%;
+    padding: 17px;
+    border-radius: 15px;
+    background: #f4f6f5;
+    margin-bottom: 10px;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.language-option.active {
+    background: var(--green);
+    color: white;
+}
+
+@media(max-width:360px) {
+    .categories {
+        grid-template-columns: repeat(4,1fr);
     }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
 
-@media(min-width:700px){
-
-    body{
-        max-width:650px;
-        margin:auto;
-    }
-
-    .nav{
-        max-width:626px;
-        left:50%;
-        right:auto;
-        width:calc(100% - 24px);
-        transform:translateX(-50%);
+    .category p {
+        font-size: 9px;
     }
 }
 </style>
@@ -552,566 +652,555 @@ button{
 
 <body>
 
-<header class="header">
+<div class="app">
 
+<!-- ГЛАВНАЯ -->
+<div id="home" class="page active">
+
+<header class="header">
     <div class="logo">
-        BIZDE<span>.KZ</span>
+        <div class="logo-icon">B</div>
+        <div class="logo-text">BIZDE<span>.KZ</span></div>
     </div>
 
-    <button class="profile" onclick="openProfile()">
-        👤
-    </button>
-
+    <button class="lang" onclick="openLanguage()">ҚАЗ</button>
 </header>
 
+<div class="hero">
+    <h1 id="hello">Бізде тиімдірек.</h1>
+    <p id="heroText">Артықшылықтар мен жеңілдіктер бір жерде</p>
+</div>
 
-<section class="hero">
+<div class="search">
+    <span>⌕</span>
+    <input id="searchInput" placeholder="Мейрамхана, қызмет іздеу..." />
+</div>
 
-    <div class="hero-label">
-        BIZDE • Казахстан 🇰🇿
+<div class="location">
+    <div class="location-left">
+        <div class="location-icon">⌖</div>
+        <div>
+            <small>Орналасқан жеріңіз</small>
+            <strong>Павлодар</strong>
+        </div>
+    </div>
+    <span>⌄</span>
+</div>
+
+<section class="section">
+
+<div class="section-title">
+    <h2 id="categoriesTitle">Санаттар</h2>
+    <button id="allButton">Барлығы</button>
+</div>
+
+<div class="categories">
+
+    <div class="category">
+        <div class="category-icon">🍴</div>
+        <p data-kk="Мейрамхана" data-ru="Рестораны">Мейрамхана</p>
     </div>
 
-    <h1>
-        Находи выгоду.<br>
-        <span>Экономь больше.</span>
-    </h1>
+    <div class="category">
+        <div class="category-icon">☕</div>
+        <p data-kk="Кафе" data-ru="Кафе">Кафе</p>
+    </div>
 
-    <p>
-        Лучшие предложения от местных компаний в одном месте.
-    </p>
+    <div class="category">
+        <div class="category-icon">✂</div>
+        <p data-kk="Сұлулық" data-ru="Красота">Сұлулық</p>
+    </div>
 
-    <button class="hero-btn" onclick="scrollToCategories()">
-        Смотреть предложения →
-    </button>
+    <div class="category">
+        <div class="category-icon">♡</div>
+        <p data-kk="Денсаулық" data-ru="Здоровье">Денсаулық</p>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">🎮</div>
+        <p data-kk="Ойын-сауық" data-ru="Развлечения">Ойын-сауық</p>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">🛍</div>
+        <p data-kk="Дүкендер" data-ru="Магазины">Дүкендер</p>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">⚽</div>
+        <p data-kk="Спорт" data-ru="Спорт">Спорт</p>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">•••</div>
+        <p data-kk="Тағы" data-ru="Ещё">Тағы</p>
+    </div>
+
+</div>
+
+<div class="promo">
+    <small id="promoSmall">BIZDE артықшылықтары</small>
+    <h2 id="promoTitle">70%-ға дейін жеңілдіктер</h2>
+    <button id="promoButton">Ұсыныстарды көру</button>
+</div>
+
+<div class="section-title">
+    <h2 id="popularTitle">Танымал</h2>
+    <button>›</button>
+</div>
+
+<div class="partners">
+
+<div class="partner">
+    <div class="partner-image"></div>
+    <div class="partner-info">
+        <h3>Partner 1</h3>
+        <p data-kk="Шығыс асханасы" data-ru="Восточная кухня">
+            Шығыс асханасы
+        </p>
+        <span class="discount">−20%</span>
+    </div>
+    <div class="heart">♡</div>
+</div>
+
+<div class="partner">
+    <div class="partner-image"></div>
+    <div class="partner-info">
+        <h3>VERO Café</h3>
+        <p data-kk="Кофе және десерттер" data-ru="Кофе и десерты">
+            Кофе және десерттер
+        </p>
+        <span class="discount">−15%</span>
+    </div>
+    <div class="heart">♡</div>
+</div>
+
+</div>
 
 </section>
 
+<div class="section-title" style="padding:0 20px;">
+    <h2 id="memberTitle">Сіздің картаңыз</h2>
+</div>
 
-<div class="search">
+<div class="member-card">
 
-    <div class="search-icon">
-        ⌕
+    <div class="card-logo">
+        BIZDE<span>.KZ</span>
     </div>
 
-    <input
-        id="searchInput"
-        type="text"
-        placeholder="Поиск заведений и предложений..."
-        oninput="searchPartners()"
-    >
+    <div class="card-chip"></div>
+
+    <div class="card-number">
+        0000 0000 0000 0001
+    </div>
+
+    <div class="card-bottom">
+        <div>
+            <small>МҮШЕ</small>
+            <strong>BIZDE MEMBER</strong>
+        </div>
+
+        <div>
+            <small>STATUS</small>
+            <strong>ACTIVE</strong>
+        </div>
+    </div>
+
+</div>
+
+<section class="section">
+
+<div class="features">
+
+    <div class="feature">
+        <div class="feature-icon">％</div>
+        <strong id="f1">Жеңілдіктер</strong>
+        <p id="f1p">70%-ға дейін</p>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">🎁</div>
+        <strong id="f2">Артықшылықтар</strong>
+        <p id="f2p">Тек сіз үшін</p>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">☆</div>
+        <strong id="f3">Бонустар</strong>
+        <p id="f3p">Бонус және кэшбэк</p>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">✓</div>
+        <strong id="f4">Ыңғайлы</strong>
+        <p id="f4p">Әрқашан қолыңызда</p>
+    </div>
+
+</div>
+
+</section>
 
 </div>
 
 
-<section class="section" id="categories">
+<!-- ИЗБРАННОЕ -->
 
-    <div class="section-header">
+<div id="favorites" class="page">
 
-        <div class="section-title">
-            Категории
-        </div>
-
-        <button class="see-all" onclick="showAllCategories()">
-            Все
-        </button>
-
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">B</div>
+        <div class="logo-text">BIZDE<span>.KZ</span></div>
     </div>
+</header>
 
-
-    <div class="categories">
-
-        <button
-            class="category"
-            data-category="Кафе и рестораны"
-            onclick="openCategory('Кафе и рестораны')"
-        >
-
-            <div class="category-icon">☕</div>
-
-            <div class="category-name">
-                Кафе и рестораны
-            </div>
-
-            <div class="category-small">
-                12 предложений
-            </div>
-
-        </button>
-
-
-        <button
-            class="category"
-            data-category="Магазины"
-            onclick="openCategory('Магазины')"
-        >
-
-            <div class="category-icon">🛍️</div>
-
-            <div class="category-name">
-                Магазины
-            </div>
-
-            <div class="category-small">
-                8 предложений
-            </div>
-
-        </button>
-
-
-        <button
-            class="category"
-            data-category="Спорт"
-            onclick="openCategory('Спорт')"
-        >
-
-            <div class="category-icon">🏋️</div>
-
-            <div class="category-name">
-                Спорт
-            </div>
-
-            <div class="category-small">
-                6 предложений
-            </div>
-
-        </button>
-
-
-        <button
-            class="category"
-            data-category="Другое"
-            onclick="openCategory('Другое')"
-        >
-
-            <div class="category-icon">✨</div>
-
-            <div class="category-name">
-                Другое
-            </div>
-
-            <div class="category-small">
-                Скоро больше
-            </div>
-
-        </button>
-
-    </div>
-
-</section>
-
-
-<section class="section" id="partnersSection">
-
-    <div class="section-header">
-
-        <div class="section-title">
-            🔥 Популярное
-        </div>
-
-        <button class="see-all" onclick="openPartner()">
-            Все
-        </button>
-
-    </div>
-
-
-    <div class="partner" data-search="восточная кухня ресторан павлодар">
-
-        <div class="partner-top">
-
-            <div class="partner-logo">
-                🍽️
-            </div>
-
-            <div class="partner-info">
-
-                <div class="partner-name">
-                    Восточная кухня
-                </div>
-
-                <div class="partner-location">
-                    Ресторан • Павлодар
-                </div>
-
-            </div>
-
-            <div class="verified">
-                ✓
-            </div>
-
-        </div>
-
-
-        <div class="offer-box">
-
-            <div class="offer-label">
-                СПЕЦИАЛЬНО ДЛЯ BIZDE
-            </div>
-
-            <div class="offer-title">
-                Выгодное предложение
-                <span>для участников</span>
-            </div>
-
-        </div>
-
-
-        <button class="partner-btn" onclick="openPartner()">
-            Открыть предложение →
-        </button>
-
-    </div>
-
-    <div class="empty" id="emptySearch">
-        <strong>Ничего не найдено</strong>
-        Попробуй изменить запрос.
-    </div>
-
-</section>
-
+<div class="hero">
+    <h1 id="favTitle">Таңдаулылар</h1>
+    <p id="favText">Сақталған серіктестеріңіз</p>
+</div>
 
 <section class="section">
 
-    <div class="premium">
+<div class="partners">
 
-        <div class="premium-title">
-            🎟 BIZDE Premium
-        </div>
-
-        <div class="premium-text">
-            Получай больше специальных предложений
-            от наших партнёров.
-        </div>
-
-        <button class="premium-btn" onclick="openPremium()">
-            Подробнее
-        </button>
-
+<div class="partner">
+    <div class="partner-image"></div>
+    <div class="partner-info">
+        <h3>VERO Café</h3>
+        <p>Павлодар</p>
+        <span class="discount">−20%</span>
     </div>
+    <div class="heart">♥</div>
+</div>
+
+<div class="partner">
+    <div class="partner-image"></div>
+    <div class="partner-info">
+        <h3>Partner 1</h3>
+        <p id="favPartner">Шығыс асханасы</p>
+        <span class="discount">−15%</span>
+    </div>
+    <div class="heart">♥</div>
+</div>
+
+</div>
 
 </section>
 
+</div>
 
-<nav class="nav">
 
-    <button class="nav-item active" onclick="home()">
-        <span>⌂</span>
-        Главная
-    </button>
+<!-- КАРТА -->
 
-    <button class="nav-item" onclick="scrollToCategories()">
-        <span>◫</span>
-        Категории
-    </button>
+<div id="mapPage" class="page">
 
-    <button class="nav-item" onclick="openPremium()">
-        <span>🎟</span>
-        Подписка
-    </button>
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">B</div>
+        <div class="logo-text">BIZDE<span>.KZ</span></div>
+    </div>
+</header>
 
-    <button class="nav-item" onclick="openProfile()">
-        <span>◉</span>
-        Профиль
-    </button>
+<div class="hero">
+    <h1 id="mapTitle">Карта</h1>
+    <p id="mapText">Серіктестерді жақын жерден табыңыз</p>
+</div>
+
+<div class="map">
+
+    <div class="pin pin1"><span>●</span></div>
+    <div class="pin pin2"><span>●</span></div>
+    <div class="pin pin3"><span>●</span></div>
+    <div class="pin pin4"><span>●</span></div>
+
+    <div class="map-card">
+        <strong>Partner 1</strong>
+        <p style="font-size:12px;color:#777;margin-top:5px;">
+            Павлодар • 650 м
+        </p>
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- ПРОФИЛЬ -->
+
+<div id="profile" class="page">
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">B</div>
+        <div class="logo-text">BIZDE<span>.KZ</span></div>
+    </div>
+</header>
+
+<div class="profile-head">
+    <div class="avatar">A</div>
+    <h2 id="profileName">Қатысушы</h2>
+    <p id="profileStatus">Белсенді мүшелік</p>
+</div>
+
+<div class="menu-item">
+    <span id="subscription">🎟 Менің жазылымым</span>
+    <span>›</span>
+</div>
+
+<div class="menu-item">
+    <span id="myCard">💳 Қатысушы картасы</span>
+    <span>›</span>
+</div>
+
+<div class="menu-item">
+    <span id="history">◷ Тарих</span>
+    <span>›</span>
+</div>
+
+<div class="menu-item">
+    <span id="savings">₸ Менің үнемдеуім</span>
+    <span>›</span>
+</div>
+
+<div class="menu-item">
+    <span id="settings">⚙ Баптаулар</span>
+    <span>›</span>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+<div class="nav-item active" onclick="showPage('home',this)">
+    <span>⌂</span>
+    <p id="navHome">Басты бет</p>
+</div>
+
+<div class="nav-item" onclick="showPage('favorites',this)">
+    <span>♡</span>
+    <p id="navFav">Таңдаулы</p>
+</div>
+
+<div class="nav-item" onclick="showPage('mapPage',this)">
+    <span>⌖</span>
+    <p id="navMap">Карта</p>
+</div>
+
+<div class="nav-item" onclick="showPage('profile',this)">
+    <span>♙</span>
+    <p id="navProfile">Профиль</p>
+</div>
 
 </nav>
 
 
-<!-- MODAL -->
+<!-- LANGUAGE -->
 
-<div class="modal" id="modal" onclick="closeModal(event)">
+<div class="overlay" id="languageOverlay" onclick="closeLanguage(event)">
 
-    <div class="modal-box">
+<div class="language-box" onclick="event.stopPropagation()">
 
-        <div class="modal-head">
+    <h2>Тілді таңдаңыз</h2>
 
-            <div class="modal-title" id="modalTitle">
-                BIZDE.KZ
-            </div>
+    <button class="language-option active" onclick="setLanguage('kk')">
+        🇰🇿 Қазақша
+    </button>
 
-            <button class="close" onclick="closeModal()">
-                ✕
-            </button>
+    <button class="language-option" onclick="setLanguage('ru')">
+        🇷🇺 Русский
+    </button>
 
-        </div>
-
-        <div class="modal-text" id="modalText">
-        </div>
-
-        <button
-            class="modal-button"
-            id="modalButton"
-            onclick="closeModal()"
-        >
-            Понятно
-        </button>
-
-    </div>
+</div>
 
 </div>
 
 
 <script>
 
-/* TELEGRAM */
+const tg = window.Telegram?.WebApp;
 
-const tg = window.Telegram && window.Telegram.WebApp;
-
-if(tg){
+if (tg) {
     tg.ready();
     tg.expand();
-
-    try{
-        tg.setHeaderColor("#08090b");
-        tg.setBackgroundColor("#08090b");
-    }catch(e){}
 }
 
+let currentLanguage = localStorage.getItem("bizdeLanguage") || "kk";
 
-/* MODAL */
+function showPage(pageId, element) {
 
-function showModal(title,text,buttonText="Понятно"){
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
 
-    document.getElementById("modalTitle").textContent = title;
+    document.getElementById(pageId).classList.add("active");
 
-    document.getElementById("modalText").innerHTML = text;
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
+    });
 
-    document.getElementById("modalButton").textContent = buttonText;
-
-    document.getElementById("modal").classList.add("show");
-}
-
-
-function closeModal(event){
-
-    if(
-        !event ||
-        event.target.id === "modal" ||
-        event.target.classList.contains("close")
-    ){
-        document.getElementById("modal").classList.remove("show");
-    }
-
-}
-
-
-/* HOME */
-
-function home(){
+    element.classList.add("active");
 
     window.scrollTo({
-        top:0,
-        behavior:"smooth"
+        top: 0,
+        behavior: "smooth"
     });
-
-    setActiveNav(0);
 }
 
-
-/* CATEGORIES */
-
-function scrollToCategories(){
-
-    document
-        .getElementById("categories")
-        .scrollIntoView({
-            behavior:"smooth"
-        });
-
-    setActiveNav(1);
+function openLanguage() {
+    document.getElementById("languageOverlay").style.display = "block";
 }
 
-
-function openCategory(name){
-
-    showModal(
-        name,
-        "<b>Предложения в категории</b><br><br>" +
-        "Здесь будут отображаться партнёры, " +
-        "скидки и специальные предложения категории " +
-        "<b>" + name + "</b>.<br><br>" +
-        "🔥 Скоро добавим новые предложения.",
-        "Вернуться"
-    );
-}
-
-
-function showAllCategories(){
-
-    scrollToCategories();
-
-}
-
-
-/* PARTNER */
-
-function openPartner(){
-
-    showModal(
-        "🍽️ Восточная кухня",
-        "<b>Ресторан • Павлодар</b><br><br>" +
-        "Специальное предложение для участников BIZDE.KZ.<br><br>" +
-        "🎟 Условия предложения появятся здесь после подключения партнёра.",
-        "Закрыть"
-    );
-}
-
-
-/* PREMIUM */
-
-function openPremium(){
-
-    showModal(
-        "🎟 BIZDE Premium",
-        "<b>Больше выгоды — больше возможностей.</b><br><br>" +
-        "С Premium пользователи смогут получать " +
-        "специальные предложения и скидки от партнёров BIZDE.KZ.<br><br>" +
-        "💳 Подключение подписки будет доступно после запуска оплаты.",
-        "Понятно"
-    );
-
-}
-
-
-/* PROFILE */
-
-function openProfile(){
-
-    let name = "Пользователь";
-    let username = "";
-
-    if(
-        tg &&
-        tg.initDataUnsafe &&
-        tg.initDataUnsafe.user
-    ){
-
-        const user = tg.initDataUnsafe.user;
-
-        name = user.first_name || "Пользователь";
-
-        if(user.last_name){
-            name += " " + user.last_name;
-        }
-
-        if(user.username){
-            username = "@" + user.username;
-        }
-
+function closeLanguage(event) {
+    if (event.target.id === "languageOverlay") {
+        document.getElementById("languageOverlay").style.display = "none";
     }
-
-    showModal(
-        "👤 Профиль",
-        "<div class='profile-card'>" +
-        "<div class='avatar'>👤</div>" +
-        "<div class='profile-name'>" +
-        name +
-        "</div>" +
-        "<div class='profile-status'>" +
-        (username || "Telegram пользователь") +
-        "</div><br>" +
-        "🎟 Подписка: <b>Не активна</b>" +
-        "</div>",
-        "Закрыть"
-    );
-
 }
 
+function setLanguage(lang) {
 
-/* SEARCH */
+    currentLanguage = lang;
 
-function searchPartners(){
+    localStorage.setItem("bizdeLanguage", lang);
 
-    const value =
-        document
-        .getElementById("searchInput")
-        .value
-        .toLowerCase()
-        .trim();
+    document.documentElement.lang = lang;
 
-    const partners =
-        document.querySelectorAll(".partner");
+    const kk = lang === "kk";
 
-    let found = false;
+    document.querySelector(".lang").textContent = kk ? "ҚАЗ" : "РУС";
 
-    partners.forEach(partner => {
+    document.querySelector(".language-box h2").textContent =
+        kk ? "Тілді таңдаңыз" : "Выберите язык";
 
-        const text =
-            partner
-            .getAttribute("data-search")
-            .toLowerCase();
-
-        if(!value || text.includes(value)){
-
-            partner.style.display = "block";
-
-            found = true;
-
-        }else{
-
-            partner.style.display = "none";
-
-        }
-
+    document.querySelectorAll("[data-kk]").forEach(el => {
+        el.textContent = kk ? el.dataset.kk : el.dataset.ru;
     });
 
-    document.getElementById("emptySearch").style.display =
-        found ? "none" : "block";
+    document.getElementById("hello").textContent =
+        kk ? "Бізде тиімдірек." : "Выгоднее вместе с BIZDE.";
 
-}
+    document.getElementById("heroText").textContent =
+        kk ? "Артықшылықтар мен жеңілдіктер бір жерде" :
+        "Привилегии и скидки в одном месте";
 
+    document.getElementById("searchInput").placeholder =
+        kk ? "Мейрамхана, қызмет іздеу..." :
+        "Поиск ресторана, услуги...";
 
-/* NAV */
+    document.getElementById("categoriesTitle").textContent =
+        kk ? "Санаттар" : "Категории";
 
-function setActiveNav(index){
+    document.getElementById("allButton").textContent =
+        kk ? "Барлығы" : "Все";
 
-    document
-        .querySelectorAll(".nav-item")
-        .forEach((item,i)=>{
+    document.getElementById("promoSmall").textContent =
+        kk ? "BIZDE артықшылықтары" : "Преимущества BIZDE";
 
-            item.classList.toggle(
-                "active",
-                i === index
-            );
+    document.getElementById("promoTitle").textContent =
+        kk ? "70%-ға дейін жеңілдіктер" : "Скидки до 70%";
 
-        });
+    document.getElementById("promoButton").textContent =
+        kk ? "Ұсыныстарды көру" : "Смотреть предложения";
 
-}
+    document.getElementById("popularTitle").textContent =
+        kk ? "Танымал" : "Популярное";
 
+    document.getElementById("memberTitle").textContent =
+        kk ? "Сіздің картаңыз" : "Ваша карта";
 
-/* TELEGRAM BACK BUTTON */
+    document.getElementById("f1").textContent =
+        kk ? "Жеңілдіктер" : "Скидки";
 
-if(tg){
+    document.getElementById("f1p").textContent =
+        kk ? "70%-ға дейін" : "До 70%";
 
-    tg.BackButton.onClick(function(){
+    document.getElementById("f2").textContent =
+        kk ? "Артықшылықтар" : "Привилегии";
 
-        document
-            .getElementById("modal")
-            .classList.remove("show");
+    document.getElementById("f2p").textContent =
+        kk ? "Тек сіз үшін" : "Только для вас";
 
-        tg.BackButton.hide();
+    document.getElementById("f3").textContent =
+        kk ? "Бонустар" : "Бонусы";
 
+    document.getElementById("f3p").textContent =
+        kk ? "Бонус және кэшбэк" : "Бонусы и кэшбэк";
+
+    document.getElementById("f4").textContent =
+        kk ? "Ыңғайлы" : "Всегда под рукой";
+
+    document.getElementById("f4p").textContent =
+        kk ? "Әрқашан қолыңызда" : "Удобно";
+
+    document.getElementById("favTitle").textContent =
+        kk ? "Таңдаулылар" : "Избранное";
+
+    document.getElementById("favText").textContent =
+        kk ? "Сақталған серіктестеріңіз" :
+        "Ваши сохранённые партнёры";
+
+    document.getElementById("favPartner").textContent =
+        kk ? "Шығыс асханасы" : "Восточная кухня";
+
+    document.getElementById("mapTitle").textContent =
+        kk ? "Карта" : "Карта";
+
+    document.getElementById("mapText").textContent =
+        kk ? "Серіктестерді жақын жерден табыңыз" :
+        "Найдите партнёров рядом";
+
+    document.getElementById("profileName").textContent =
+        kk ? "Қатысушы" : "Участник";
+
+    document.getElementById("profileStatus").textContent =
+        kk ? "Белсенді мүшелік" : "Активная подписка";
+
+    document.getElementById("subscription").textContent =
+        kk ? "🎟 Менің жазылымым" : "🎟 Моя подписка";
+
+    document.getElementById("myCard").textContent =
+        kk ? "💳 Қатысушы картасы" : "💳 Карта участника";
+
+    document.getElementById("history").textContent =
+        kk ? "◷ Тарих" : "◷ История";
+
+    document.getElementById("savings").textContent =
+        kk ? "₸ Менің үнемдеуім" : "₸ Моя экономия";
+
+    document.getElementById("settings").textContent =
+        kk ? "⚙ Баптаулар" : "⚙ Настройки";
+
+    document.getElementById("navHome").textContent =
+        kk ? "Басты бет" : "Главная";
+
+    document.getElementById("navFav").textContent =
+        kk ? "Таңдаулы" : "Избранное";
+
+    document.getElementById("navMap").textContent =
+        kk ? "Карта" : "Карта";
+
+    document.getElementById("navProfile").textContent =
+        kk ? "Профиль" : "Профиль";
+
+    document.querySelectorAll(".language-option").forEach(btn => {
+        btn.classList.remove("active");
     });
 
+    document.querySelector(
+        lang === "kk"
+        ? ".language-option:nth-child(2)"
+        : ".language-option:nth-child(3)"
+    ).classList.add("active");
+
+    document.getElementById("languageOverlay").style.display = "none";
 }
 
-
-/* CLOSE MODAL WITH ESC */
-
-document.addEventListener(
-    "keydown",
-    function(event){
-
-        if(event.key === "Escape"){
-
-            document
-                .getElementById("modal")
-                .classList.remove("show");
-
-        }
-
-    }
-);
+setLanguage(currentLanguage);
 
 </script>
 
