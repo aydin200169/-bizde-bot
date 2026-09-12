@@ -1,11 +1,15 @@
 import os
 import json
+import time
+import hmac
+import hashlib
 import logging
 import threading
+from urllib.parse import parse_qsl
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
 
 import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from telegram import (
     Update,
@@ -21,34 +25,15 @@ from telegram.ext import (
 )
 
 
-# ==========================================
+# =========================================================
 # НАСТРОЙКИ
-# ==========================================
+# =========================================================
 
 TOKEN = os.environ.get("BOT_TOKEN")
-
-WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
-
-PORT = int(os.environ.get("PORT", "10000"))
-
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-
-# ==========================================
-# LOGGING
-# ==========================================
-
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
-
-
-# ==========================================
-# ПРОВЕРКА НАСТРОЕК
-# ==========================================
+WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
+PORT = int(os.environ.get("PORT", "10000"))
 
 if not TOKEN:
     raise RuntimeError(
@@ -61,20 +46,36 @@ if not DATABASE_URL:
     )
 
 
-# ==========================================
+# =========================================================
+# LOGGING
+# =========================================================
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
+
+logger = logging.getLogger("BIZDE")
+
+
+# =========================================================
 # DATABASE
-# ==========================================
+# =========================================================
 
 def get_db():
     return psycopg2.connect(DATABASE_URL)
 
 
 def init_database():
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
+    connection = None
 
-        cursor.execute("""
+    try:
+        connection = get_db()
+
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 telegram_id BIGINT UNIQUE NOT NULL,
@@ -83,19 +84,28 @@ def init_database():
                 phone TEXT,
                 language TEXT DEFAULT 'ru',
                 subscription_active BOOLEAN DEFAULT FALSE,
-                registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+                registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+        )
 
-        conn.commit()
+        connection.commit()
         cursor.close()
-        conn.close()
 
         logger.info("PostgreSQL database initialized successfully.")
 
     except Exception as e:
         logger.error(f"Database initialization error: {e}")
+
+        if connection:
+            connection.rollback()
+
         raise
+
+    finally:
+        if connection:
+            connection.close()
 
 
 def save_user(
@@ -103,13 +113,17 @@ def save_user(
     name=None,
     username=None,
     phone=None,
-    language="ru"
+    language="ru",
 ):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
+    connection = None
 
-        cursor.execute("""
+    try:
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute(
+            """
             INSERT INTO users (
                 telegram_id,
                 name,
@@ -118,37 +132,67 @@ def save_user(
                 language
             )
             VALUES (%s, %s, %s, %s, %s)
+
             ON CONFLICT (telegram_id)
             DO UPDATE SET
-                name = EXCLUDED.name,
-                username = EXCLUDED.username
-        """, (
-            telegram_id,
-            name,
-            username,
-            phone,
-            language
-        ))
+                name = COALESCE(EXCLUDED.name, users.name),
+                username = COALESCE(EXCLUDED.username, users.username),
+                phone = COALESCE(EXCLUDED.phone, users.phone),
+                language = COALESCE(EXCLUDED.language, users.language),
+                updated_at = CURRENT_TIMESTAMP
 
-        conn.commit()
+            RETURNING
+                id,
+                telegram_id,
+                name,
+                username,
+                phone,
+                language,
+                subscription_active,
+                registered_at;
+            """,
+            (
+                telegram_id,
+                name,
+                username,
+                phone,
+                language,
+            ),
+        )
+
+        user = cursor.fetchone()
+
+        connection.commit()
 
         cursor.close()
-        conn.close()
 
-        return True
+        return dict(user) if user else None
 
     except Exception as e:
         logger.error(f"Save user error: {e}")
-        return False
+
+        if connection:
+            connection.rollback()
+
+        return None
+
+    finally:
+        if connection:
+            connection.close()
 
 
 def get_user(telegram_id):
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
+    connection = None
 
-        cursor.execute("""
+    try:
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute(
+            """
             SELECT
+                id,
                 telegram_id,
                 name,
                 username,
@@ -158,34 +202,116 @@ def get_user(telegram_id):
                 registered_at
             FROM users
             WHERE telegram_id = %s
-        """, (telegram_id,))
+            LIMIT 1;
+            """,
+            (telegram_id,),
+        )
 
-        row = cursor.fetchone()
+        user = cursor.fetchone()
 
         cursor.close()
-        conn.close()
 
-        if not row:
-            return None
-
-        return {
-            "telegram_id": row[0],
-            "name": row[1],
-            "username": row[2],
-            "phone": row[3],
-            "language": row[4],
-            "subscription_active": row[5],
-            "registered_at": str(row[6])
-        }
+        return dict(user) if user else None
 
     except Exception as e:
         logger.error(f"Get user error: {e}")
         return None
 
+    finally:
+        if connection:
+            connection.close()
 
-# ==========================================
-# HEALTH + API SERVER
-# ==========================================
+
+# =========================================================
+# TELEGRAM MINI APP AUTH
+# =========================================================
+
+def validate_init_data(init_data):
+    """
+    Проверяет Telegram Web App initData.
+
+    Возвращает данные пользователя только если подпись
+    действительно соответствует BOT_TOKEN.
+    """
+
+    if not init_data:
+        return None
+
+    try:
+        parsed = dict(parse_qsl(init_data, keep_blank_values=True))
+
+        received_hash = parsed.pop("hash", None)
+
+        if not received_hash:
+            logger.warning("initData does not contain hash.")
+            return None
+
+        # Формируем data-check-string
+        data_check_string = "\n".join(
+            f"{key}={parsed[key]}"
+            for key in sorted(parsed.keys())
+        )
+
+        # Секретный ключ Telegram Web App
+        secret_key = hmac.new(
+            b"WebAppData",
+            TOKEN.encode(),
+            hashlib.sha256,
+        ).digest()
+
+        # Ожидаемый hash
+        calculated_hash = hmac.new(
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        if not hmac.compare_digest(
+            calculated_hash,
+            received_hash,
+        ):
+            logger.warning("Invalid Telegram initData hash.")
+            return None
+
+        # Проверяем свежесть авторизации
+        auth_date = parsed.get("auth_date")
+
+        if auth_date:
+            try:
+                auth_timestamp = int(auth_date)
+
+                # 24 часа
+                if time.time() - auth_timestamp > 86400:
+                    logger.warning("Telegram initData is expired.")
+                    return None
+
+            except ValueError:
+                logger.warning("Invalid auth_date.")
+                return None
+
+        # Получаем Telegram user
+        user_json = parsed.get("user")
+
+        if not user_json:
+            logger.warning("Telegram user is missing.")
+            return None
+
+        telegram_user = json.loads(user_json)
+
+        if not telegram_user.get("id"):
+            logger.warning("Telegram user ID is missing.")
+            return None
+
+        return telegram_user
+
+    except Exception as e:
+        logger.error(f"initData validation error: {e}")
+        return None
+
+
+# =========================================================
+# HTTP SERVER
+# =========================================================
 
 class HealthHandler(BaseHTTPRequestHandler):
 
@@ -194,10 +320,12 @@ class HealthHandler(BaseHTTPRequestHandler):
             "Access-Control-Allow-Origin",
             "*"
         )
+
         self.send_header(
             "Access-Control-Allow-Methods",
             "GET, POST, OPTIONS"
         )
+
         self.send_header(
             "Access-Control-Allow-Headers",
             "Content-Type"
@@ -205,9 +333,10 @@ class HealthHandler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
 
-        response = json.dumps(
+        body = json.dumps(
             data,
-            ensure_ascii=False
+            ensure_ascii=False,
+            default=str
         ).encode("utf-8")
 
         self.send_response(status)
@@ -219,14 +348,14 @@ class HealthHandler(BaseHTTPRequestHandler):
 
         self.send_header(
             "Content-Length",
-            str(len(response))
+            str(len(body))
         )
 
         self.send_cors()
 
         self.end_headers()
 
-        self.wfile.write(response)
+        self.wfile.write(body)
 
     def do_OPTIONS(self):
 
@@ -238,135 +367,146 @@ class HealthHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        parsed = urlparse(self.path)
+        try:
 
-        # --------------------------
-        # HEALTH CHECK
-        # --------------------------
+            if self.path == "/" or self.path == "/health":
 
-        if parsed.path == "/" or parsed.path == "/health":
+                self.send_response(200)
 
-            self.send_response(200)
+                self.send_header(
+                    "Content-Type",
+                    "text/plain; charset=utf-8"
+                )
 
-            self.send_header(
-                "Content-Type",
-                "text/plain; charset=utf-8"
-            )
+                self.send_cors()
 
-            self.send_cors()
+                self.end_headers()
 
-            self.end_headers()
-
-            self.wfile.write(
-                b"BIZDE.KZ is running!"
-            )
-
-            return
-
-        # --------------------------
-        # GET USER
-        # --------------------------
-
-        if parsed.path == "/api/user":
-
-            params = parse_qs(parsed.query)
-
-            telegram_id = params.get(
-                "telegram_id",
-                [None]
-            )[0]
-
-            if not telegram_id:
-
-                self.send_json({
-                    "success": False,
-                    "error": "telegram_id is required"
-                }, 400)
+                self.wfile.write(
+                    b"BIZDE.KZ is running!"
+                )
 
                 return
 
-            try:
-                telegram_id = int(telegram_id)
+            # -------------------------------------------------
+            # GET USER
+            # -------------------------------------------------
 
-            except ValueError:
+            if self.path.startswith("/api/user"):
 
-                self.send_json({
-                    "success": False,
-                    "error": "Invalid telegram_id"
-                }, 400)
+                from urllib.parse import urlparse
 
-                return
+                parsed_url = urlparse(self.path)
 
-            user = get_user(telegram_id)
-
-            if not user:
-
-                self.send_json({
-                    "success": True,
-                    "registered": False,
-                    "user": None
-                })
-
-                return
-
-            self.send_json({
-                "success": True,
-                "registered": True,
-                "user": user
-            })
-
-            return
-
-        # --------------------------
-        # 404
-        # --------------------------
-
-        self.send_json({
-            "success": False,
-            "error": "Not found"
-        }, 404)
-
-    def do_POST(self):
-
-        parsed = urlparse(self.path)
-
-        # --------------------------
-        # REGISTER USER
-        # --------------------------
-
-        if parsed.path == "/api/register":
-
-            try:
-
-                content_length = int(
-                    self.headers.get(
-                        "Content-Length",
-                        "0"
+                query_params = dict(
+                    parse_qsl(
+                        parsed_url.query,
+                        keep_blank_values=True
                     )
                 )
 
-                body = self.rfile.read(
-                    content_length
-                )
-
-                data = json.loads(
-                    body.decode("utf-8")
-                )
-
-                telegram_id = data.get(
+                telegram_id = query_params.get(
                     "telegram_id"
                 )
 
-                name = data.get(
-                    "name"
+                if not telegram_id:
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "telegram_id is required"
+                        },
+                        400
+                    )
+
+                    return
+
+                try:
+                    telegram_id = int(telegram_id)
+
+                except ValueError:
+
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "Invalid telegram_id"
+                        },
+                        400
+                    )
+
+                    return
+
+                user = get_user(telegram_id)
+
+                if not user:
+
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "User not found"
+                        },
+                        404
+                    )
+
+                    return
+
+                self.send_json(
+                    {
+                        "success": True,
+                        "user": user
+                    }
                 )
 
-                username = data.get(
-                    "username"
-                )
+                return
 
-                phone = data.get(
-                    "phone"
+            self.send_json(
+                {
+                    "success": False,
+                    "error": "Not found"
+                },
+                404
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"GET request error: {e}"
+            )
+
+            self.send_json(
+                {
+                    "success": False,
+                    "error": "Server error"
+                },
+                500
+            )
+
+    def do_POST(self):
+
+        try:
+
+            content_length = int(
+                self.headers.get(
+                    "Content-Length",
+                    0
+                )
+            )
+
+            body = self.rfile.read(
+                content_length
+            )
+
+            data = json.loads(
+                body.decode("utf-8")
+            )
+
+            # =================================================
+            # SECURE TELEGRAM AUTH
+            # =================================================
+
+            if self.path == "/api/auth":
+
+                init_data = data.get(
+                    "init_data"
                 )
 
                 language = data.get(
@@ -374,79 +514,175 @@ class HealthHandler(BaseHTTPRequestHandler):
                     "ru"
                 )
 
-                if not telegram_id:
+                phone = data.get(
+                    "phone"
+                )
 
-                    self.send_json({
-                        "success": False,
-                        "error": "telegram_id is required"
-                    }, 400)
+                if language not in ["ru", "kk"]:
+                    language = "ru"
 
-                    return
+                telegram_user = validate_init_data(
+                    init_data
+                )
 
-                try:
-                    telegram_id = int(
-                        telegram_id
+                if not telegram_user:
+
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "Telegram authorization failed"
+                        },
+                        401
                     )
 
-                except ValueError:
+                    return
 
-                    self.send_json({
-                        "success": False,
-                        "error": "Invalid telegram_id"
-                    }, 400)
+                telegram_id = int(
+                    telegram_user["id"]
+                )
+
+                first_name = telegram_user.get(
+                    "first_name",
+                    ""
+                )
+
+                last_name = telegram_user.get(
+                    "last_name",
+                    ""
+                )
+
+                username = telegram_user.get(
+                    "username"
+                )
+
+                full_name = (
+                    f"{first_name} {last_name}"
+                ).strip()
+
+                user = save_user(
+                    telegram_id=telegram_id,
+                    name=full_name,
+                    username=username,
+                    phone=phone,
+                    language=language,
+                )
+
+                if not user:
+
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "Could not save user"
+                        },
+                        500
+                    )
 
                     return
 
-                success = save_user(
+                self.send_json(
+                    {
+                        "success": True,
+                        "user": user
+                    }
+                )
+
+                return
+
+            # =================================================
+            # OLD REGISTER ENDPOINT
+            # =================================================
+
+            if self.path == "/api/register":
+
+                init_data = data.get(
+                    "init_data"
+                )
+
+                language = data.get(
+                    "language",
+                    "ru"
+                )
+
+                phone = data.get(
+                    "phone"
+                )
+
+                telegram_user = validate_init_data(
+                    init_data
+                )
+
+                if not telegram_user:
+
+                    self.send_json(
+                        {
+                            "success": False,
+                            "error": "Telegram authorization failed"
+                        },
+                        401
+                    )
+
+                    return
+
+                telegram_id = int(
+                    telegram_user["id"]
+                )
+
+                first_name = telegram_user.get(
+                    "first_name",
+                    ""
+                )
+
+                last_name = telegram_user.get(
+                    "last_name",
+                    ""
+                )
+
+                username = telegram_user.get(
+                    "username"
+                )
+
+                name = (
+                    f"{first_name} {last_name}"
+                ).strip()
+
+                user = save_user(
                     telegram_id=telegram_id,
                     name=name,
                     username=username,
                     phone=phone,
-                    language=language
+                    language=language,
                 )
 
-                if not success:
-
-                    self.send_json({
-                        "success": False,
-                        "error": "Database error"
-                    }, 500)
-
-                    return
-
-                user = get_user(
-                    telegram_id
+                self.send_json(
+                    {
+                        "success": True,
+                        "user": user
+                    }
                 )
-
-                self.send_json({
-                    "success": True,
-                    "registered": True,
-                    "user": user
-                })
 
                 return
 
-            except Exception as e:
-
-                logger.error(
-                    f"Registration API error: {e}"
-                )
-
-                self.send_json({
+            self.send_json(
+                {
                     "success": False,
-                    "error": "Invalid request"
-                }, 400)
+                    "error": "Not found"
+                },
+                404
+            )
 
-                return
+        except Exception as e:
 
-        # --------------------------
-        # 404
-        # --------------------------
+            logger.error(
+                f"POST request error: {e}"
+            )
 
-        self.send_json({
-            "success": False,
-            "error": "Not found"
-        }, 404)
+            self.send_json(
+                {
+                    "success": False,
+                    "error": "Server error"
+                },
+                500
+            )
 
     def log_message(self, format, *args):
         return
@@ -474,50 +710,43 @@ def run_server():
         )
 
 
-# ==========================================
-# TELEGRAM KEYBOARD
-# ==========================================
+# =========================================================
+# TELEGRAM BOT
+# =========================================================
 
 def main_keyboard():
 
-    return InlineKeyboardMarkup([
-
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton(
-                "📱 Открыть BIZDE",
-                web_app=WebAppInfo(
-                    url=WEB_APP_URL
+            [
+                InlineKeyboardButton(
+                    "📱 Открыть BIZDE",
+                    web_app=WebAppInfo(
+                        url=WEB_APP_URL
+                    )
                 )
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "📂 Категории",
-                callback_data="categories"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🏪 Партнёры",
-                callback_data="partners"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🎟 Моя подписка",
-                callback_data="subscription"
-            )
+            ],
+            [
+                InlineKeyboardButton(
+                    "📂 Категории",
+                    callback_data="categories"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏪 Партнёры",
+                    callback_data="partners"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎟 Моя подписка",
+                    callback_data="subscription"
+                )
+            ],
         ]
+    )
 
-    ])
-
-
-# ==========================================
-# START
-# ==========================================
 
 async def start(
     update: Update,
@@ -531,10 +760,11 @@ async def start(
         if not user:
             return
 
-        save_user(
+        saved_user = save_user(
             telegram_id=user.id,
-            name=user.first_name,
-            username=user.username
+            name=user.full_name,
+            username=user.username,
+            language="ru",
         )
 
         await update.message.reply_text(
@@ -543,9 +773,12 @@ async def start(
 
             "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
 
-            "Твой доступ к привилегиям уже создан.\n"
-            "Открывай BIZDE и пользуйся предложениями "
-            "наших партнёров.",
+            "Твой клуб привилегий.\n"
+            "Получай специальные условия "
+            "у наших партнёров.\n\n"
+
+            "Открывай BIZDE и пользуйся "
+            "своими привилегиями.",
 
             reply_markup=main_keyboard()
         )
@@ -557,62 +790,57 @@ async def start(
         )
 
 
-# ==========================================
+# =========================================================
 # CATEGORIES
-# ==========================================
+# =========================================================
 
 def categories_keyboard():
 
-    return InlineKeyboardMarkup([
-
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton(
-                "☕ Кафе и рестораны",
-                callback_data="cafes"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🛍 Магазины",
-                callback_data="shops"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🏋️ Спорт",
-                callback_data="sport"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "💇 Красота",
-                callback_data="beauty"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🎮 Развлечения",
-                callback_data="entertainment"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "⬅️ Назад",
-                callback_data="back"
-            )
+            [
+                InlineKeyboardButton(
+                    "☕ Кафе и рестораны",
+                    callback_data="cafes"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🛍 Магазины",
+                    callback_data="shops"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🏋️ Спорт",
+                    callback_data="sport"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "💇 Красота",
+                    callback_data="beauty"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎮 Развлечения",
+                    callback_data="entertainment"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "⬅️ Назад",
+                    callback_data="back"
+                )
+            ],
         ]
+    )
 
-    ])
 
-
-# ==========================================
+# =========================================================
 # BUTTON HANDLER
-# ==========================================
+# =========================================================
 
 async def button_handler(
     update: Update,
@@ -625,9 +853,9 @@ async def button_handler(
 
         await query.answer()
 
-        # --------------------------
+        # -------------------------------------------------
         # CATEGORIES
-        # --------------------------
+        # -------------------------------------------------
 
         if query.data == "categories":
 
@@ -639,9 +867,9 @@ async def button_handler(
                 reply_markup=categories_keyboard()
             )
 
-        # --------------------------
+        # -------------------------------------------------
         # PARTNERS
-        # --------------------------
+        # -------------------------------------------------
 
         elif query.data == "partners":
 
@@ -667,8 +895,9 @@ async def button_handler(
 
                 "🏪 Партнёры BIZDE.KZ\n\n"
 
-                "Здесь будут появляться наши партнёры "
-                "и их специальные предложения.\n\n"
+                "Здесь будут появляться "
+                "наши партнёры и их "
+                "специальные предложения.\n\n"
 
                 "🔥 Скоро добавим первые заведения!",
 
@@ -677,9 +906,9 @@ async def button_handler(
                 )
             )
 
-        # --------------------------
+        # -------------------------------------------------
         # SUBSCRIPTION
-        # --------------------------
+        # -------------------------------------------------
 
         elif query.data == "subscription":
 
@@ -707,8 +936,9 @@ async def button_handler(
 
                 "Статус: ❌ Не активна\n\n"
 
-                "После подключения подписки ты сможешь "
-                "пользоваться специальными предложениями "
+                "После подключения подписки "
+                "ты сможешь пользоваться "
+                "специальными предложениями "
                 "партнёров.",
 
                 reply_markup=InlineKeyboardMarkup(
@@ -716,9 +946,9 @@ async def button_handler(
                 )
             )
 
-        # --------------------------
+        # -------------------------------------------------
         # BUY SUBSCRIPTION
-        # --------------------------
+        # -------------------------------------------------
 
         elif query.data == "buy_subscription":
 
@@ -726,27 +956,27 @@ async def button_handler(
 
                 "💳 Подписка BIZDE.KZ\n\n"
 
-                "Функция оплаты пока находится "
-                "в разработке.\n\n"
+                "Функция оплаты пока "
+                "находится в разработке.\n\n"
 
-                "Скоро здесь появится возможность "
-                "оформить подписку.",
+                "Скоро здесь появится "
+                "возможность оформить подписку.",
 
-                reply_markup=InlineKeyboardMarkup([
-
+                reply_markup=InlineKeyboardMarkup(
                     [
-                        InlineKeyboardButton(
-                            "⬅️ Назад",
-                            callback_data="subscription"
-                        )
+                        [
+                            InlineKeyboardButton(
+                                "⬅️ Назад",
+                                callback_data="subscription"
+                            )
+                        ]
                     ]
-
-                ])
+                )
             )
 
-        # --------------------------
+        # -------------------------------------------------
         # CATEGORY
-        # --------------------------
+        # -------------------------------------------------
 
         elif query.data in [
             "cafes",
@@ -771,8 +1001,7 @@ async def button_handler(
                     "💇 Красота",
 
                 "entertainment":
-                    "🎮 Развлечения"
-
+                    "🎮 Развлечения",
             }
 
             category_name = names[
@@ -785,31 +1014,30 @@ async def button_handler(
 
                 "🏪 Пока здесь нет партнёров.\n\n"
 
-                "Мы уже работаем над добавлением "
-                "новых предложений 🔥",
+                "Мы уже работаем над "
+                "добавлением новых предложений 🔥",
 
-                reply_markup=InlineKeyboardMarkup([
-
+                reply_markup=InlineKeyboardMarkup(
                     [
-                        InlineKeyboardButton(
-                            "📂 Другие категории",
-                            callback_data="categories"
-                        )
-                    ],
-
-                    [
-                        InlineKeyboardButton(
-                            "⬅️ Главное меню",
-                            callback_data="back"
-                        )
+                        [
+                            InlineKeyboardButton(
+                                "📂 Другие категории",
+                                callback_data="categories"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "⬅️ Главное меню",
+                                callback_data="back"
+                            )
+                        ],
                     ]
-
-                ])
+                )
             )
 
-        # --------------------------
+        # -------------------------------------------------
         # BACK
-        # --------------------------
+        # -------------------------------------------------
 
         elif query.data == "back":
 
@@ -828,9 +1056,9 @@ async def button_handler(
         )
 
 
-# ==========================================
+# =========================================================
 # ERROR HANDLER
-# ==========================================
+# =========================================================
 
 async def error_handler(
     update: object,
@@ -843,9 +1071,9 @@ async def error_handler(
     )
 
 
-# ==========================================
+# =========================================================
 # START SERVER + DATABASE
-# ==========================================
+# =========================================================
 
 init_database()
 
@@ -855,9 +1083,9 @@ threading.Thread(
 ).start()
 
 
-# ==========================================
-# TELEGRAM APPLICATION
-# ==========================================
+# =========================================================
+# START BOT
+# =========================================================
 
 app = (
     Application
@@ -883,10 +1111,6 @@ app.add_error_handler(
     error_handler
 )
 
-
-# ==========================================
-# RUN
-# ==========================================
 
 logger.info(
     "BIZDE.KZ Telegram bot is starting..."
