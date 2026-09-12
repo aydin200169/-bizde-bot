@@ -85,7 +85,10 @@ def init_database():
             )
         """)
 
-        # На случай если таблица уже существовала
+        # -------------------------------------------------
+        # ИСПРАВЛЕНИЕ СТАРОЙ БАЗЫ
+        # -------------------------------------------------
+
         cur.execute("""
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS member_code TEXT UNIQUE
@@ -104,6 +107,16 @@ def init_database():
         cur.execute("""
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS language VARCHAR(5) DEFAULT 'ru'
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         """)
 
         # -------------------------------------------------
@@ -152,6 +165,7 @@ def init_database():
         count = cur.fetchone()[0]
 
         if count == 0:
+
             cur.execute("""
                 INSERT INTO partners
                 (
@@ -285,10 +299,13 @@ def generate_member_code():
 
 
 def get_unique_member_code(conn):
+
     while True:
+
         code = generate_member_code()
 
         cur = conn.cursor()
+
         cur.execute(
             "SELECT id FROM users WHERE member_code = %s",
             (code,)
@@ -309,9 +326,11 @@ def upsert_user(
     phone=None,
     language="ru"
 ):
+
     conn = get_db()
 
     try:
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -323,9 +342,11 @@ def upsert_user(
         existing = cur.fetchone()
 
         if existing:
+
             member_code = existing[1]
 
             if not member_code:
+
                 member_code = get_unique_member_code(conn)
 
                 cur.execute("""
@@ -346,7 +367,9 @@ def upsert_user(
                     member_code,
                     telegram_id
                 ))
+
             else:
+
                 cur.execute("""
                     UPDATE users
                     SET
@@ -365,6 +388,7 @@ def upsert_user(
                 ))
 
         else:
+
             member_code = get_unique_member_code(conn)
 
             cur.execute("""
@@ -394,10 +418,14 @@ def upsert_user(
 
 
 def get_user(telegram_id):
+
     conn = get_db()
 
     try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur = conn.cursor(
+            cursor_factory=RealDictCursor
+        )
 
         cur.execute("""
             SELECT
@@ -422,9 +450,11 @@ def get_user(telegram_id):
 
 
 def update_language(telegram_id, language):
+
     conn = get_db()
 
     try:
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -449,13 +479,20 @@ def update_language(telegram_id, language):
 # =========================================================
 
 def validate_telegram_init_data(init_data):
+
     if not init_data:
         return None
 
     try:
+
         from urllib.parse import parse_qsl
 
-        data = dict(parse_qsl(init_data, keep_blank_values=True))
+        data = dict(
+            parse_qsl(
+                init_data,
+                keep_blank_values=True
+            )
+        )
 
         received_hash = data.get("hash")
         auth_date = data.get("auth_date")
@@ -463,17 +500,21 @@ def validate_telegram_init_data(init_data):
         if not received_hash or not auth_date:
             return None
 
-        # Проверяем время
-        current_time = int(datetime.now(timezone.utc).timestamp())
+        current_time = int(
+            datetime.now(
+                timezone.utc
+            ).timestamp()
+        )
+
         auth_time = int(auth_date)
 
-        # 24 часа
         if current_time - auth_time > 86400:
             return None
 
         data_check = []
 
         for key in sorted(data.keys()):
+
             if key == "hash":
                 continue
 
@@ -481,7 +522,9 @@ def validate_telegram_init_data(init_data):
                 f"{key}={data[key]}"
             )
 
-        data_check_string = "\n".join(data_check)
+        data_check_string = "\n".join(
+            data_check
+        )
 
         secret_key = hmac.new(
             b"WebAppData",
@@ -501,12 +544,19 @@ def validate_telegram_init_data(init_data):
         ):
             return None
 
-        telegram_user = json.loads(data["user"])
+        telegram_user = json.loads(
+            data["user"]
+        )
 
         return telegram_user
 
     except Exception as e:
-        print("Telegram auth error:", e)
+
+        print(
+            "Telegram auth error:",
+            e
+        )
+
         return None
 
 
@@ -514,7 +564,12 @@ def validate_telegram_init_data(init_data):
 # JSON RESPONSE
 # =========================================================
 
-def send_json(handler, data, status=200):
+def send_json(
+    handler,
+    data,
+    status=200
+):
+
     body = json.dumps(
         data,
         ensure_ascii=False,
@@ -558,18 +613,26 @@ def send_json(handler, data, status=200):
 # =========================================================
 
 def read_json(handler):
+
     try:
+
         length = int(
-            handler.headers.get("Content-Length", 0)
+            handler.headers.get(
+                "Content-Length",
+                0
+            )
         )
 
-        raw = handler.rfile.read(length)
+        raw = handler.rfile.read(
+            length
+        )
 
         return json.loads(
             raw.decode("utf-8")
         )
 
     except Exception:
+
         return {}
 
 
@@ -579,7 +642,11 @@ def read_json(handler):
 
 class APIHandler(BaseHTTPRequestHandler):
 
-    def log_message(self, format, *args):
+    def log_message(
+        self,
+        format,
+        *args
+    ):
         return
 
     # -----------------------------------------------------
@@ -587,6 +654,7 @@ class APIHandler(BaseHTTPRequestHandler):
     # -----------------------------------------------------
 
     def do_OPTIONS(self):
+
         self.send_response(204)
 
         self.send_header(
@@ -612,12 +680,19 @@ class APIHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        parsed = urlparse(self.path)
+        parsed = urlparse(
+            self.path
+        )
+
         path = parsed.path
-        params = parse_qs(parsed.query)
+
+        params = parse_qs(
+            parsed.query
+        )
 
         # Health check
         if path == "/":
+
             self.send_response(200)
 
             self.send_header(
@@ -645,6 +720,7 @@ class APIHandler(BaseHTTPRequestHandler):
             )[0]
 
             if not telegram_id:
+
                 send_json(
                     self,
                     {
@@ -653,11 +729,15 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     400
                 )
+
                 return
 
-            user = get_user(int(telegram_id))
+            user = get_user(
+                int(telegram_id)
+            )
 
             if not user:
+
                 send_json(
                     self,
                     {
@@ -666,6 +746,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     404
                 )
+
                 return
 
             send_json(
@@ -692,19 +773,25 @@ class APIHandler(BaseHTTPRequestHandler):
             conn = get_db()
 
             try:
+
                 cur = conn.cursor(
                     cursor_factory=RealDictCursor
                 )
 
                 if category:
+
                     cur.execute("""
                         SELECT *
                         FROM partners
                         WHERE active = TRUE
                         AND category = %s
                         ORDER BY id DESC
-                    """, (category,))
+                    """, (
+                        category,
+                    ))
+
                 else:
+
                     cur.execute("""
                         SELECT *
                         FROM partners
@@ -715,6 +802,7 @@ class APIHandler(BaseHTTPRequestHandler):
                 partners = cur.fetchall()
 
             finally:
+
                 conn.close()
 
             send_json(
@@ -741,11 +829,14 @@ class APIHandler(BaseHTTPRequestHandler):
                 [None]
             )[0]
 
-            telegram_user = validate_telegram_init_data(
-                init_data
+            telegram_user = (
+                validate_telegram_init_data(
+                    init_data
+                )
             )
 
             if not telegram_user:
+
                 send_json(
                     self,
                     {
@@ -754,6 +845,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     401
                 )
+
                 return
 
             telegram_id = telegram_user["id"]
@@ -761,6 +853,7 @@ class APIHandler(BaseHTTPRequestHandler):
             conn = get_db()
 
             try:
+
                 cur = conn.cursor(
                     cursor_factory=RealDictCursor
                 )
@@ -780,11 +873,14 @@ class APIHandler(BaseHTTPRequestHandler):
                     WHERE t.telegram_id = %s
                     ORDER BY t.created_at DESC
                     LIMIT 100
-                """, (telegram_id,))
+                """, (
+                    telegram_id,
+                ))
 
                 history = cur.fetchall()
 
             finally:
+
                 conn.close()
 
             send_json(
@@ -815,7 +911,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
 
-        parsed = urlparse(self.path)
+        parsed = urlparse(
+            self.path
+        )
+
         path = parsed.path
 
         data = read_json(self)
@@ -826,14 +925,23 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/auth":
 
-            init_data = data.get("init_data")
-            language = data.get("language", "ru")
+            init_data = data.get(
+                "init_data"
+            )
 
-            telegram_user = validate_telegram_init_data(
-                init_data
+            language = data.get(
+                "language",
+                "ru"
+            )
+
+            telegram_user = (
+                validate_telegram_init_data(
+                    init_data
+                )
             )
 
             if not telegram_user:
+
                 send_json(
                     self,
                     {
@@ -842,6 +950,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     401
                 )
+
                 return
 
             telegram_id = telegram_user["id"]
@@ -857,7 +966,9 @@ class APIHandler(BaseHTTPRequestHandler):
             )
 
             name = (
-                first_name + " " + last_name
+                first_name
+                + " "
+                + last_name
             ).strip()
 
             username = telegram_user.get(
@@ -871,7 +982,9 @@ class APIHandler(BaseHTTPRequestHandler):
                 language=language
             )
 
-            user = get_user(telegram_id)
+            user = get_user(
+                telegram_id
+            )
 
             send_json(
                 self,
@@ -889,14 +1002,23 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/language":
 
-            init_data = data.get("init_data")
-            language = data.get("language", "ru")
+            init_data = data.get(
+                "init_data"
+            )
 
-            telegram_user = validate_telegram_init_data(
-                init_data
+            language = data.get(
+                "language",
+                "ru"
+            )
+
+            telegram_user = (
+                validate_telegram_init_data(
+                    init_data
+                )
             )
 
             if not telegram_user:
+
                 send_json(
                     self,
                     {
@@ -905,6 +1027,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     401
                 )
+
                 return
 
             telegram_id = telegram_user["id"]
@@ -930,9 +1053,12 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/verify-member":
 
-            member_code = data.get("member_code")
+            member_code = data.get(
+                "member_code"
+            )
 
             if not member_code:
+
                 send_json(
                     self,
                     {
@@ -941,11 +1067,13 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     400
                 )
+
                 return
 
             conn = get_db()
 
             try:
+
                 cur = conn.cursor(
                     cursor_factory=RealDictCursor
                 )
@@ -966,9 +1094,11 @@ class APIHandler(BaseHTTPRequestHandler):
                 user = cur.fetchone()
 
             finally:
+
                 conn.close()
 
             if not user:
+
                 send_json(
                     self,
                     {
@@ -977,6 +1107,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     404
                 )
+
                 return
 
             send_json(
@@ -985,7 +1116,9 @@ class APIHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "member": dict(user),
                     "active": bool(
-                        user["subscription_active"]
+                        user[
+                            "subscription_active"
+                        ]
                     )
                 }
             )
@@ -998,15 +1131,26 @@ class APIHandler(BaseHTTPRequestHandler):
 
         if path == "/api/use-offer":
 
-            init_data = data.get("init_data")
-            partner_id = data.get("partner_id")
-            receipt_amount = data.get("receipt_amount")
+            init_data = data.get(
+                "init_data"
+            )
 
-            telegram_user = validate_telegram_init_data(
-                init_data
+            partner_id = data.get(
+                "partner_id"
+            )
+
+            receipt_amount = data.get(
+                "receipt_amount"
+            )
+
+            telegram_user = (
+                validate_telegram_init_data(
+                    init_data
+                )
             )
 
             if not telegram_user:
+
                 send_json(
                     self,
                     {
@@ -1015,9 +1159,11 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     401
                 )
+
                 return
 
             if not partner_id:
+
                 send_json(
                     self,
                     {
@@ -1026,9 +1172,11 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     400
                 )
+
                 return
 
             if receipt_amount is None:
+
                 send_json(
                     self,
                     {
@@ -1037,9 +1185,11 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     400
                 )
+
                 return
 
             try:
+
                 receipt_amount = float(
                     receipt_amount
                 )
@@ -1048,6 +1198,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     raise ValueError()
 
             except Exception:
+
                 send_json(
                     self,
                     {
@@ -1056,6 +1207,7 @@ class APIHandler(BaseHTTPRequestHandler):
                     },
                     400
                 )
+
                 return
 
             telegram_id = telegram_user["id"]
@@ -1063,6 +1215,7 @@ class APIHandler(BaseHTTPRequestHandler):
             conn = get_db()
 
             try:
+
                 cur = conn.cursor(
                     cursor_factory=RealDictCursor
                 )
@@ -1081,6 +1234,7 @@ class APIHandler(BaseHTTPRequestHandler):
                 user = cur.fetchone()
 
                 if not user:
+
                     send_json(
                         self,
                         {
@@ -1089,9 +1243,13 @@ class APIHandler(BaseHTTPRequestHandler):
                         },
                         404
                     )
+
                     return
 
-                if not user["subscription_active"]:
+                if not user[
+                    "subscription_active"
+                ]:
+
                     send_json(
                         self,
                         {
@@ -1100,6 +1258,7 @@ class APIHandler(BaseHTTPRequestHandler):
                         },
                         403
                     )
+
                     return
 
                 # Получаем партнёра
@@ -1118,6 +1277,7 @@ class APIHandler(BaseHTTPRequestHandler):
                 partner = cur.fetchone()
 
                 if not partner:
+
                     send_json(
                         self,
                         {
@@ -1126,9 +1286,11 @@ class APIHandler(BaseHTTPRequestHandler):
                         },
                         404
                     )
+
                     return
 
                 if not partner["active"]:
+
                     send_json(
                         self,
                         {
@@ -1137,14 +1299,19 @@ class APIHandler(BaseHTTPRequestHandler):
                         },
                         403
                     )
+
                     return
 
                 discount = float(
-                    partner["discount_percent"]
+                    partner[
+                        "discount_percent"
+                    ]
                 )
 
                 savings = round(
-                    receipt_amount * discount / 100,
+                    receipt_amount
+                    * discount
+                    / 100,
                     2
                 )
 
@@ -1175,9 +1342,12 @@ class APIHandler(BaseHTTPRequestHandler):
                     UPDATE users
                     SET
                         total_savings =
-                            COALESCE(total_savings, 0)
-                            + %s,
-                        updated_at = CURRENT_TIMESTAMP
+                            COALESCE(
+                                total_savings,
+                                0
+                            ) + %s,
+                        updated_at =
+                            CURRENT_TIMESTAMP
                     WHERE telegram_id = %s
                 """, (
                     savings,
@@ -1187,17 +1357,23 @@ class APIHandler(BaseHTTPRequestHandler):
                 conn.commit()
 
             finally:
+
                 conn.close()
 
             send_json(
                 self,
                 {
                     "ok": True,
-                    "transaction_id": transaction["id"],
-                    "receipt_amount": receipt_amount,
-                    "discount_percent": discount,
-                    "savings": savings,
-                    "created_at": transaction["created_at"]
+                    "transaction_id":
+                        transaction["id"],
+                    "receipt_amount":
+                        receipt_amount,
+                    "discount_percent":
+                        discount,
+                    "savings":
+                        savings,
+                    "created_at":
+                        transaction["created_at"]
                 }
             )
 
@@ -1235,7 +1411,10 @@ def run_http_server():
 # TELEGRAM BOT
 # =========================================================
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
     user = update.effective_user
 
@@ -1317,6 +1496,7 @@ async def button_callback(
         conn = get_db()
 
         try:
+
             cur = conn.cursor()
 
             cur.execute("""
@@ -1332,21 +1512,32 @@ async def button_callback(
             partners = cur.fetchall()
 
         finally:
+
             conn.close()
 
         if not partners:
-            text = "🏪 Пока нет активных партнёров."
+
+            text = (
+                "🏪 Пока нет активных партнёров."
+            )
+
         else:
-            lines = ["🏪 Партнёры BIZDE:\n"]
+
+            lines = [
+                "🏪 Партнёры BIZDE:\n"
+            ]
 
             for partner in partners:
+
                 lines.append(
                     f"• {partner[0]}\n"
                     f"  {partner[1]} · "
                     f"{partner[2]}%"
                 )
 
-            text = "\n\n".join(lines)
+            text = "\n\n".join(
+                lines
+            )
 
         await query.message.reply_text(
             text
@@ -1358,9 +1549,14 @@ async def button_callback(
             query.from_user.id
         )
 
-        if user and user["subscription_active"]:
+        if user and user[
+            "subscription_active"
+        ]:
+
             status = "🟢 Активна"
+
         else:
+
             status = "⚪ Не активна"
 
         await query.message.reply_text(
@@ -1377,7 +1573,9 @@ async def button_callback(
 
 def main():
 
-    print("Starting BIZDE.KZ...")
+    print(
+        "Starting BIZDE.KZ..."
+    )
 
     init_database()
 
@@ -1409,7 +1607,9 @@ def main():
         )
     )
 
-    print("BIZDE bot started.")
+    print(
+        "BIZDE bot started."
+    )
 
     application.run_polling(
         drop_pending_updates=True
