@@ -1,7 +1,11 @@
 import os
-import threading
+import json
 import logging
+import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+
+import psycopg2
 
 from telegram import (
     Update,
@@ -17,9 +21,9 @@ from telegram.ext import (
 )
 
 
-# =========================================================
+# ==========================================
 # НАСТРОЙКИ
-# =========================================================
+# ==========================================
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
@@ -27,10 +31,12 @@ WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
 PORT = int(os.environ.get("PORT", "10000"))
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# =========================================================
-# ЛОГИ
-# =========================================================
+
+# ==========================================
+# LOGGING
+# ==========================================
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -40,21 +46,205 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# =========================================================
-# ВРЕМЕННОЕ ХРАНИЛИЩЕ
-# =========================================================
+# ==========================================
+# ПРОВЕРКА НАСТРОЕК
+# ==========================================
 
-users = {}
+if not TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN не найден. Добавь BOT_TOKEN в Render Environment."
+    )
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL не найден. Добавь DATABASE_URL в Render Environment."
+    )
 
 
-# =========================================================
-# HEALTH CHECK ДЛЯ RENDER
-# =========================================================
+# ==========================================
+# DATABASE
+# ==========================================
+
+def get_db():
+    return psycopg2.connect(DATABASE_URL)
+
+
+def init_database():
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                telegram_id BIGINT UNIQUE NOT NULL,
+                name TEXT,
+                username TEXT,
+                phone TEXT,
+                language TEXT DEFAULT 'ru',
+                subscription_active BOOLEAN DEFAULT FALSE,
+                registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        logger.info("PostgreSQL database initialized successfully.")
+
+    except Exception as e:
+        logger.error(f"Database initialization error: {e}")
+        raise
+
+
+def save_user(
+    telegram_id,
+    name=None,
+    username=None,
+    phone=None,
+    language="ru"
+):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO users (
+                telegram_id,
+                name,
+                username,
+                phone,
+                language
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (telegram_id)
+            DO UPDATE SET
+                name = EXCLUDED.name,
+                username = EXCLUDED.username
+        """, (
+            telegram_id,
+            name,
+            username,
+            phone,
+            language
+        ))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Save user error: {e}")
+        return False
+
+
+def get_user(telegram_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                telegram_id,
+                name,
+                username,
+                phone,
+                language,
+                subscription_active,
+                registered_at
+            FROM users
+            WHERE telegram_id = %s
+        """, (telegram_id,))
+
+        row = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not row:
+            return None
+
+        return {
+            "telegram_id": row[0],
+            "name": row[1],
+            "username": row[2],
+            "phone": row[3],
+            "language": row[4],
+            "subscription_active": row[5],
+            "registered_at": str(row[6])
+        }
+
+    except Exception as e:
+        logger.error(f"Get user error: {e}")
+        return None
+
+
+# ==========================================
+# HEALTH + API SERVER
+# ==========================================
 
 class HealthHandler(BaseHTTPRequestHandler):
 
+    def send_cors(self):
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            "*"
+        )
+        self.send_header(
+            "Access-Control-Allow-Methods",
+            "GET, POST, OPTIONS"
+        )
+        self.send_header(
+            "Access-Control-Allow-Headers",
+            "Content-Type"
+        )
+
+    def send_json(self, data, status=200):
+
+        response = json.dumps(
+            data,
+            ensure_ascii=False
+        ).encode("utf-8")
+
+        self.send_response(status)
+
+        self.send_header(
+            "Content-Type",
+            "application/json; charset=utf-8"
+        )
+
+        self.send_header(
+            "Content-Length",
+            str(len(response))
+        )
+
+        self.send_cors()
+
+        self.end_headers()
+
+        self.wfile.write(response)
+
+    def do_OPTIONS(self):
+
+        self.send_response(204)
+
+        self.send_cors()
+
+        self.end_headers()
+
     def do_GET(self):
-        if self.path == "/health" or self.path == "/":
+
+        parsed = urlparse(self.path)
+
+        # --------------------------
+        # HEALTH CHECK
+        # --------------------------
+
+        if parsed.path == "/" or parsed.path == "/health":
 
             self.send_response(200)
 
@@ -63,16 +253,200 @@ class HealthHandler(BaseHTTPRequestHandler):
                 "text/plain; charset=utf-8"
             )
 
+            self.send_cors()
+
             self.end_headers()
 
             self.wfile.write(
                 b"BIZDE.KZ is running!"
             )
 
-        else:
+            return
 
-            self.send_response(404)
-            self.end_headers()
+        # --------------------------
+        # GET USER
+        # --------------------------
+
+        if parsed.path == "/api/user":
+
+            params = parse_qs(parsed.query)
+
+            telegram_id = params.get(
+                "telegram_id",
+                [None]
+            )[0]
+
+            if not telegram_id:
+
+                self.send_json({
+                    "success": False,
+                    "error": "telegram_id is required"
+                }, 400)
+
+                return
+
+            try:
+                telegram_id = int(telegram_id)
+
+            except ValueError:
+
+                self.send_json({
+                    "success": False,
+                    "error": "Invalid telegram_id"
+                }, 400)
+
+                return
+
+            user = get_user(telegram_id)
+
+            if not user:
+
+                self.send_json({
+                    "success": True,
+                    "registered": False,
+                    "user": None
+                })
+
+                return
+
+            self.send_json({
+                "success": True,
+                "registered": True,
+                "user": user
+            })
+
+            return
+
+        # --------------------------
+        # 404
+        # --------------------------
+
+        self.send_json({
+            "success": False,
+            "error": "Not found"
+        }, 404)
+
+    def do_POST(self):
+
+        parsed = urlparse(self.path)
+
+        # --------------------------
+        # REGISTER USER
+        # --------------------------
+
+        if parsed.path == "/api/register":
+
+            try:
+
+                content_length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0"
+                    )
+                )
+
+                body = self.rfile.read(
+                    content_length
+                )
+
+                data = json.loads(
+                    body.decode("utf-8")
+                )
+
+                telegram_id = data.get(
+                    "telegram_id"
+                )
+
+                name = data.get(
+                    "name"
+                )
+
+                username = data.get(
+                    "username"
+                )
+
+                phone = data.get(
+                    "phone"
+                )
+
+                language = data.get(
+                    "language",
+                    "ru"
+                )
+
+                if not telegram_id:
+
+                    self.send_json({
+                        "success": False,
+                        "error": "telegram_id is required"
+                    }, 400)
+
+                    return
+
+                try:
+                    telegram_id = int(
+                        telegram_id
+                    )
+
+                except ValueError:
+
+                    self.send_json({
+                        "success": False,
+                        "error": "Invalid telegram_id"
+                    }, 400)
+
+                    return
+
+                success = save_user(
+                    telegram_id=telegram_id,
+                    name=name,
+                    username=username,
+                    phone=phone,
+                    language=language
+                )
+
+                if not success:
+
+                    self.send_json({
+                        "success": False,
+                        "error": "Database error"
+                    }, 500)
+
+                    return
+
+                user = get_user(
+                    telegram_id
+                )
+
+                self.send_json({
+                    "success": True,
+                    "registered": True,
+                    "user": user
+                })
+
+                return
+
+            except Exception as e:
+
+                logger.error(
+                    f"Registration API error: {e}"
+                )
+
+                self.send_json({
+                    "success": False,
+                    "error": "Invalid request"
+                }, 400)
+
+                return
+
+        # --------------------------
+        # 404
+        # --------------------------
+
+        self.send_json({
+            "success": False,
+            "error": "Not found"
+        }, 404)
 
     def log_message(self, format, *args):
         return
@@ -88,7 +462,7 @@ def run_server():
         )
 
         logger.info(
-            f"Health server started on port {PORT}"
+            f"HTTP server started on port {PORT}"
         )
 
         server.serve_forever()
@@ -96,13 +470,13 @@ def run_server():
     except Exception as e:
 
         logger.error(
-            f"Health server error: {e}"
+            f"HTTP server error: {e}"
         )
 
 
-# =========================================================
-# ГЛАВНОЕ МЕНЮ
-# =========================================================
+# ==========================================
+# TELEGRAM KEYBOARD
+# ==========================================
 
 def main_keyboard():
 
@@ -141,9 +515,9 @@ def main_keyboard():
     ])
 
 
-# =========================================================
-# /START
-# =========================================================
+# ==========================================
+# START
+# ==========================================
 
 async def start(
     update: Update,
@@ -157,46 +531,24 @@ async def start(
         if not user:
             return
 
-        if user.id not in users:
+        save_user(
+            telegram_id=user.id,
+            name=user.first_name,
+            username=user.username
+        )
 
-            users[user.id] = {
+        await update.message.reply_text(
 
-                "id": user.id,
+            f"👋 Привет, {user.first_name}!\n\n"
 
-                "name": user.first_name,
+            "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
 
-                "username": user.username,
+            "Твой доступ к привилегиям уже создан.\n"
+            "Открывай BIZDE и пользуйся предложениями "
+            "наших партнёров.",
 
-                "registered": True
-
-            }
-
-            await update.message.reply_text(
-
-                f"👋 Привет, {user.first_name}!\n\n"
-
-                "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
-
-                "Ты успешно зарегистрирован.\n"
-
-                "Теперь тебе доступны категории, "
-                "партнёры и специальные предложения.",
-
-                reply_markup=main_keyboard()
-
-            )
-
-        else:
-
-            await update.message.reply_text(
-
-                f"👋 С возвращением, {user.first_name}!\n\n"
-
-                "Добро пожаловать обратно в BIZDE.KZ 🇰🇿",
-
-                reply_markup=main_keyboard()
-
-            )
+            reply_markup=main_keyboard()
+        )
 
     except Exception as e:
 
@@ -205,9 +557,9 @@ async def start(
         )
 
 
-# =========================================================
-# КАТЕГОРИИ
-# =========================================================
+# ==========================================
+# CATEGORIES
+# ==========================================
 
 def categories_keyboard():
 
@@ -258,9 +610,9 @@ def categories_keyboard():
     ])
 
 
-# =========================================================
-# ОБРАБОТКА КНОПОК
-# =========================================================
+# ==========================================
+# BUTTON HANDLER
+# ==========================================
 
 async def button_handler(
     update: Update,
@@ -273,9 +625,9 @@ async def button_handler(
 
         await query.answer()
 
-        # =============================================
-        # КАТЕГОРИИ
-        # =============================================
+        # --------------------------
+        # CATEGORIES
+        # --------------------------
 
         if query.data == "categories":
 
@@ -285,12 +637,11 @@ async def button_handler(
                 "Выбери интересующее направление:",
 
                 reply_markup=categories_keyboard()
-
             )
 
-        # =============================================
-        # ПАРТНЁРЫ
-        # =============================================
+        # --------------------------
+        # PARTNERS
+        # --------------------------
 
         elif query.data == "partners":
 
@@ -324,12 +675,11 @@ async def button_handler(
                 reply_markup=InlineKeyboardMarkup(
                     keyboard
                 )
-
             )
 
-        # =============================================
-        # ПОДПИСКА
-        # =============================================
+        # --------------------------
+        # SUBSCRIPTION
+        # --------------------------
 
         elif query.data == "subscription":
 
@@ -357,19 +707,18 @@ async def button_handler(
 
                 "Статус: ❌ Не активна\n\n"
 
-                "После подключения подписки "
-                "ты сможешь пользоваться "
-                "специальными предложениями партнёров.",
+                "После подключения подписки ты сможешь "
+                "пользоваться специальными предложениями "
+                "партнёров.",
 
                 reply_markup=InlineKeyboardMarkup(
                     keyboard
                 )
-
             )
 
-        # =============================================
-        # ОФОРМЛЕНИЕ ПОДПИСКИ
-        # =============================================
+        # --------------------------
+        # BUY SUBSCRIPTION
+        # --------------------------
 
         elif query.data == "buy_subscription":
 
@@ -393,21 +742,18 @@ async def button_handler(
                     ]
 
                 ])
-
             )
 
-        # =============================================
-        # КАТЕГОРИИ
-        # =============================================
+        # --------------------------
+        # CATEGORY
+        # --------------------------
 
         elif query.data in [
-
             "cafes",
             "shops",
             "sport",
             "beauty",
             "entertainment"
-
         ]:
 
             names = {
@@ -429,7 +775,9 @@ async def button_handler(
 
             }
 
-            category_name = names[query.data]
+            category_name = names[
+                query.data
+            ]
 
             await query.edit_message_text(
 
@@ -457,12 +805,11 @@ async def button_handler(
                     ]
 
                 ])
-
             )
 
-        # =============================================
-        # НАЗАД
-        # =============================================
+        # --------------------------
+        # BACK
+        # --------------------------
 
         elif query.data == "back":
 
@@ -472,7 +819,6 @@ async def button_handler(
                 "Выбирай нужный раздел:",
 
                 reply_markup=main_keyboard()
-
             )
 
     except Exception as e:
@@ -482,9 +828,9 @@ async def button_handler(
         )
 
 
-# =========================================================
-# ОБЩАЯ ОБРАБОТКА ОШИБОК
-# =========================================================
+# ==========================================
+# ERROR HANDLER
+# ==========================================
 
 async def error_handler(
     update: object,
@@ -497,21 +843,11 @@ async def error_handler(
     )
 
 
-# =========================================================
-# ПРОВЕРКА ТОКЕНА
-# =========================================================
+# ==========================================
+# START SERVER + DATABASE
+# ==========================================
 
-if not TOKEN:
-
-    raise RuntimeError(
-        "BOT_TOKEN не найден. "
-        "Добавь переменную BOT_TOKEN в Render Environment."
-    )
-
-
-# =========================================================
-# ЗАПУСК HTTP-СЕРВЕРА
-# =========================================================
+init_database()
 
 threading.Thread(
     target=run_server,
@@ -519,9 +855,9 @@ threading.Thread(
 ).start()
 
 
-# =========================================================
-# TELEGRAM BOT
-# =========================================================
+# ==========================================
+# TELEGRAM APPLICATION
+# ==========================================
 
 app = (
     Application
@@ -530,7 +866,6 @@ app = (
     .build()
 )
 
-
 app.add_handler(
     CommandHandler(
         "start",
@@ -538,27 +873,24 @@ app.add_handler(
     )
 )
 
-
 app.add_handler(
     CallbackQueryHandler(
         button_handler
     )
 )
 
-
 app.add_error_handler(
     error_handler
 )
 
 
-# =========================================================
-# ЗАПУСК
-# =========================================================
+# ==========================================
+# RUN
+# ==========================================
 
 logger.info(
     "BIZDE.KZ Telegram bot is starting..."
 )
-
 
 app.run_polling(
     drop_pending_updates=True
