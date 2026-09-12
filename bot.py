@@ -23,7 +23,7 @@ from telegram.ext import (
 # =========================
 
 # ВСТАВЬ СЮДА НОВЫЙ ТОКЕН БОТА
-TOKEN = "8789277125:AAHk5Le4h1CAPy87AlVNm94MzXHmt6RlaSw"
+TOKEN = os.environ.get("BOT_TOKEN")
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
