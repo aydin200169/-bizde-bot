@@ -4,7 +4,7 @@ import hmac
 import hashlib
 import secrets
 import threading
-from datetime import datetime, timezone
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
@@ -31,18 +31,16 @@ from telegram.ext import (
 # ============================================================
 
 TOKEN = os.environ.get("BOT_TOKEN")
-
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
-
 PORT = int(os.environ.get("PORT", "10000"))
 
 ALLOWED_ORIGIN = "https://aydin200169.github.io"
 
 
 # ============================================================
-# DATABASE
+# DATABASE CONNECTION
 # ============================================================
 
 def get_connection():
@@ -52,15 +50,15 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-def init_database():
+# ============================================================
+# DATABASE INIT
+# ============================================================
 
+def init_database():
     conn = get_connection()
     cur = conn.cursor()
 
-    # --------------------------------------------------------
     # USERS
-    # --------------------------------------------------------
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -78,10 +76,7 @@ def init_database():
         )
     """)
 
-    # --------------------------------------------------------
-    # MIGRATIONS
-    # --------------------------------------------------------
-
+    # USERS MIGRATIONS
     cur.execute("""
         ALTER TABLE users
         ADD COLUMN IF NOT EXISTS username TEXT
@@ -127,10 +122,7 @@ def init_database():
         ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     """)
 
-    # --------------------------------------------------------
     # PARTNERS
-    # --------------------------------------------------------
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS partners (
             id SERIAL PRIMARY KEY,
@@ -145,10 +137,7 @@ def init_database():
         )
     """)
 
-    # --------------------------------------------------------
     # TRANSACTIONS
-    # --------------------------------------------------------
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
             id SERIAL PRIMARY KEY,
@@ -162,21 +151,33 @@ def init_database():
         )
     """)
 
-    # --------------------------------------------------------
-    # SEED PARTNERS
-    # --------------------------------------------------------
-
+    # TRANSACTIONS MIGRATIONS
     cur.execute("""
-        SELECT COUNT(*)
-        FROM partners
+        ALTER TABLE transactions
+        ADD COLUMN IF NOT EXISTS partner_name TEXT
     """)
 
+    cur.execute("""
+        ALTER TABLE transactions
+        ADD COLUMN IF NOT EXISTS receipt_amount NUMERIC(12,2)
+    """)
+
+    cur.execute("""
+        ALTER TABLE transactions
+        ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5,2)
+    """)
+
+    cur.execute("""
+        ALTER TABLE transactions
+        ADD COLUMN IF NOT EXISTS savings NUMERIC(12,2)
+    """)
+
+    # SEED PARTNERS
+    cur.execute("SELECT COUNT(*) FROM partners")
     count = cur.fetchone()[0]
 
     if count == 0:
-
         partners = [
-
             (
                 "Partner 1",
                 "restaurant",
@@ -184,7 +185,6 @@ def init_database():
                 20,
                 "Привилегия для участников BIZDE.KZ"
             ),
-
             (
                 "VERO Café",
                 "cafe",
@@ -192,7 +192,6 @@ def init_database():
                 20,
                 "Специальные условия для участников клуба"
             ),
-
             (
                 "FITROOM",
                 "sport",
@@ -200,7 +199,6 @@ def init_database():
                 15,
                 "Привилегия для участников BIZDE.KZ"
             ),
-
             (
                 "Beauty Room",
                 "beauty",
@@ -208,11 +206,9 @@ def init_database():
                 15,
                 "Специальные условия для участников"
             )
-
         ]
 
         for partner in partners:
-
             cur.execute("""
                 INSERT INTO partners (
                     name,
@@ -229,15 +225,15 @@ def init_database():
     cur.close()
     conn.close()
 
+    print("Database initialized successfully.")
+
 
 # ============================================================
 # MEMBER CODE
 # ============================================================
 
 def generate_member_code():
-
     while True:
-
         code = "BIZDE-" + secrets.token_hex(4).upper()
 
         conn = get_connection()
@@ -259,7 +255,44 @@ def generate_member_code():
 
 
 # ============================================================
-# USER
+# GET USER
+# ============================================================
+
+def get_user(telegram_id):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("""
+        SELECT
+            id,
+            telegram_id,
+            name,
+            username,
+            phone,
+            language,
+            member_code,
+            subscription_active,
+            total_savings,
+            terms_accepted,
+            registered_at,
+            updated_at
+        FROM users
+        WHERE telegram_id = %s
+    """, (telegram_id,))
+
+    user = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    if user:
+        return dict(user)
+
+    return None
+
+
+# ============================================================
+# CREATE / UPDATE USER
 # ============================================================
 
 def upsert_user(
@@ -270,24 +303,15 @@ def upsert_user(
     language=None,
     terms_accepted=None
 ):
+    existing = get_user(telegram_id)
 
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    cur.execute("""
-        SELECT *
-        FROM users
-        WHERE telegram_id = %s
-    """, (telegram_id,))
-
-    existing = cur.fetchone()
-
     if existing:
-
-        member_code = existing["member_code"]
+        member_code = existing.get("member_code")
 
         if not member_code:
-
             member_code = generate_member_code()
 
         cur.execute("""
@@ -315,7 +339,6 @@ def upsert_user(
         user = cur.fetchone()
 
     else:
-
         member_code = generate_member_code()
 
         cur.execute("""
@@ -362,63 +385,26 @@ def upsert_user(
     return dict(user)
 
 
-def get_user(telegram_id):
-
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    cur.execute("""
-        SELECT
-            id,
-            telegram_id,
-            name,
-            username,
-            phone,
-            language,
-            member_code,
-            subscription_active,
-            total_savings,
-            terms_accepted,
-            registered_at,
-            updated_at
-        FROM users
-        WHERE telegram_id = %s
-    """, (telegram_id,))
-
-    user = cur.fetchone()
-
-    cur.close()
-    conn.close()
-
-    return dict(user) if user else None
-
-
 # ============================================================
-# TELEGRAM WEB APP AUTH
+# TELEGRAM INIT DATA VALIDATION
 # ============================================================
 
 def validate_telegram_init_data(init_data):
-
     if not init_data or not TOKEN:
         return None
 
     try:
-
-        data = dict(
-            item.split("=", 1)
-            for item in init_data.split("&")
-            if "=" in item
+        parsed = urllib.parse.parse_qsl(
+            init_data,
+            keep_blank_values=True
         )
+
+        data = dict(parsed)
 
         received_hash = data.pop("hash", None)
 
         if not received_hash:
             return None
-
-        import urllib.parse
-
-        for key in list(data.keys()):
-            data[key] = urllib.parse.unquote(data[key])
 
         data_check_string = "\n".join(
             f"{key}={data[key]}"
@@ -427,13 +413,13 @@ def validate_telegram_init_data(init_data):
 
         secret_key = hmac.new(
             b"WebAppData",
-            TOKEN.encode(),
+            TOKEN.encode("utf-8"),
             hashlib.sha256
         ).digest()
 
         calculated_hash = hmac.new(
             secret_key,
-            data_check_string.encode(),
+            data_check_string.encode("utf-8"),
             hashlib.sha256
         ).hexdigest()
 
@@ -443,36 +429,28 @@ def validate_telegram_init_data(init_data):
         ):
             return None
 
-        user_data = {}
+        telegram_user = {}
 
         if "user" in data:
+            telegram_user = json.loads(data["user"])
 
-            user_data = json.loads(
-                data["user"]
-            )
+        telegram_id = telegram_user.get("id")
+
+        if not telegram_id:
+            return None
 
         return {
-            "telegram_id":
-                int(user_data.get("id")),
-
-            "name":
-                user_data.get("first_name", ""),
-
-            "username":
-                user_data.get("username", ""),
-
-            "language":
-                user_data.get("language_code", "ru")
-
+            "telegram_id": int(telegram_id),
+            "name": telegram_user.get("first_name", ""),
+            "username": telegram_user.get("username", ""),
+            "language": telegram_user.get(
+                "language_code",
+                "ru"
+            )
         }
 
     except Exception as e:
-
-        print(
-            "INIT DATA ERROR:",
-            e
-        )
-
+        print("INIT DATA ERROR:", e)
         return None
 
 
@@ -481,12 +459,10 @@ def validate_telegram_init_data(init_data):
 # ============================================================
 
 def get_partners(category=None):
-
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     if category and category != "all":
-
         cur.execute("""
             SELECT *
             FROM partners
@@ -494,9 +470,7 @@ def get_partners(category=None):
             AND category = %s
             ORDER BY id
         """, (category,))
-
     else:
-
         cur.execute("""
             SELECT *
             FROM partners
@@ -509,10 +483,7 @@ def get_partners(category=None):
     cur.close()
     conn.close()
 
-    return [
-        dict(partner)
-        for partner in partners
-    ]
+    return [dict(partner) for partner in partners]
 
 
 # ============================================================
@@ -520,7 +491,6 @@ def get_partners(category=None):
 # ============================================================
 
 def get_history(telegram_id):
-
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -544,21 +514,14 @@ def get_history(telegram_id):
     cur.close()
     conn.close()
 
-    return [
-        dict(item)
-        for item in history
-    ]
+    return [dict(item) for item in history]
 
 
 # ============================================================
-# UPDATE LANGUAGE
+# LANGUAGE
 # ============================================================
 
-def update_language(
-    telegram_id,
-    language
-):
-
+def update_language(telegram_id, language):
     conn = get_connection()
     cur = conn.cursor()
 
@@ -584,11 +547,8 @@ def update_language(
 # ============================================================
 
 def verify_member(member_code):
-
     conn = get_connection()
-    cur = conn.cursor(
-        cursor_factory=RealDictCursor
-    )
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
     cur.execute("""
         SELECT
@@ -602,23 +562,21 @@ def verify_member(member_code):
             total_savings
         FROM users
         WHERE member_code = %s
-    """, (
-        member_code
-    ))
+    """, (member_code,))
 
     user = cur.fetchone()
 
     cur.close()
     conn.close()
 
-    if not user:
-        return None
+    if user:
+        return dict(user)
 
-    return dict(user)
+    return None
 
 
 # ============================================================
-# USE OFFER
+# CREATE TRANSACTION
 # ============================================================
 
 def create_transaction(
@@ -626,24 +584,18 @@ def create_transaction(
     partner_id,
     receipt_amount
 ):
-
     conn = get_connection()
-    cur = conn.cursor(
-        cursor_factory=RealDictCursor
-    )
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
     cur.execute("""
         SELECT *
         FROM users
         WHERE telegram_id = %s
-    """, (
-        telegram_id
-    ))
+    """, (telegram_id,))
 
     user = cur.fetchone()
 
     if not user:
-
         cur.close()
         conn.close()
 
@@ -653,7 +605,6 @@ def create_transaction(
         }
 
     if not user["subscription_active"]:
-
         cur.close()
         conn.close()
 
@@ -667,14 +618,11 @@ def create_transaction(
         FROM partners
         WHERE id = %s
         AND active = TRUE
-    """, (
-        partner_id
-    ))
+    """, (partner_id,))
 
     partner = cur.fetchone()
 
     if not partner:
-
         cur.close()
         conn.close()
 
@@ -683,19 +631,16 @@ def create_transaction(
             "error": "PARTNER_NOT_FOUND"
         }
 
-    discount =
-        float(
-            partner["discount_percent"] or 0
-        )
+    discount = float(
+        partner["discount_percent"] or 0
+    )
 
-    amount =
-        float(receipt_amount)
+    amount = float(receipt_amount)
 
-    savings =
-        round(
-            amount * discount / 100,
-            2
-        )
+    savings = round(
+        amount * discount / 100,
+        2
+    )
 
     cur.execute("""
         INSERT INTO transactions (
@@ -742,14 +687,10 @@ def create_transaction(
 
     return {
         "ok": True,
-        "partner_name":
-            partner["name"],
-        "receipt_amount":
-            amount,
-        "discount_percent":
-            discount,
-        "savings":
-            savings
+        "partner_name": partner["name"],
+        "receipt_amount": amount,
+        "discount_percent": discount,
+        "savings": savings
     }
 
 
@@ -759,12 +700,7 @@ def create_transaction(
 
 class RequestHandler(BaseHTTPRequestHandler):
 
-    def send_json(
-        self,
-        status,
-        data
-    ):
-
+    def send_json(self, status, data):
         body = json.dumps(
             data,
             ensure_ascii=False,
@@ -802,9 +738,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         self.wfile.write(body)
 
-
     def do_OPTIONS(self):
-
         self.send_response(204)
 
         self.send_header(
@@ -824,9 +758,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         self.end_headers()
 
-
     def read_json(self):
-
         length = int(
             self.headers.get(
                 "Content-Length",
@@ -837,32 +769,23 @@ class RequestHandler(BaseHTTPRequestHandler):
         if length <= 0:
             return {}
 
-        body =
-            self.rfile.read(length)
+        body = self.rfile.read(length)
 
         return json.loads(
             body.decode("utf-8")
         )
 
+    # ========================================================
+    # GET
+    # ========================================================
 
     def do_GET(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
 
-        parsed =
-            urlparse(self.path)
-
-        path =
-            parsed.path
-
-        query =
-            parse_qs(parsed.query)
-
-
-        # ----------------------------------------------------
-        # HEALTH
-        # ----------------------------------------------------
-
+        # HEALTH CHECK
         if path == "/":
-
             self.send_json(
                 200,
                 {
@@ -871,42 +794,28 @@ class RequestHandler(BaseHTTPRequestHandler):
                     "status": "online"
                 }
             )
-
             return
 
-
-        # ----------------------------------------------------
         # USER
-        # ----------------------------------------------------
-
         if path == "/api/user":
-
             try:
+                telegram_id = int(
+                    query.get(
+                        "telegram_id",
+                        [0]
+                    )[0]
+                )
 
-                telegram_id =
-                    int(
-                        query.get(
-                            "telegram_id",
-                            [0]
-                        )[0]
-                    )
-
-                user =
-                    get_user(
-                        telegram_id
-                    )
+                user = get_user(telegram_id)
 
                 if not user:
-
                     self.send_json(
                         404,
                         {
                             "ok": False,
-                            "error":
-                                "USER_NOT_FOUND"
+                            "error": "USER_NOT_FOUND"
                         }
                     )
-
                     return
 
                 self.send_json(
@@ -918,8 +827,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             except Exception as e:
-
-                print(e)
+                print("USER ERROR:", e)
 
                 self.send_json(
                     500,
@@ -931,38 +839,26 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             return
 
-
-        # ----------------------------------------------------
         # PARTNERS
-        # ----------------------------------------------------
-
         if path == "/api/partners":
-
             try:
+                category = query.get(
+                    "category",
+                    [None]
+                )[0]
 
-                category =
-                    query.get(
-                        "category",
-                        [None]
-                    )[0]
-
-                partners =
-                    get_partners(
-                        category
-                    )
+                partners = get_partners(category)
 
                 self.send_json(
                     200,
                     {
                         "ok": True,
-                        "partners":
-                            partners
+                        "partners": partners
                     }
                 )
 
             except Exception as e:
-
-                print(e)
+                print("PARTNERS ERROR:", e)
 
                 self.send_json(
                     500,
@@ -974,56 +870,42 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             return
 
-
-        # ----------------------------------------------------
         # HISTORY
-        # ----------------------------------------------------
-
         if path == "/api/history":
-
             try:
+                init_data = query.get(
+                    "init_data",
+                    [""]
+                )[0]
 
-                init_data =
-                    query.get(
-                        "init_data",
-                        [""] 
-                    )[0]
-
-                auth =
-                    validate_telegram_init_data(
-                        init_data
-                    )
+                auth = validate_telegram_init_data(
+                    init_data
+                )
 
                 if not auth:
-
                     self.send_json(
                         401,
                         {
                             "ok": False,
-                            "error":
-                                "INVALID_INIT_DATA"
+                            "error": "INVALID_INIT_DATA"
                         }
                     )
-
                     return
 
-                history =
-                    get_history(
-                        auth["telegram_id"]
-                    )
+                history = get_history(
+                    auth["telegram_id"]
+                )
 
                 self.send_json(
                     200,
                     {
                         "ok": True,
-                        "history":
-                            history
+                        "history": history
                     }
                 )
 
             except Exception as e:
-
-                print(e)
+                print("HISTORY ERROR:", e)
 
                 self.send_json(
                     500,
@@ -1034,7 +916,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             return
-
 
         self.send_json(
             404,
@@ -1044,110 +925,74 @@ class RequestHandler(BaseHTTPRequestHandler):
             }
         )
 
+    # ========================================================
+    # POST
+    # ========================================================
 
     def do_POST(self):
-
-        parsed =
-            urlparse(self.path)
-
-        path =
-            parsed.path
+        parsed = urlparse(self.path)
+        path = parsed.path
 
         try:
-
-            data =
-                self.read_json()
-
+            data = self.read_json()
         except Exception:
-
             self.send_json(
                 400,
                 {
                     "ok": False,
-                    "error":
-                        "INVALID_JSON"
+                    "error": "INVALID_JSON"
                 }
             )
-
             return
-
 
         # ====================================================
         # AUTH
         # ====================================================
 
         if path == "/api/auth":
-
             try:
+                init_data = data.get("init_data")
 
-                init_data =
-                    data.get(
-                        "init_data"
-                    )
+                language = data.get(
+                    "language",
+                    "ru"
+                )
 
-                language =
-                    data.get(
-                        "language",
-                        "ru"
-                    )
+                phone = data.get("phone")
 
-                phone =
-                    data.get(
-                        "phone"
-                    )
+                name_from_form = data.get("name")
 
-                name_from_form =
-                    data.get(
-                        "name"
-                    )
+                terms_accepted = data.get(
+                    "terms_accepted"
+                )
 
-                terms_accepted =
-                    data.get(
-                        "terms_accepted"
-                    )
-
-                auth =
-                    validate_telegram_init_data(
-                        init_data
-                    )
+                auth = validate_telegram_init_data(
+                    init_data
+                )
 
                 if not auth:
-
                     self.send_json(
                         401,
                         {
                             "ok": False,
-                            "error":
-                                "INVALID_INIT_DATA"
+                            "error": "INVALID_INIT_DATA"
                         }
                     )
-
                     return
 
-                name =
-                    name_from_form or auth["name"]
+                name = (
+                    name_from_form
+                    or auth["name"]
+                )
 
-                user =
-                    upsert_user(
-
-                        telegram_id =
-                            auth["telegram_id"],
-
-                        name =
-                            name,
-
-                        username =
-                            auth["username"],
-
-                        phone =
-                            phone,
-
-                        language =
-                            language,
-
-                        terms_accepted =
-                            terms_accepted
-                    )
+                user = upsert_user(
+                    telegram_id=auth["telegram_id"],
+                    name=name,
+                    username=auth["username"],
+                    phone=phone,
+                    language=language,
+                    terms_accepted=terms_accepted
+                )
 
                 self.send_json(
                     200,
@@ -1158,59 +1003,45 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             except Exception as e:
-
-                print(
-                    "AUTH ERROR:",
-                    e
-                )
+                print("AUTH ERROR:", e)
 
                 self.send_json(
                     500,
                     {
                         "ok": False,
-                        "error":
-                            str(e)
+                        "error": str(e)
                     }
                 )
 
             return
-
 
         # ====================================================
         # LANGUAGE
         # ====================================================
 
         if path == "/api/language":
-
             try:
+                init_data = data.get(
+                    "init_data"
+                )
 
-                init_data =
-                    data.get(
-                        "init_data"
-                    )
+                language = data.get(
+                    "language",
+                    "ru"
+                )
 
-                language =
-                    data.get(
-                        "language",
-                        "ru"
-                    )
-
-                auth =
-                    validate_telegram_init_data(
-                        init_data
-                    )
+                auth = validate_telegram_init_data(
+                    init_data
+                )
 
                 if not auth:
-
                     self.send_json(
                         401,
                         {
                             "ok": False,
-                            "error":
-                                "INVALID_INIT_DATA"
+                            "error": "INVALID_INIT_DATA"
                         }
                     )
-
                     return
 
                 update_language(
@@ -1226,61 +1057,50 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             except Exception as e:
+                print("LANGUAGE ERROR:", e)
 
                 self.send_json(
                     500,
                     {
                         "ok": False,
-                        "error":
-                            str(e)
+                        "error": str(e)
                     }
                 )
 
             return
-
 
         # ====================================================
         # VERIFY MEMBER
         # ====================================================
 
         if path == "/api/verify-member":
-
             try:
-
-                member_code =
-                    data.get(
-                        "member_code"
-                    )
+                member_code = data.get(
+                    "member_code"
+                )
 
                 if not member_code:
-
                     self.send_json(
                         400,
                         {
                             "ok": False,
-                            "error":
-                                "MEMBER_CODE_REQUIRED"
+                            "error": "MEMBER_CODE_REQUIRED"
                         }
                     )
-
                     return
 
-                user =
-                    verify_member(
-                        member_code
-                    )
+                user = verify_member(
+                    member_code
+                )
 
                 if not user:
-
                     self.send_json(
                         404,
                         {
                             "ok": False,
-                            "error":
-                                "MEMBER_NOT_FOUND"
+                            "error": "MEMBER_NOT_FOUND"
                         }
                     )
-
                     return
 
                 self.send_json(
@@ -1292,99 +1112,71 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             except Exception as e:
-
-                print(e)
+                print("VERIFY ERROR:", e)
 
                 self.send_json(
                     500,
                     {
                         "ok": False,
-                        "error":
-                            str(e)
+                        "error": str(e)
                     }
                 )
 
             return
-
 
         # ====================================================
         # USE OFFER
         # ====================================================
 
         if path == "/api/use-offer":
-
             try:
+                init_data = data.get(
+                    "init_data"
+                )
 
-                init_data =
-                    data.get(
-                        "init_data"
-                    )
+                partner_id = int(
+                    data.get("partner_id")
+                )
 
-                partner_id =
-                    int(
-                        data.get(
-                            "partner_id"
-                        )
-                    )
+                receipt_amount = float(
+                    data.get("receipt_amount")
+                )
 
-                receipt_amount =
-                    float(
-                        data.get(
-                            "receipt_amount"
-                        )
-                    )
-
-                auth =
-                    validate_telegram_init_data(
-                        init_data
-                    )
+                auth = validate_telegram_init_data(
+                    init_data
+                )
 
                 if not auth:
-
                     self.send_json(
                         401,
                         {
                             "ok": False,
-                            "error":
-                                "INVALID_INIT_DATA"
+                            "error": "INVALID_INIT_DATA"
                         }
                     )
-
                     return
 
                 if receipt_amount <= 0:
-
                     self.send_json(
                         400,
                         {
                             "ok": False,
-                            "error":
-                                "INVALID_RECEIPT_AMOUNT"
+                            "error": "INVALID_RECEIPT_AMOUNT"
                         }
                     )
-
                     return
 
-                result =
-                    create_transaction(
-
-                        telegram_id =
-                            auth["telegram_id"],
-
-                        partner_id =
-                            partner_id,
-
-                        receipt_amount =
-                            receipt_amount
-                    )
+                result = create_transaction(
+                    telegram_id=auth["telegram_id"],
+                    partner_id=partner_id,
+                    receipt_amount=receipt_amount
+                )
 
                 if not result["ok"]:
-
                     self.send_json(
                         400,
                         result
                     )
-
                     return
 
                 self.send_json(
@@ -1393,23 +1185,17 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
             except Exception as e:
-
-                print(
-                    "USE OFFER ERROR:",
-                    e
-                )
+                print("USE OFFER ERROR:", e)
 
                 self.send_json(
                     500,
                     {
                         "ok": False,
-                        "error":
-                            str(e)
+                        "error": str(e)
                     }
                 )
 
             return
-
 
         self.send_json(
             404,
@@ -1421,16 +1207,14 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 # ============================================================
-# RUN HTTP SERVER
+# HTTP SERVER
 # ============================================================
 
 def run_http_server():
-
-    server =
-        HTTPServer(
-            ("0.0.0.0", PORT),
-            RequestHandler
-        )
+    server = HTTPServer(
+        ("0.0.0.0", PORT),
+        RequestHandler
+    )
 
     print(
         f"HTTP server started on port {PORT}"
@@ -1447,12 +1231,9 @@ async def start(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
-    user =
-        update.effective_user
+    user = update.effective_user
 
     keyboard = [
-
         [
             InlineKeyboardButton(
                 "📱 Открыть BIZDE",
@@ -1461,82 +1242,58 @@ async def start(
                 )
             )
         ],
-
         [
             InlineKeyboardButton(
                 "📂 Категории",
                 callback_data="categories"
             ),
-
             InlineKeyboardButton(
                 "🏪 Партнёры",
                 callback_data="partners"
             )
         ],
-
         [
             InlineKeyboardButton(
                 "🎟 Моя подписка",
                 callback_data="subscription"
             )
         ]
-
     ]
 
-    reply_markup =
-        InlineKeyboardMarkup(
-            keyboard
-        )
+    reply_markup = InlineKeyboardMarkup(
+        keyboard
+    )
 
     await update.message.reply_text(
-
         "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
         "Экономь вместе с нашими партнёрами "
         "и получай больше привилегий.\n\n"
         "Открой приложение, чтобы начать.",
-
         reply_markup=reply_markup
     )
 
     try:
-
         upsert_user(
-
-            telegram_id =
-                user.id,
-
-            name =
-                user.first_name,
-
-            username =
-                user.username,
-
-            language =
-                "ru"
+            telegram_id=user.id,
+            name=user.first_name,
+            username=user.username,
+            language="ru"
         )
-
     except Exception as e:
-
-        print(
-            "START USER ERROR:",
-            e
-        )
+        print("START USER ERROR:", e)
 
 
 async def button_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
-
-    query =
-        update.callback_query
+    query = update.callback_query
 
     await query.answer()
 
     if query.data == "categories":
 
         await query.message.reply_text(
-
             "📂 Категории BIZDE.KZ\n\n"
             "🍽 Рестораны\n"
             "☕ Кафе\n"
@@ -1545,27 +1302,21 @@ async def button_handler(
             "★ Развлечения\n"
             "◇ Магазины\n"
             "◉ Спорт"
-
         )
 
     elif query.data == "partners":
 
-        partners =
-            get_partners()
+        partners = get_partners()
 
         if not partners:
-
             await query.message.reply_text(
                 "Партнёров пока нет."
             )
-
             return
 
-        text =
-            "🏪 Партнёры BIZDE.KZ\n\n"
+        text = "🏪 Партнёры BIZDE.KZ\n\n"
 
         for partner in partners:
-
             text += (
                 f"• {partner['name']} — "
                 f"{partner['discount_percent']}%\n"
@@ -1577,24 +1328,22 @@ async def button_handler(
 
     elif query.data == "subscription":
 
-        user =
-            get_user(
-                update.effective_user.id
-            )
+        user = get_user(
+            update.effective_user.id
+        )
 
         if user and user["subscription_active"]:
-
-            text =
+            text = (
                 "🎟 Ваша подписка активна.\n\n"
                 "Вы можете пользоваться "
                 "привилегиями BIZDE.KZ."
-
+            )
         else:
-
-            text =
+            text = (
                 "🎟 Подписка пока не активна.\n\n"
                 "Оформление подписки будет "
                 "добавлено на следующем этапе."
+            )
 
         await query.message.reply_text(
             text
@@ -1608,13 +1357,11 @@ async def button_handler(
 def main():
 
     if not TOKEN:
-
         raise RuntimeError(
             "BOT_TOKEN is not configured"
         )
 
     if not DATABASE_URL:
-
         raise RuntimeError(
             "DATABASE_URL is not configured"
         )
@@ -1623,22 +1370,20 @@ def main():
 
     init_database()
 
-    print("Database ready.")
-
-    http_thread =
-        threading.Thread(
-            target=run_http_server,
-            daemon=True
-        )
+    http_thread = threading.Thread(
+        target=run_http_server,
+        daemon=True
+    )
 
     http_thread.start()
 
     print("Starting Telegram bot...")
 
-    application =
-        Application.builder().token(
-            TOKEN
-        ).build()
+    application = (
+        Application.builder()
+        .token(TOKEN)
+        .build()
+    )
 
     application.add_handler(
         CommandHandler(
@@ -1660,6 +1405,9 @@ def main():
     )
 
 
-if __name__ == "__main__":
+# ============================================================
+# START
+# ============================================================
 
+if __name__ == "__main__":
     main()
