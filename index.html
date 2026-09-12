@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<head> <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<head>
 
 <meta charset="UTF-8">
 
@@ -15,6 +15,8 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <style>
 
@@ -841,6 +843,53 @@ button{
     transform:translate(-50%,0);
 }
 
+.scanner-box{
+    width:100%;
+    overflow:hidden;
+    border-radius:18px;
+    border:1px solid var(--line);
+    margin:15px 0;
+    background:#fafbfa;
+}
+
+.scanner-result{
+    background:var(--surface2);
+    border-radius:16px;
+    padding:15px;
+    margin:12px 0;
+}
+
+.partner-select{
+    width:100%;
+    background:white;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:15px;
+    text-align:left;
+    margin-bottom:9px;
+}
+
+.partner-select strong{
+    display:block;
+    font-size:14px;
+    margin-bottom:4px;
+}
+
+.partner-select span{
+    color:var(--green);
+    font-size:11px;
+    font-weight:800;
+}
+
+.success-box{
+    background:#e7f4ec;
+    color:#24714a;
+    border-radius:18px;
+    padding:18px;
+    text-align:center;
+    margin:15px 0;
+}
+
 </style>
 
 </head>
@@ -976,70 +1025,27 @@ onclick="openPrivileges()"
 <div class="privileges">
 
 <div class="privilege">
-
-<div class="privilege-icon">
-✦
+<div class="privilege-icon">✦</div>
+<h3 id="p1">Специальные условия</h3>
+<p id="p1s">Эксклюзивные предложения партнёров.</p>
 </div>
-
-<h3 id="p1">
-Специальные условия
-</h3>
-
-<p id="p1s">
-Эксклюзивные предложения партнёров.
-</p>
-
-</div>
-
 
 <div class="privilege">
-
-<div class="privilege-icon">
-◈
+<div class="privilege-icon">◈</div>
+<h3 id="p2">Привилегии</h3>
+<p id="p2s">Больше возможностей для участников клуба.</p>
 </div>
-
-<h3 id="p2">
-Привилегии
-</h3>
-
-<p id="p2s">
-Больше возможностей для участников клуба.
-</p>
-
-</div>
-
 
 <div class="privilege">
-
-<div class="privilege-icon">
-◎
+<div class="privilege-icon">◎</div>
+<h3 id="p3">Экономия</h3>
+<p id="p3s">Получайте выгоду каждый день.</p>
 </div>
-
-<h3 id="p3">
-Экономия
-</h3>
-
-<p id="p3s">
-Получайте выгоду каждый день.
-</p>
-
-</div>
-
 
 <div class="privilege">
-
-<div class="privilege-icon">
-♢
-</div>
-
-<h3 id="p4">
-Особый статус
-</h3>
-
-<p id="p4s">
-Вы — часть закрытого клуба.
-</p>
-
+<div class="privilege-icon">♢</div>
+<h3 id="p4">Особый статус</h3>
+<p id="p4s">Вы — часть закрытого клуба.</p>
 </div>
 
 </div>
@@ -1173,35 +1179,21 @@ onclick="goToPartners()"
 </div>
 
 
-<div
-class="partners"
-id="partnersList"
->
+<div class="partners" id="partnersList">
 
-<div class="partner"
+<div
+class="partner"
 data-category="restaurant"
 data-name="Partner 1"
 onclick="openPartner('Partner 1','Ресторан восточной кухни','20%',1)"
 >
 
-<div class="partner-image">
-P1
-</div>
+<div class="partner-image">P1</div>
 
 <div class="partner-info">
-
-<h3>
-Partner 1
-</h3>
-
-<p>
-Ресторан восточной кухни
-</p>
-
-<span class="partner-badge">
-20% привилегия
-</span>
-
+<h3>Partner 1</h3>
+<p>Ресторан восточной кухни</p>
+<span class="partner-badge">20% привилегия</span>
 </div>
 
 <button
@@ -1214,30 +1206,19 @@ onclick="event.stopPropagation();toggleFavorite('Partner 1')"
 </div>
 
 
-<div class="partner"
+<div
+class="partner"
 data-category="cafe"
 data-name="VERO Café"
 onclick="openPartner('VERO Café','Кафе','20%',2)"
 >
 
-<div class="partner-image">
-VC
-</div>
+<div class="partner-image">VC</div>
 
 <div class="partner-info">
-
-<h3>
-VERO Café
-</h3>
-
-<p>
-Кофе и десерты
-</p>
-
-<span class="partner-badge">
-20% привилегия
-</span>
-
+<h3>VERO Café</h3>
+<p>Кофе и десерты</p>
+<span class="partner-badge">20% привилегия</span>
 </div>
 
 <button
@@ -1250,30 +1231,19 @@ onclick="event.stopPropagation();toggleFavorite('VERO Café')"
 </div>
 
 
-<div class="partner"
+<div
+class="partner"
 data-category="sport"
 data-name="FITROOM"
 onclick="openPartner('FITROOM','Фитнес','15%',3)"
 >
 
-<div class="partner-image">
-FR
-</div>
+<div class="partner-image">FR</div>
 
 <div class="partner-info">
-
-<h3>
-FITROOM
-</h3>
-
-<p>
-Спорт и тренировки
-</p>
-
-<span class="partner-badge">
-15% привилегия
-</span>
-
+<h3>FITROOM</h3>
+<p>Спорт и тренировки</p>
+<span class="partner-badge">15% привилегия</span>
 </div>
 
 <button
@@ -1286,30 +1256,19 @@ onclick="event.stopPropagation();toggleFavorite('FITROOM')"
 </div>
 
 
-<div class="partner"
+<div
+class="partner"
 data-category="beauty"
 data-name="Beauty Room"
 onclick="openPartner('Beauty Room','Красота','15%',4)"
 >
 
-<div class="partner-image">
-BR
-</div>
+<div class="partner-image">BR</div>
 
 <div class="partner-info">
-
-<h3>
-Beauty Room
-</h3>
-
-<p>
-Красота и уход
-</p>
-
-<span class="partner-badge">
-15% привилегия
-</span>
-
+<h3>Beauty Room</h3>
+<p>Красота и уход</p>
+<span class="partner-badge">15% привилегия</span>
 </div>
 
 <button
@@ -1335,11 +1294,7 @@ onclick="event.stopPropagation();toggleFavorite('Beauty Room')"
 <div id="favoritesPage" class="page">
 
 <header class="header">
-
-<div class="logo">
-BIZDE.KZ
-</div>
-
+<div class="logo">BIZDE.KZ</div>
 </header>
 
 <main class="container">
@@ -1374,11 +1329,7 @@ style="color:var(--muted);font-size:12px;margin-top:7px;margin-bottom:18px;"
 <div id="mapPage" class="page">
 
 <header class="header">
-
-<div class="logo">
-BIZDE.KZ
-</div>
-
+<div class="logo">BIZDE.KZ</div>
 </header>
 
 <main class="container">
@@ -1520,9 +1471,7 @@ class="profile-row"
 onclick="openSubscription()"
 >
 
-<div class="profile-row-icon">
-🎟
-</div>
+<div class="profile-row-icon">🎟</div>
 
 <div class="profile-row-info">
 
@@ -1533,17 +1482,13 @@ id="menuSubscription"
 Подписка
 </div>
 
-<div
-class="profile-row-sub"
->
+<div class="profile-row-sub">
 Проверить статус
 </div>
 
 </div>
 
-<div class="profile-row-arrow">
-›
-</div>
+<div class="profile-row-arrow">›</div>
 
 </button>
 
@@ -1553,9 +1498,7 @@ class="profile-row"
 onclick="openCard()"
 >
 
-<div class="profile-row-icon">
-◈
-</div>
+<div class="profile-row-icon">◈</div>
 
 <div class="profile-row-info">
 
@@ -1572,9 +1515,7 @@ QR и статус
 
 </div>
 
-<div class="profile-row-arrow">
-›
-</div>
+<div class="profile-row-arrow">›</div>
 
 </button>
 
@@ -1584,9 +1525,7 @@ class="profile-row"
 onclick="openHistory()"
 >
 
-<div class="profile-row-icon">
-◷
-</div>
+<div class="profile-row-icon">◷</div>
 
 <div class="profile-row-info">
 
@@ -1603,9 +1542,7 @@ id="menuHistory"
 
 </div>
 
-<div class="profile-row-arrow">
-›
-</div>
+<div class="profile-row-arrow">›</div>
 
 </button>
 
@@ -1615,9 +1552,7 @@ class="profile-row"
 onclick="openSavings()"
 >
 
-<div class="profile-row-icon">
-₸
-</div>
+<div class="profile-row-icon">₸</div>
 
 <div class="profile-row-info">
 
@@ -1634,9 +1569,39 @@ id="menuSavings"
 
 </div>
 
-<div class="profile-row-arrow">
-›
+<div class="profile-row-arrow">›</div>
+
+</button>
+
+
+<!-- НОВОЕ: ПРОВЕРКА ПАРТНЕРА -->
+
+<button
+class="profile-row"
+onclick="openPartnerScanner()"
+>
+
+<div class="profile-row-icon">▣</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuPartner"
+>
+Проверка участника
 </div>
+
+<div
+class="profile-row-sub"
+id="menuPartnerSub"
+>
+Для партнёров BIZDE
+</div>
+
+</div>
+
+<div class="profile-row-arrow">›</div>
 
 </button>
 
@@ -1646,9 +1611,7 @@ class="profile-row"
 onclick="openLanguage()"
 >
 
-<div class="profile-row-icon">
-🌐
-</div>
+<div class="profile-row-icon">🌐</div>
 
 <div class="profile-row-info">
 
@@ -1668,9 +1631,7 @@ id="languageSub"
 
 </div>
 
-<div class="profile-row-arrow">
-›
-</div>
+<div class="profile-row-arrow">›</div>
 
 </button>
 
@@ -1690,10 +1651,8 @@ class="nav-item active"
 id="navHome"
 onclick="goPage('homePage',this)"
 >
-
 <span>⌂</span>
-<span>Главная</span>
-
+<span id="navHomeText">Главная</span>
 </button>
 
 <button
@@ -1701,10 +1660,8 @@ class="nav-item"
 id="navFavorites"
 onclick="goPage('favoritesPage',this)"
 >
-
 <span>♡</span>
-<span>Избранное</span>
-
+<span id="navFavoritesText">Избранное</span>
 </button>
 
 <button
@@ -1712,10 +1669,8 @@ class="nav-item"
 id="navMap"
 onclick="goPage('mapPage',this)"
 >
-
 <span>⌖</span>
-<span>Карта</span>
-
+<span id="navMapText">Карта</span>
 </button>
 
 <button
@@ -1723,10 +1678,8 @@ class="nav-item"
 id="navProfile"
 onclick="goPage('profilePage',this)"
 >
-
 <span>◉</span>
-<span>Профиль</span>
-
+<span id="navProfileText">Профиль</span>
 </button>
 
 </nav>
@@ -1767,9 +1720,9 @@ id="toast"
 
 <script>
 
-/* =========================================
+/* =====================================================
 TELEGRAM
-========================================= */
+===================================================== */
 
 const tg = window.Telegram?.WebApp;
 
@@ -1779,36 +1732,36 @@ if(tg){
     tg.expand();
 
     try{
-
         tg.setHeaderColor("#f4f5f2");
         tg.setBackgroundColor("#f4f5f2");
-
     }catch(e){}
 
 }
 
 
-/* =========================================
+/* =====================================================
 API
-========================================= */
+===================================================== */
 
 const API_URL =
     "https://bizde-bot.onrender.com";
 
 
-/* =========================================
+/* =====================================================
 STATE
-========================================= */
+===================================================== */
 
 let currentLanguage =
     localStorage.getItem("bizdeLanguage") || "ru";
 
 let bizdeUser = null;
 
+let qrScanner = null;
 
-/* =========================================
+
+/* =====================================================
 TRANSLATIONS
-========================================= */
+===================================================== */
 
 const translations = {
 
@@ -1818,8 +1771,7 @@ brandSub:"PRIVILEGE CLUB",
 
 heroLabel:"КЛУБ ПРИВИЛЕГИЙ",
 
-heroTitle:
-"Ваши привилегии начинаются здесь.",
+heroTitle:"Ваши привилегии начинаются здесь.",
 
 heroText:
 "Один статус. Десятки партнёров. Больше возможностей каждый день.",
@@ -1864,7 +1816,7 @@ inactive:"НЕ АКТИВЕН",
 
 activeText:"Активный участник клуба",
 
-inactiveText:"Подписка пока не активна",
+inactiveText:"Подписка не активна",
 
 favorites:"Избранное",
 
@@ -1888,7 +1840,19 @@ russian:"Русский",
 
 kazakh:"Қазақша",
 
-member:"Участник BIZDE"
+member:"Участник BIZDE",
+
+partnerCheck:"Проверка участника",
+
+partnerCheckSub:"Для партнёров BIZDE",
+
+home:"Главная",
+
+favoritesNav:"Избранное",
+
+mapNav:"Карта",
+
+profile:"Профиль"
 
 },
 
@@ -1944,7 +1908,7 @@ inactive:"БЕЛСЕНДІ ЕМЕС",
 
 activeText:"Клубтың белсенді мүшесі",
 
-inactiveText:"Жазылым әлі белсенді емес",
+inactiveText:"Жазылым белсенді емес",
 
 favorites:"Таңдаулылар",
 
@@ -1968,7 +1932,19 @@ russian:"Русский",
 
 kazakh:"Қазақша",
 
-member:"BIZDE мүшесі"
+member:"BIZDE мүшесі",
+
+partnerCheck:"Мүшені тексеру",
+
+partnerCheckSub:"BIZDE серіктестері үшін",
+
+home:"Басты бет",
+
+favoritesNav:"Таңдаулылар",
+
+mapNav:"Карта",
+
+profile:"Профиль"
 
 }
 
@@ -1986,9 +1962,25 @@ function t(key){
 }
 
 
-/* =========================================
+/* =====================================================
+SAFE HTML
+===================================================== */
+
+function esc(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
 LANGUAGE
-========================================= */
+===================================================== */
 
 function applyLanguage(){
 
@@ -2016,29 +2008,17 @@ function applyLanguage(){
     document.getElementById("privilegesMore").textContent =
         t("privilegesMore");
 
-    document.getElementById("p1").textContent =
-        t("p1");
+    document.getElementById("p1").textContent = t("p1");
+    document.getElementById("p1s").textContent = t("p1s");
 
-    document.getElementById("p1s").textContent =
-        t("p1s");
+    document.getElementById("p2").textContent = t("p2");
+    document.getElementById("p2s").textContent = t("p2s");
 
-    document.getElementById("p2").textContent =
-        t("p2");
+    document.getElementById("p3").textContent = t("p3");
+    document.getElementById("p3s").textContent = t("p3s");
 
-    document.getElementById("p2s").textContent =
-        t("p2s");
-
-    document.getElementById("p3").textContent =
-        t("p3");
-
-    document.getElementById("p3s").textContent =
-        t("p3s");
-
-    document.getElementById("p4").textContent =
-        t("p4");
-
-    document.getElementById("p4s").textContent =
-        t("p4s");
+    document.getElementById("p4").textContent = t("p4");
+    document.getElementById("p4s").textContent = t("p4s");
 
     document.getElementById("categoriesTitle").textContent =
         t("categoriesTitle");
@@ -2073,6 +2053,12 @@ function applyLanguage(){
     document.getElementById("menuSavings").textContent =
         t("savings");
 
+    document.getElementById("menuPartner").textContent =
+        t("partnerCheck");
+
+    document.getElementById("menuPartnerSub").textContent =
+        t("partnerCheckSub");
+
     document.getElementById("menuLanguage").textContent =
         t("language");
 
@@ -2093,34 +2079,37 @@ function applyLanguage(){
         ? t("russian")
         : t("kazakh");
 
+    document.getElementById("navHomeText").textContent =
+        t("home");
+
+    document.getElementById("navFavoritesText").textContent =
+        t("favoritesNav");
+
+    document.getElementById("navMapText").textContent =
+        t("mapNav");
+
+    document.getElementById("navProfileText").textContent =
+        t("profile");
+
     applyUserToUI();
+
 }
 
 
-/* =========================================
+/* =====================================================
 AUTH
-========================================= */
+===================================================== */
 
 async function authWithBackend(){
 
-    if(!tg){
+    if(!tg || !tg.initData){
+
+        applyUserToUI();
 
         showToast(
             currentLanguage === "ru"
             ? "Откройте BIZDE через Telegram"
             : "BIZDE-ні Telegram арқылы ашыңыз"
-        );
-
-        return;
-
-    }
-
-    if(!tg.initData){
-
-        showToast(
-            currentLanguage === "ru"
-            ? "Telegram не передал данные"
-            : "Telegram деректерді жібермеді"
         );
 
         return;
@@ -2148,13 +2137,17 @@ async function authWithBackend(){
             }
         );
 
-        const data =
-            await response.json();
+        const data = await response.json();
 
-        if(data.ok && data.user){
+        /*
+         ВАЖНО:
+         backend возвращает success,
+         а не ok.
+        */
 
-            bizdeUser =
-                data.user;
+        if(data.success && data.user){
+
+            bizdeUser = data.user;
 
             localStorage.setItem(
                 "bizdeUser",
@@ -2165,39 +2158,40 @@ async function authWithBackend(){
 
             checkRegistration();
 
+            return;
+
         }
+
+        console.error(
+            "AUTH ERROR:",
+            data
+        );
 
     }catch(error){
 
-        console.error(error);
-
-        showToast(
-            currentLanguage === "ru"
-            ? "Ошибка соединения с BIZDE"
-            : "BIZDE серверіне қосылу қатесі"
+        console.error(
+            "AUTH CONNECTION ERROR:",
+            error
         );
+
+        applyUserToUI();
 
     }
 
 }
 
 
-/* =========================================
+/* =====================================================
 REGISTRATION
-========================================= */
+===================================================== */
 
 function checkRegistration(){
 
     if(!bizdeUser){
-
         return;
-
     }
 
-    const phone =
-        bizdeUser.phone;
-
-    if(!phone){
+    if(!bizdeUser.phone){
 
         setTimeout(
             openRegistration,
@@ -2241,7 +2235,9 @@ function openRegistration(){
                 : "Атыңыз"
             }"
             value="${
-                tg?.initDataUnsafe?.user?.first_name || ""
+                esc(
+                    tg?.initDataUnsafe?.user?.first_name || ""
+                )
             }"
         >
 
@@ -2264,7 +2260,6 @@ function openRegistration(){
             >
 
             <label for="termsCheckbox">
-
                 ${
                     currentLanguage === "ru"
                     ?
@@ -2272,7 +2267,6 @@ function openRegistration(){
                     :
                     "Мен BIZDE.KZ сервисінің пайдалану шарттарын қабылдаймын."
                 }
-
             </label>
 
         </div>
@@ -2319,7 +2313,6 @@ async function submitRegistration(){
         );
 
         return;
-
     }
 
     if(!phone){
@@ -2331,7 +2324,6 @@ async function submitRegistration(){
         );
 
         return;
-
     }
 
     if(!accepted){
@@ -2343,53 +2335,41 @@ async function submitRegistration(){
         );
 
         return;
-
     }
 
     try{
 
-        const response =
-            await fetch(
-                `${API_URL}/api/auth`,
-                {
-                    method:"POST",
+        const response = await fetch(
+            `${API_URL}/api/auth`,
+            {
+                method:"POST",
 
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
 
-                    body:JSON.stringify({
+                body:JSON.stringify({
 
-                        init_data:
-                            tg.initData,
+                    init_data:tg.initData,
 
-                        language:
-                            currentLanguage,
+                    language:currentLanguage,
 
-                        phone:
-                            phone,
+                    phone:phone,
 
-                        name:
-                            name,
+                    name:name,
 
-                        terms_accepted:
-                            true
+                    terms_accepted:true
 
-                    })
-                }
-            );
+                })
+            }
+        );
 
-        const data =
-            await response.json();
+        const data = await response.json();
 
-        if(
-            data.ok &&
-            data.user
-        ){
+        if(data.success && data.user){
 
-            bizdeUser =
-                data.user;
+            bizdeUser = data.user;
 
             localStorage.setItem(
                 "bizdeUser",
@@ -2409,9 +2389,12 @@ async function submitRegistration(){
         }else{
 
             showToast(
-                currentLanguage === "ru"
-                ? "Не удалось сохранить регистрацию"
-                : "Тіркеуді сақтау мүмкін болмады"
+                data.error ||
+                (
+                    currentLanguage === "ru"
+                    ? "Не удалось сохранить регистрацию"
+                    : "Тіркеуді сақтау мүмкін болмады"
+                )
             );
 
         }
@@ -2431,30 +2414,23 @@ async function submitRegistration(){
 }
 
 
-/* =========================================
+/* =====================================================
 USER UI
-========================================= */
+===================================================== */
 
 function applyUserToUI(){
 
     if(!bizdeUser){
 
         const saved =
-            localStorage.getItem(
-                "bizdeUser"
-            );
+            localStorage.getItem("bizdeUser");
 
         if(saved){
 
             try{
-
-                bizdeUser =
-                    JSON.parse(saved);
-
+                bizdeUser = JSON.parse(saved);
             }catch(e){
-
                 bizdeUser = null;
-
             }
 
         }
@@ -2479,9 +2455,9 @@ function applyUserToUI(){
     ).textContent = name;
 
     const active =
-        Boolean(
-            bizdeUser?.subscription_active
-        );
+        bizdeUser?.subscription_active === true ||
+        bizdeUser?.subscription_active === 1 ||
+        bizdeUser?.subscription_active === "true";
 
     document.getElementById(
         "statusBadge"
@@ -2540,9 +2516,62 @@ function applyUserToUI(){
 }
 
 
-/* =========================================
+/* =====================================================
+REFRESH USER
+===================================================== */
+
+async function refreshUser(){
+
+    if(!tg?.initData){
+        return;
+    }
+
+    try{
+
+        const response = await fetch(
+            `${API_URL}/api/auth`,
+            {
+                method:"POST",
+
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:JSON.stringify({
+                    init_data:tg.initData,
+                    language:currentLanguage
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if(data.success && data.user){
+
+            bizdeUser = data.user;
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(data.user)
+            );
+
+            applyUserToUI();
+
+        }
+
+    }catch(e){
+
+        console.error(e);
+
+    }
+
+}
+
+
+/* =====================================================
 NAVIGATION
-========================================= */
+===================================================== */
 
 function goPage(pageId,button){
 
@@ -2563,9 +2592,7 @@ function goPage(pageId,button){
         });
 
     if(button){
-
         button.classList.add("active");
-
     }
 
 }
@@ -2587,9 +2614,9 @@ function goToPartners(){
 }
 
 
-/* =========================================
+/* =====================================================
 CATEGORIES
-========================================= */
+===================================================== */
 
 function filterCategory(category,button){
 
@@ -2600,9 +2627,7 @@ function filterCategory(category,button){
         });
 
     if(button){
-
         button.classList.add("active");
-
     }
 
     document
@@ -2613,15 +2638,9 @@ function filterCategory(category,button){
                 category === "all" ||
                 partner.dataset.category === category
             ){
-
-                partner.style.display =
-                    "flex";
-
+                partner.style.display = "flex";
             }else{
-
-                partner.style.display =
-                    "none";
-
+                partner.style.display = "none";
             }
 
         });
@@ -2641,9 +2660,9 @@ function showAll(){
 }
 
 
-/* =========================================
+/* =====================================================
 SEARCH
-========================================= */
+===================================================== */
 
 document
     .getElementById("searchInput")
@@ -2675,9 +2694,9 @@ document
     );
 
 
-/* =========================================
+/* =====================================================
 PRIVILEGES
-========================================= */
+===================================================== */
 
 function openPrivileges(){
 
@@ -2715,9 +2734,9 @@ function openPrivileges(){
 }
 
 
-/* =========================================
+/* =====================================================
 PARTNER
-========================================= */
+===================================================== */
 
 function openPartner(
     name,
@@ -2729,12 +2748,12 @@ function openPartner(
     openModal(`
 
         <div class="modal-title">
-            ${name}
+            ${esc(name)}
         </div>
 
         <div class="modal-text">
 
-            <b>${category}</b>
+            <b>${esc(category)}</b>
 
             <br><br>
 
@@ -2752,7 +2771,7 @@ function openPartner(
                     font-size:25px;
                 "
             >
-                ${discount}
+                ${esc(discount)}
             </strong>
 
             <br><br>
@@ -2769,7 +2788,7 @@ function openPartner(
 
         <button
             class="modal-button"
-            onclick="useOffer('${name}','${discount}',${partnerId})"
+            onclick="useOffer('${esc(name)}','${esc(discount)}',${Number(partnerId)})"
         >
             ${
                 currentLanguage === "ru"
@@ -2783,9 +2802,9 @@ function openPartner(
 }
 
 
-/* =========================================
+/* =====================================================
 USE OFFER
-========================================= */
+===================================================== */
 
 function useOffer(
     name,
@@ -2796,7 +2815,6 @@ function useOffer(
     if(!bizdeUser){
 
         openRegistration();
-
         return;
 
     }
@@ -2804,52 +2822,18 @@ function useOffer(
     if(!bizdeUser.phone){
 
         openRegistration();
-
         return;
 
     }
 
-    if(
-        !bizdeUser.subscription_active
-    ){
+    const active =
+        bizdeUser.subscription_active === true ||
+        bizdeUser.subscription_active === 1 ||
+        bizdeUser.subscription_active === "true";
 
-        openModal(`
+    if(!active){
 
-            <div class="modal-title">
-
-                ${
-                    currentLanguage === "ru"
-                    ? "Подписка не активна"
-                    : "Жазылым белсенді емес"
-                }
-
-            </div>
-
-            <div class="modal-text">
-
-                ${
-                    currentLanguage === "ru"
-                    ?
-                    "Для использования привилегий необходимо иметь активный статус участника клуба."
-                    :
-                    "Артықшылықтарды пайдалану үшін клуб мүшесінің белсенді мәртебесі қажет."
-                }
-
-            </div>
-
-            <button
-                class="modal-button"
-                onclick="openSubscription()"
-            >
-                ${
-                    currentLanguage === "ru"
-                    ? "Проверить подписку"
-                    : "Жазылымды тексеру"
-                }
-            </button>
-
-        `);
-
+        openSubscription();
         return;
 
     }
@@ -2862,9 +2846,9 @@ function useOffer(
 }
 
 
-/* =========================================
-REAL QR
-========================================= */
+/* =====================================================
+QR CUSTOMER
+===================================================== */
 
 function showQR(
     name,
@@ -2894,7 +2878,7 @@ function showQR(
 
         <div class="modal-text">
 
-            ${name}
+            ${esc(name)}
 
             <br>
 
@@ -2904,7 +2888,7 @@ function showQR(
                 : "Артықшылық:"
             }
 
-            <b>${discount}</b>
+            <b>${esc(discount)}</b>
 
         </div>
 
@@ -2914,7 +2898,7 @@ function showQR(
         ></div>
 
         <div class="member-code">
-            ${memberCode}
+            ${esc(memberCode)}
         </div>
 
         <div class="qr-code">
@@ -2938,7 +2922,7 @@ function showQR(
         const qr =
             document.getElementById("realQR");
 
-        if(qr){
+        if(qr && window.QRCode){
 
             new QRCode(
                 qr,
@@ -2958,16 +2942,17 @@ function showQR(
 }
 
 
-/* =========================================
+/* =====================================================
 CARD
-========================================= */
+===================================================== */
 
-function openCard(){
+async function openCard(){
+
+    await refreshUser();
 
     if(!bizdeUser){
 
         openRegistration();
-
         return;
 
     }
@@ -2975,17 +2960,18 @@ function openCard(){
     if(!bizdeUser.phone){
 
         openRegistration();
-
         return;
 
     }
 
-    if(
-        !bizdeUser.subscription_active
-    ){
+    const active =
+        bizdeUser.subscription_active === true ||
+        bizdeUser.subscription_active === 1 ||
+        bizdeUser.subscription_active === "true";
+
+    if(!active){
 
         openSubscription();
-
         return;
 
     }
@@ -2998,16 +2984,18 @@ function openCard(){
 }
 
 
-/* =========================================
+/* =====================================================
 SUBSCRIPTION
-========================================= */
+===================================================== */
 
-function openSubscription(){
+async function openSubscription(){
+
+    await refreshUser();
 
     const active =
-        Boolean(
-            bizdeUser?.subscription_active
-        );
+        bizdeUser?.subscription_active === true ||
+        bizdeUser?.subscription_active === 1 ||
+        bizdeUser?.subscription_active === "true";
 
     openModal(`
 
@@ -3031,7 +3019,7 @@ function openSubscription(){
                 (
                     currentLanguage === "ru"
                     ?
-                    "✓ Ваша подписка активна. Вы можете пользоваться привилегиями клуба."
+                    "✓ Ваша подписка активна. Вы можете пользоваться всеми привилегиями клуба."
                     :
                     "✓ Сіздің жазылымыңыз белсенді. Клуб артықшылықтарын пайдалана аласыз."
                 )
@@ -3041,14 +3029,26 @@ function openSubscription(){
                 (
                     currentLanguage === "ru"
                     ?
-                    "○ Подписка пока не активна. Оформление подписки будет доступно на следующем этапе."
+                    "○ Подписка не активна. Обратитесь к администратору BIZDE для активации статуса."
                     :
-                    "○ Жазылым әзірге белсенді емес. Жазылымды рәсімдеу келесі кезеңде қолжетімді болады."
+                    "○ Жазылым белсенді емес. Мәртебені белсендіру үшін BIZDE әкімшісіне хабарласыңыз."
                 )
 
             }
 
         </div>
+
+        ${
+            active
+            ?
+            `
+            <div class="success-box">
+                ✓ ACTIVE MEMBER
+            </div>
+            `
+            :
+            ""
+        }
 
         <button
             class="modal-button"
@@ -3068,9 +3068,9 @@ function openSubscription(){
 }
 
 
-/* =========================================
+/* =====================================================
 HISTORY
-========================================= */
+===================================================== */
 
 async function openHistory(){
 
@@ -3119,7 +3119,7 @@ async function openHistory(){
             );
 
         if(
-            !data.ok ||
+            !data.success ||
             !data.history ||
             data.history.length === 0
         ){
@@ -3166,24 +3166,19 @@ async function openHistory(){
                     <div class="history-top">
 
                         <div class="history-name">
-                            ${item.partner_name}
+                            ${esc(item.partner_name)}
                         </div>
 
                         <div class="history-saving">
-                            +${item.savings} ₸
+                            +${Number(item.savings).toFixed(2)} ₸
                         </div>
 
                     </div>
 
                     <div class="history-info">
 
-                        ${
-                            currentLanguage === "ru"
-                            ? "Чек"
-                            : "Чек"
-                        }
-
-                        ${item.receipt_amount} ₸
+                        Чек
+                        ${Number(item.receipt_amount).toFixed(2)} ₸
 
                         ·
 
@@ -3202,18 +3197,22 @@ async function openHistory(){
         document.getElementById(
             "historyContent"
         ).innerHTML =
-            "Не удалось загрузить историю.";
+            currentLanguage === "ru"
+            ? "Не удалось загрузить историю."
+            : "Тарихты жүктеу мүмкін болмады.";
 
     }
 
 }
 
 
-/* =========================================
+/* =====================================================
 SAVINGS
-========================================= */
+===================================================== */
 
-function openSavings(){
+async function openSavings(){
+
+    await refreshUser();
 
     const savings =
         Number(
@@ -3267,9 +3266,873 @@ function openSavings(){
 }
 
 
-/* =========================================
+/* =====================================================
+PARTNER QR SCANNER
+===================================================== */
+
+function openPartnerScanner(){
+
+    stopScanner();
+
+    openModal(`
+
+        <div class="modal-title">
+
+            ${
+                currentLanguage === "ru"
+                ? "Проверка участника"
+                : "Мүшені тексеру"
+            }
+
+        </div>
+
+        <div class="modal-text">
+
+            ${
+                currentLanguage === "ru"
+                ?
+                "Наведите камеру на QR-код участника BIZDE."
+                :
+                "Камераны BIZDE мүшесінің QR-кодына бағыттаңыз."
+            }
+
+        </div>
+
+        <div
+            id="qrScanner"
+            class="scanner-box"
+        ></div>
+
+        <div
+            style="
+                text-align:center;
+                color:var(--muted);
+                font-size:11px;
+                margin:10px 0;
+            "
+        >
+            ${
+                currentLanguage === "ru"
+                ? "или введите код вручную"
+                : "немесе кодты қолмен енгізіңіз"
+            }
+        </div>
+
+        <input
+            id="manualMemberCode"
+            class="modal-input"
+            placeholder="BIZDE-XXXXXXXX"
+            autocomplete="off"
+        >
+
+        <button
+            class="modal-button"
+            onclick="verifyManualMember()"
+        >
+            ${
+                currentLanguage === "ru"
+                ? "Проверить участника"
+                : "Мүшені тексеру"
+            }
+        </button>
+
+    `);
+
+    setTimeout(
+        startScanner,
+        300
+    );
+
+}
+
+
+function startScanner(){
+
+    const element =
+        document.getElementById(
+            "qrScanner"
+        );
+
+    if(
+        !element ||
+        !window.Html5Qrcode
+    ){
+        return;
+    }
+
+    try{
+
+        qrScanner =
+            new Html5Qrcode(
+                "qrScanner"
+            );
+
+        qrScanner.start(
+            {
+                facingMode:"environment"
+            },
+            {
+                fps:10,
+                qrbox:{
+                    width:220,
+                    height:220
+                }
+            },
+            function(decodedText){
+
+                stopScanner();
+
+                const code =
+                    decodedText
+                    .trim()
+                    .toUpperCase();
+
+                verifyMemberCode(code);
+
+            },
+            function(errorMessage){
+
+                // Ошибки поиска QR игнорируем.
+
+            }
+        ).catch(function(error){
+
+            console.error(
+                "SCANNER ERROR:",
+                error
+            );
+
+        });
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+async function stopScanner(){
+
+    if(!qrScanner){
+        return;
+    }
+
+    try{
+
+        await qrScanner.stop();
+
+    }catch(e){}
+
+    try{
+
+        await qrScanner.clear();
+
+    }catch(e){}
+
+    qrScanner = null;
+
+}
+
+
+function verifyManualMember(){
+
+    const input =
+        document.getElementById(
+            "manualMemberCode"
+        );
+
+    if(!input){
+        return;
+    }
+
+    const code =
+        input.value
+        .trim()
+        .toUpperCase();
+
+    if(!code){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Введите код участника"
+            : "Мүше кодын енгізіңіз"
+        );
+
+        return;
+
+    }
+
+    verifyMemberCode(code);
+
+}
+
+
+async function verifyMemberCode(
+    memberCode
+){
+
+    memberCode =
+        String(memberCode)
+        .trim()
+        .toUpperCase();
+
+    if(!memberCode.startsWith("BIZDE-")){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Неверный QR-код BIZDE"
+            : "BIZDE QR-коды қате"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_URL}/api/verify-member`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+                        member_code:memberCode
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !data.success ||
+            !data.member
+        ){
+
+            openModal(`
+
+                <div class="modal-title">
+                    ${
+                        currentLanguage === "ru"
+                        ? "Участник не найден"
+                        : "Мүше табылмады"
+                    }
+                </div>
+
+                <div class="modal-text">
+                    ${
+                        currentLanguage === "ru"
+                        ?
+                        "QR-код не найден в системе BIZDE."
+                        :
+                        "QR-код BIZDE жүйесінен табылмады."
+                    }
+                </div>
+
+                <button
+                    class="modal-button"
+                    onclick="openPartnerScanner()"
+                >
+                    ${
+                        currentLanguage === "ru"
+                        ? "Попробовать снова"
+                        : "Қайта көру"
+                    }
+                </button>
+
+            `);
+
+            return;
+
+        }
+
+        showVerifiedMember(
+            data.member
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Ошибка проверки участника"
+            : "Мүшені тексеру қатесі"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+VERIFIED MEMBER
+===================================================== */
+
+async function showVerifiedMember(
+    member
+){
+
+    const active =
+        member.subscription_active === true ||
+        member.subscription_active === 1 ||
+        member.subscription_active === "true";
+
+    if(!active){
+
+        openModal(`
+
+            <div class="modal-title">
+                ${
+                    currentLanguage === "ru"
+                    ? "Подписка не активна"
+                    : "Жазылым белсенді емес"
+                }
+            </div>
+
+            <div class="modal-text">
+
+                ${
+                    currentLanguage === "ru"
+                    ?
+                    `Участник ${esc(member.name || "BIZDE")} найден, но его статус не активен.`
+                    :
+                    `${esc(member.name || "BIZDE")} мүшесі табылды, бірақ оның мәртебесі белсенді емес.`
+                }
+
+            </div>
+
+            <div class="member-code">
+                ${esc(member.member_code)}
+            </div>
+
+            <button
+                class="modal-button"
+                style="margin-top:18px;"
+                onclick="closeModal()"
+            >
+                ${
+                    currentLanguage === "ru"
+                    ? "Закрыть"
+                    : "Жабу"
+                }
+            </button>
+
+        `);
+
+        return;
+
+    }
+
+    let partners = [];
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_URL}/api/partners`
+            );
+
+        const data =
+            await response.json();
+
+        if(data.partners){
+            partners = data.partners;
+        }
+
+    }catch(e){
+
+        console.error(e);
+
+    }
+
+    openModal(`
+
+        <div class="modal-title">
+            ${
+                currentLanguage === "ru"
+                ? "Участник подтверждён ✓"
+                : "Мүше расталды ✓"
+            }
+        </div>
+
+        <div class="scanner-result">
+
+            <strong>
+                ${esc(member.name || "Участник BIZDE")}
+            </strong>
+
+            <br>
+
+            <span
+                style="
+                    color:var(--green);
+                    font-size:11px;
+                "
+            >
+                ${esc(member.member_code)}
+            </span>
+
+            <br><br>
+
+            <b style="color:#24714a;">
+                ✓ ${
+                    currentLanguage === "ru"
+                    ? "Подписка активна"
+                    : "Жазылым белсенді"
+                }
+            </b>
+
+        </div>
+
+        <div class="modal-text">
+
+            ${
+                currentLanguage === "ru"
+                ? "Выберите партнёра:"
+                : "Серіктесті таңдаңыз:"
+            }
+
+        </div>
+
+        ${
+            partners.length
+            ?
+            partners.map(partner=>`
+
+                <button
+                    class="partner-select"
+                    onclick="openReceiptForMember(
+                        '${esc(member.member_code)}',
+                        ${Number(partner.id)},
+                        '${esc(partner.name)}',
+                        ${Number(partner.discount_percent || 0)}
+                    )"
+                >
+
+                    <strong>
+                        ${esc(partner.name)}
+                    </strong>
+
+                    <span>
+                        ${Number(partner.discount_percent || 0)}%
+                        ${
+                            currentLanguage === "ru"
+                            ? " привилегия"
+                            : " артықшылық"
+                        }
+                    </span>
+
+                </button>
+
+            `).join("")
+            :
+            `
+            <div class="modal-text">
+                ${
+                    currentLanguage === "ru"
+                    ? "Партнёры пока не найдены."
+                    : "Серіктестер табылмады."
+                }
+            </div>
+            `
+        }
+
+    `);
+
+}
+
+
+/* =====================================================
+RECEIPT
+===================================================== */
+
+function openReceiptForMember(
+    memberCode,
+    partnerId,
+    partnerName,
+    discount
+){
+
+    openModal(`
+
+        <div class="modal-title">
+            ${
+                currentLanguage === "ru"
+                ? "Сумма покупки"
+                : "Сатып алу сомасы"
+            }
+        </div>
+
+        <div class="modal-text">
+
+            <b>${esc(partnerName)}</b>
+
+            <br><br>
+
+            ${
+                currentLanguage === "ru"
+                ? "Привилегия участника:"
+                : "Мүше артықшылығы:"
+            }
+
+            <strong
+                style="
+                    color:var(--green);
+                    font-size:22px;
+                "
+            >
+                ${Number(discount)}%
+            </strong>
+
+        </div>
+
+        <input
+            class="modal-input"
+            id="receiptAmount"
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="${
+                currentLanguage === "ru"
+                ? "Сумма чека, ₸"
+                : "Чек сомасы, ₸"
+            }"
+        >
+
+        <button
+            class="modal-button"
+            onclick="calculatePartnerSaving(
+                '${esc(memberCode)}',
+                ${Number(partnerId)},
+                '${esc(partnerName)}',
+                ${Number(discount)}
+            )"
+        >
+            ${
+                currentLanguage === "ru"
+                ? "Рассчитать привилегию"
+                : "Артықшылықты есептеу"
+            }
+        </button>
+
+    `);
+
+}
+
+
+async function calculatePartnerSaving(
+    memberCode,
+    partnerId,
+    partnerName,
+    discount
+){
+
+    const input =
+        document.getElementById(
+            "receiptAmount"
+        );
+
+    if(!input){
+        return;
+    }
+
+    const amount =
+        Number(input.value);
+
+    if(!amount || amount <= 0){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Введите сумму чека"
+            : "Чек сомасын енгізіңіз"
+        );
+
+        return;
+
+    }
+
+    const savings =
+        (amount * Number(discount) / 100)
+        .toFixed(2);
+
+    const total =
+        Number(
+            bizdeUser?.total_savings || 0
+        );
+
+    openModal(`
+
+        <div class="modal-title">
+            ${
+                currentLanguage === "ru"
+                ? "Привилегия рассчитана"
+                : "Артықшылық есептелді"
+            }
+        </div>
+
+        <div class="scanner-result">
+
+            <div style="font-size:12px;color:var(--muted);">
+                ${esc(partnerName)}
+            </div>
+
+            <div
+                style="
+                    font-size:36px;
+                    font-weight:900;
+                    color:var(--green);
+                    margin:12px 0;
+                "
+            >
+                ${savings} ₸
+            </div>
+
+            <div style="font-size:12px;">
+                ${
+                    currentLanguage === "ru"
+                    ? "Экономия участника"
+                    : "Мүшенің үнемі"
+                }
+            </div>
+
+        </div>
+
+        <div class="modal-text">
+
+            ${
+                currentLanguage === "ru"
+                ? "Подтвердить использование привилегии?"
+                : "Артықшылықты пайдалануды растау керек пе?"
+            }
+
+            <br><br>
+
+            Чек: <b>${amount.toFixed(2)} ₸</b>
+
+            <br>
+
+            Привилегия: <b>${discount}%</b>
+
+        </div>
+
+        <button
+            class="modal-button"
+            onclick="confirmPartnerTransaction(
+                '${esc(memberCode)}',
+                ${Number(partnerId)},
+                ${amount},
+                '${esc(partnerName)}',
+                ${Number(discount)},
+                ${Number(savings)}
+            )"
+        >
+            ${
+                currentLanguage === "ru"
+                ? "Подтвердить"
+                : "Растау"
+            }
+        </button>
+
+    `);
+
+}
+
+
+async function confirmPartnerTransaction(
+    memberCode,
+    partnerId,
+    amount,
+    partnerName,
+    discount,
+    calculatedSavings
+){
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_URL}/api/partner-use-offer`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        member_code:
+                            memberCode,
+
+                        partner_id:
+                            partnerId,
+
+                        receipt_amount:
+                            amount
+
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !data.success ||
+            !data.result
+        ){
+
+            showToast(
+                data.error ||
+                (
+                    currentLanguage === "ru"
+                    ? "Не удалось сохранить операцию"
+                    : "Операцияны сақтау мүмкін болмады"
+                )
+            );
+
+            return;
+
+        }
+
+        const result =
+            data.result;
+
+        /*
+        Обновляем данные клиента,
+        если операция была проведена
+        для текущего пользователя.
+        */
+
+        if(
+            bizdeUser &&
+            bizdeUser.member_code === memberCode
+        ){
+
+            bizdeUser.total_savings =
+                result.total_savings;
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(bizdeUser)
+            );
+
+            applyUserToUI();
+
+        }
+
+        openModal(`
+
+            <div class="modal-title">
+                ✓ ${
+                    currentLanguage === "ru"
+                    ? "Готово"
+                    : "Дайын"
+                }
+            </div>
+
+            <div class="success-box">
+
+                <div
+                    style="
+                        font-size:32px;
+                        font-weight:900;
+                    "
+                >
+                    +${Number(result.savings).toFixed(2)} ₸
+                </div>
+
+                <div style="margin-top:7px;">
+                    ${
+                        currentLanguage === "ru"
+                        ? "Экономия участника"
+                        : "Мүшенің үнемі"
+                    }
+                </div>
+
+            </div>
+
+            <div class="modal-text">
+
+                <b>
+                    ${esc(result.partner_name)}
+                </b>
+
+                <br><br>
+
+                ${
+                    currentLanguage === "ru"
+                    ? "Чек:"
+                    : "Чек:"
+                }
+
+                ${Number(result.receipt_amount).toFixed(2)} ₸
+
+                <br>
+
+                ${
+                    currentLanguage === "ru"
+                    ? "Привилегия:"
+                    : "Артықшылық:"
+                }
+
+                ${Number(result.discount_percent)}%
+
+                <br><br>
+
+                ${
+                    currentLanguage === "ru"
+                    ? "Общая экономия участника:"
+                    : "Мүшенің жалпы үнемі:"
+                }
+
+                <b>
+                    ${Number(result.total_savings).toFixed(2)} ₸
+                </b>
+
+            </div>
+
+            <button
+                class="modal-button"
+                onclick="closeModal()"
+            >
+                ${
+                    currentLanguage === "ru"
+                    ? "Готово"
+                    : "Дайын"
+                }
+            </button>
+
+        `);
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Ошибка соединения с BIZDE"
+            : "BIZDE серверіне қосылу қатесі"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
 LANGUAGE
-========================================= */
+===================================================== */
 
 function openLanguage(){
 
@@ -3363,9 +4226,9 @@ async function changeLanguage(language){
 }
 
 
-/* =========================================
+/* =====================================================
 FAVORITES
-========================================= */
+===================================================== */
 
 function getFavorites(){
 
@@ -3397,7 +4260,7 @@ function toggleFavorite(name){
 
         favorites =
             favorites.filter(
-                item=>item !== name
+                item=>item!==name
             );
 
         showToast(
@@ -3434,6 +4297,10 @@ function renderFavorites(){
         document.getElementById(
             "favoritesList"
         );
+
+    if(!container){
+        return;
+    }
 
     const favorites =
         getFavorites();
@@ -3476,43 +4343,74 @@ function renderFavorites(){
 
     }
 
+    const partnerMap = {
+
+        "Partner 1":
+            ["Ресторан восточной кухни","20%",1],
+
+        "VERO Café":
+            ["Кафе","20%",2],
+
+        "FITROOM":
+            ["Фитнес","15%",3],
+
+        "Beauty Room":
+            ["Красота","15%",4]
+
+    };
+
     container.innerHTML =
-        favorites.map(name=>`
+        favorites.map(name=>{
 
-            <div
-                class="partner"
-                style="margin-bottom:10px"
-                onclick="openPartner('${name}','Партнёр','20%',1)"
-            >
+            const info =
+                partnerMap[name] ||
+                ["Партнёр","20%",1];
 
-                <div class="partner-image">
-                    P
+            return `
+
+                <div
+                    class="partner"
+                    style="margin-bottom:10px"
+                    onclick="openPartner(
+                        '${esc(name)}',
+                        '${esc(info[0])}',
+                        '${esc(info[1])}',
+                        ${info[2]}
+                    )"
+                >
+
+                    <div class="partner-image">
+                        P
+                    </div>
+
+                    <div class="partner-info">
+
+                        <h3>
+                            ${esc(name)}
+                        </h3>
+
+                        <p>
+                            BIZDE.KZ
+                        </p>
+
+                    </div>
+
                 </div>
 
-                <div class="partner-info">
+            `;
 
-                    <h3>
-                        ${name}
-                    </h3>
-
-                    <p>
-                        BIZDE.KZ
-                    </p>
-
-                </div>
-
-            </div>
-
-        `).join("");
+        }).join("");
 
 }
 
 
-/* =========================================
+/* =====================================================
 MODAL
-========================================= */
+===================================================== */
 
 function openModal(content){
+
+    stopScanner();
 
     document.getElementById(
         "modalContent"
@@ -3526,17 +4424,17 @@ function openModal(content){
 }
 
 
-function closeModal(event){
+async function closeModal(event){
 
     if(
         event &&
         event.target !==
         document.getElementById("modal")
     ){
-
         return;
-
     }
+
+    await stopScanner();
 
     document.getElementById(
         "modal"
@@ -3545,9 +4443,9 @@ function closeModal(event){
 }
 
 
-/* =========================================
+/* =====================================================
 TOAST
-========================================= */
+===================================================== */
 
 function showToast(message){
 
@@ -3569,13 +4467,13 @@ function showToast(message){
 }
 
 
-/* =========================================
+/* =====================================================
 START
-========================================= */
+===================================================== */
 
 applyLanguage();
 
-restoreFavorites();
+renderFavorites();
 
 applyUserToUI();
 
