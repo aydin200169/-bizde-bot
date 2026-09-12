@@ -33,6 +33,9 @@ from telegram.ext import (
 TOKEN = os.environ.get("BOT_TOKEN")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+# Telegram ID администратора
+ADMIN_ID = int(os.environ.get("ADMIN_ID", "0"))
+
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 PORT = int(os.environ.get("PORT", "10000"))
 
@@ -576,6 +579,35 @@ def verify_member(member_code):
 
 
 # ============================================================
+# SUBSCRIPTION
+# ============================================================
+
+def set_subscription(telegram_id, active):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE users
+        SET
+            subscription_active = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE telegram_id = %s
+    """, (
+        active,
+        telegram_id
+    ))
+
+    changed = cur.rowcount
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return changed > 0
+
+
+# ============================================================
 # CREATE TRANSACTION
 # ============================================================
 
@@ -631,11 +663,29 @@ def create_transaction(
             "error": "PARTNER_NOT_FOUND"
         }
 
+    try:
+        amount = float(receipt_amount)
+    except (TypeError, ValueError):
+        cur.close()
+        conn.close()
+
+        return {
+            "ok": False,
+            "error": "INVALID_RECEIPT_AMOUNT"
+        }
+
+    if amount <= 0:
+        cur.close()
+        conn.close()
+
+        return {
+            "ok": False,
+            "error": "INVALID_RECEIPT_AMOUNT"
+        }
+
     discount = float(
         partner["discount_percent"] or 0
     )
-
-    amount = float(receipt_amount)
 
     savings = round(
         amount * discount / 100,
@@ -1283,6 +1333,106 @@ async def start(
         print("START USER ERROR:", e)
 
 
+# ============================================================
+# ADMIN - ACTIVATE SUBSCRIPTION
+# ============================================================
+
+async def activate_subscription(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text(
+            "⛔ Нет доступа."
+        )
+        return
+
+    if not context.args:
+        await update.message.reply_text(
+            "Использование:\n\n"
+            "/activate ID\n\n"
+            "Например:\n"
+            "/activate 123456789"
+        )
+        return
+
+    try:
+        telegram_id = int(
+            context.args[0]
+        )
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Telegram ID должен быть числом."
+        )
+        return
+
+    success = set_subscription(
+        telegram_id,
+        True
+    )
+
+    if success:
+        await update.message.reply_text(
+            "✅ Подписка активирована."
+        )
+    else:
+        await update.message.reply_text(
+            "❌ Пользователь не найден."
+        )
+
+
+# ============================================================
+# ADMIN - DEACTIVATE SUBSCRIPTION
+# ============================================================
+
+async def deactivate_subscription(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text(
+            "⛔ Нет доступа."
+        )
+        return
+
+    if not context.args:
+        await update.message.reply_text(
+            "Использование:\n\n"
+            "/deactivate ID\n\n"
+            "Например:\n"
+            "/deactivate 123456789"
+        )
+        return
+
+    try:
+        telegram_id = int(
+            context.args[0]
+        )
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Telegram ID должен быть числом."
+        )
+        return
+
+    success = set_subscription(
+        telegram_id,
+        False
+    )
+
+    if success:
+        await update.message.reply_text(
+            "✅ Подписка отключена."
+        )
+    else:
+        await update.message.reply_text(
+            "❌ Пользователь не найден."
+        )
+
+
+# ============================================================
+# BUTTON HANDLER
+# ============================================================
+
 async def button_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
@@ -1385,6 +1535,7 @@ def main():
         .build()
     )
 
+    # START
     application.add_handler(
         CommandHandler(
             "start",
@@ -1392,6 +1543,23 @@ def main():
         )
     )
 
+    # ADMIN ACTIVATE
+    application.add_handler(
+        CommandHandler(
+            "activate",
+            activate_subscription
+        )
+    )
+
+    # ADMIN DEACTIVATE
+    application.add_handler(
+        CommandHandler(
+            "deactivate",
+            deactivate_subscription
+        )
+    )
+
+    # BUTTONS
     application.add_handler(
         CallbackQueryHandler(
             button_handler
