@@ -14,6 +14,8 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <style>
 
 *{
@@ -75,17 +77,10 @@ button{
     display:block;
 }
 
-
-/* ======================================
-HEADER
-====================================== */
-
 .header{
-
     display:flex;
     justify-content:space-between;
     align-items:center;
-
     padding:22px 18px 14px;
 }
 
@@ -105,38 +100,21 @@ HEADER
 }
 
 .lang-btn{
-
     width:42px;
     height:42px;
-
     border-radius:14px;
-
     background:white;
-
     color:var(--dark);
-
     font-size:13px;
     font-weight:800;
-
     box-shadow:0 5px 18px rgba(7,31,29,.06);
 }
-
-
-/* ======================================
-CONTAINER
-====================================== */
 
 .container{
     padding:0 18px;
 }
 
-
-/* ======================================
-HERO
-====================================== */
-
 .hero{
-
     background:
         linear-gradient(
             145deg,
@@ -145,14 +123,10 @@ HERO
         );
 
     border-radius:28px;
-
     padding:26px 22px;
-
     color:white;
-
     position:relative;
     overflow:hidden;
-
     margin-bottom:18px;
 
     box-shadow:
@@ -160,54 +134,36 @@ HERO
 }
 
 .hero:after{
-
     content:"";
-
     position:absolute;
-
     width:180px;
     height:180px;
-
     border-radius:50%;
-
     border:1px solid rgba(225,197,109,.2);
-
     right:-60px;
     top:-60px;
 }
 
 .hero-label{
-
     color:var(--gold2);
-
     font-size:11px;
     font-weight:800;
-
     letter-spacing:2px;
-
     margin-bottom:10px;
 }
 
 .hero h1{
-
     font-size:30px;
     line-height:1.05;
-
     letter-spacing:-1px;
-
     margin-bottom:12px;
 }
 
 .hero p{
-
     color:rgba(255,255,255,.72);
-
     font-size:14px;
-
     line-height:1.5;
-
     max-width:310px;
-
     margin-bottom:20px;
 }
 
@@ -217,67 +173,42 @@ HERO
 }
 
 .hero-btn{
-
     padding:12px 15px;
-
     border-radius:14px;
-
     font-size:12px;
     font-weight:800;
 }
 
 .hero-primary{
-
     background:var(--gold);
-
     color:var(--dark);
 }
 
 .hero-secondary{
-
     background:rgba(255,255,255,.1);
-
     color:white;
-
     border:1px solid rgba(255,255,255,.15);
 }
 
-
-/* ======================================
-STATUS
-====================================== */
-
 .status-card{
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:22px;
-
     padding:18px;
-
     display:flex;
     align-items:center;
-
     gap:14px;
-
     margin-bottom:24px;
 }
 
 .status-icon{
-
     width:48px;
     height:48px;
-
     border-radius:16px;
-
     background:var(--surface2);
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:22px;
 }
 
@@ -286,167 +217,102 @@ STATUS
 }
 
 .status-name{
-
     font-size:15px;
     font-weight:800;
-
     margin-bottom:4px;
 }
 
 .status-text{
-
     font-size:12px;
     color:var(--muted);
 }
 
 .status-badge{
-
     font-size:9px;
-
     font-weight:900;
-
     letter-spacing:.5px;
-
     padding:7px 9px;
-
     border-radius:9px;
-
     background:#e7f4ec;
-
     color:#24714a;
 }
-
-
-/* ======================================
-SECTION
-====================================== */
 
 .section{
     margin-bottom:26px;
 }
 
 .section-head{
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
     margin-bottom:13px;
 }
 
 .section-title{
-
     font-size:20px;
     font-weight:900;
-
     letter-spacing:-.5px;
 }
 
 .section-link{
-
     color:var(--green);
-
     font-size:12px;
     font-weight:800;
+    background:none;
 }
 
-
-/* ======================================
-PRIVILEGES
-====================================== */
-
 .privileges{
-
     display:grid;
     grid-template-columns:1fr 1fr;
-
     gap:10px;
 }
 
 .privilege{
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:19px;
-
     padding:17px;
-
     min-height:118px;
 }
 
 .privilege-icon{
-
     font-size:22px;
-
     margin-bottom:14px;
 }
 
 .privilege h3{
-
     font-size:13px;
-
     margin-bottom:5px;
 }
 
 .privilege p{
-
     font-size:11px;
-
     line-height:1.4;
-
     color:var(--muted);
 }
 
-
-/* ======================================
-SEARCH
-====================================== */
-
 .search{
-
     position:relative;
-
     margin-bottom:22px;
 }
 
 .search input{
-
     width:100%;
-
     height:52px;
-
     border:none;
-
     outline:none;
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:17px;
-
     padding:0 18px;
-
     font-size:13px;
-
     color:var(--text);
 }
 
-
-/* ======================================
-CATEGORIES
-====================================== */
-
 .categories{
-
     display:flex;
-
     gap:8px;
-
     overflow-x:auto;
-
     padding-bottom:4px;
 }
 
@@ -455,87 +321,54 @@ CATEGORIES
 }
 
 .category{
-
     white-space:nowrap;
-
     padding:11px 14px;
-
     border-radius:13px;
-
     background:white;
-
     border:1px solid var(--line);
-
     font-size:11px;
-
     font-weight:800;
-
     color:var(--text);
 }
 
 .category.active{
-
     background:var(--dark);
-
     color:white;
-
     border-color:var(--dark);
 }
 
-
-/* ======================================
-PARTNERS
-====================================== */
-
 .partners{
-
     display:flex;
-
     flex-direction:column;
-
     gap:10px;
 }
 
 .partner{
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:20px;
-
     padding:12px;
-
     display:flex;
-
     align-items:center;
-
     gap:13px;
 }
 
 .partner-image{
-
     width:62px;
     height:62px;
-
     border-radius:17px;
-
     background:
         linear-gradient(
             135deg,
             var(--dark),
             var(--green2)
         );
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     color:white;
-
     font-size:19px;
     font-weight:900;
-
     flex-shrink:0;
 }
 
@@ -544,106 +377,63 @@ PARTNERS
 }
 
 .partner-info h3{
-
     font-size:14px;
-
     margin-bottom:4px;
 }
 
 .partner-info p{
-
     font-size:11px;
-
     color:var(--muted);
-
     margin-bottom:7px;
 }
 
 .partner-badge{
-
     display:inline-block;
-
     padding:5px 8px;
-
     background:#f7f0dd;
-
     color:#92712b;
-
     border-radius:7px;
-
     font-size:9px;
-
     font-weight:900;
 }
 
 .heart{
-
     width:36px;
     height:36px;
-
     border-radius:12px;
-
     background:var(--surface2);
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:17px;
 }
 
-
-/* ======================================
-BOTTOM NAV
-====================================== */
-
 .bottom-nav{
-
     position:fixed;
-
     left:12px;
     right:12px;
     bottom:12px;
-
     height:68px;
-
     background:rgba(255,255,255,.95);
-
     backdrop-filter:blur(18px);
-
     border:1px solid var(--line);
-
     border-radius:23px;
-
     display:grid;
-
-    grid-template-columns:
-        repeat(4,1fr);
-
+    grid-template-columns:repeat(4,1fr);
     z-index:50;
-
     box-shadow:
         0 12px 35px rgba(7,31,29,.12);
 }
 
 .nav-item{
-
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
-
     justify-content:center;
-
     gap:4px;
-
     color:#8a9290;
-
     font-size:10px;
-
     font-weight:800;
-
     background:none;
 }
 
@@ -655,160 +445,102 @@ BOTTOM NAV
     color:var(--green);
 }
 
-
-/* ======================================
-PROFILE
-====================================== */
-
 .profile-head{
-
     text-align:center;
-
     padding:15px 0 24px;
 }
 
 .avatar{
-
     width:78px;
     height:78px;
-
     border-radius:27px;
-
     margin:0 auto 13px;
-
     background:
         linear-gradient(
             135deg,
             var(--dark),
             var(--green2)
         );
-
     color:white;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:25px;
     font-weight:900;
 }
 
 .profile-name{
-
     font-size:22px;
     font-weight:900;
-
     margin-bottom:5px;
 }
 
 .profile-status{
-
     font-size:12px;
     color:var(--muted);
 }
 
 .member-card{
-
     background:
         linear-gradient(
             140deg,
             var(--dark),
             #0b4540
         );
-
     color:white;
-
     border-radius:25px;
-
     padding:23px;
-
     min-height:180px;
-
     position:relative;
-
     overflow:hidden;
-
     margin-bottom:18px;
 }
 
 .member-card:after{
-
     content:"";
-
     position:absolute;
-
     width:170px;
     height:170px;
-
     border-radius:50%;
-
     border:1px solid rgba(225,197,109,.22);
-
     right:-55px;
     bottom:-55px;
 }
 
 .member-label{
-
     font-size:9px;
-
     color:var(--gold2);
-
     letter-spacing:2px;
-
     font-weight:900;
-
     margin-bottom:42px;
 }
 
 .member-name{
-
     font-size:18px;
-
     font-weight:900;
 }
 
 .member-status{
-
     font-size:10px;
-
     color:rgba(255,255,255,.65);
-
     margin-top:6px;
 }
 
-
-/* ======================================
-PROFILE MENU
-====================================== */
-
 .profile-menu{
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:21px;
-
     overflow:hidden;
 }
 
 .profile-row{
-
     width:100%;
-
     background:white;
-
     display:flex;
-
     align-items:center;
-
     padding:16px;
-
     gap:13px;
-
     border-bottom:1px solid var(--line);
-
     text-align:left;
 }
 
@@ -817,18 +549,13 @@ PROFILE MENU
 }
 
 .profile-row-icon{
-
     width:40px;
     height:40px;
-
     border-radius:13px;
-
     background:var(--surface2);
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:18px;
 }
 
@@ -837,104 +564,64 @@ PROFILE MENU
 }
 
 .profile-row-title{
-
     font-size:13px;
-
     font-weight:800;
-
     margin-bottom:3px;
 }
 
 .profile-row-sub{
-
     font-size:10px;
-
     color:var(--muted);
 }
 
 .profile-row-arrow{
-
     color:#a3aaa8;
 }
 
-
-/* ======================================
-FAVORITES
-====================================== */
-
 .empty{
-
     background:white;
-
     border:1px solid var(--line);
-
     border-radius:22px;
-
     padding:35px 20px;
-
     text-align:center;
 }
 
 .empty-icon{
-
     font-size:35px;
-
     margin-bottom:12px;
 }
 
 .empty h3{
-
     font-size:16px;
-
     margin-bottom:6px;
 }
 
 .empty p{
-
     color:var(--muted);
-
     font-size:12px;
-
     line-height:1.5;
 }
 
-
-/* ======================================
-MAP
-====================================== */
-
 .map{
-
     height:500px;
-
     border-radius:25px;
-
     background:
         linear-gradient(
             135deg,
             #e4e9e5,
             #d7dfda
         );
-
     position:relative;
-
     overflow:hidden;
-
     border:1px solid var(--line);
 }
 
 .map-road{
-
     position:absolute;
-
     background:rgba(255,255,255,.65);
-
     height:45px;
-
     width:150%;
-
     transform:rotate(-17deg);
-
     left:-30%;
 }
 
@@ -949,24 +636,16 @@ MAP
 }
 
 .map-pin{
-
     position:absolute;
-
     width:44px;
     height:44px;
-
     border-radius:15px;
-
     background:var(--dark);
-
     color:white;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:19px;
-
     box-shadow:
         0 8px 20px rgba(7,31,29,.22);
 }
@@ -991,25 +670,13 @@ MAP
     left:72%;
 }
 
-
-/* ======================================
-MODAL
-====================================== */
-
 .modal{
-
     position:fixed;
-
     inset:0;
-
     background:rgba(0,0,0,.45);
-
     backdrop-filter:blur(5px);
-
     display:none;
-
     align-items:flex-end;
-
     z-index:100;
 }
 
@@ -1018,1155 +685,1102 @@ MODAL
 }
 
 .modal-box{
-
     width:100%;
-
     background:white;
-
     border-radius:30px 30px 0 0;
-
     padding:24px 20px 35px;
-
     max-height:85vh;
-
     overflow-y:auto;
 }
 
 .modal-close{
-
     width:38px;
     height:38px;
-
     border-radius:12px;
-
     background:var(--surface2);
-
     float:right;
-
     font-size:18px;
 }
 
 .modal-title{
-
     clear:both;
-
     font-size:23px;
-
     font-weight:900;
-
     padding-top:18px;
-
     margin-bottom:10px;
 }
 
 .modal-text{
-
     color:var(--muted);
-
     font-size:13px;
-
     line-height:1.55;
-
     margin-bottom:18px;
 }
 
 .modal-button{
-
     width:100%;
-
     height:52px;
-
     background:var(--dark);
-
     color:white;
-
     border-radius:16px;
-
     font-weight:900;
-
     font-size:13px;
 }
 
-
-/* ======================================
-QR
-====================================== */
-
-.qr{
-
-    width:220px;
-    height:220px;
-
-    margin:20px auto;
-
-    background:white;
-
-    border:10px solid white;
-
-    box-shadow:0 5px 20px rgba(0,0,0,.1);
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(11,1fr);
-
-    gap:2px;
+.modal-input{
+    width:100%;
+    height:52px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:0 16px;
+    outline:none;
+    font-size:14px;
+    margin-bottom:12px;
+    color:var(--text);
+    background:#fafbfa;
 }
 
-.qr span{
-    background:#071f1d;
-}
-
-.qr span:nth-child(3n){
-    background:white;
-}
-
-.qr-code{
-
-    text-align:center;
-
-    font-size:11px;
-
+.checkbox-row{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin:14px 0 18px;
+    font-size:12px;
+    line-height:1.4;
     color:var(--muted);
 }
 
+.checkbox-row input{
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    accent-color:var(--green);
+}
 
-/* ======================================
-TOAST
-====================================== */
+.qr-real{
+    width:220px;
+    min-height:220px;
+    margin:20px auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:white;
+    border-radius:18px;
+}
+
+.qr-real img{
+    margin:auto;
+}
+
+.qr-code{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    word-break:break-all;
+}
+
+.member-code{
+    text-align:center;
+    font-size:15px;
+    font-weight:900;
+    color:var(--green);
+    margin-top:10px;
+}
+
+.history-item{
+    background:white;
+    border:1px solid var(--line);
+    border-radius:17px;
+    padding:14px;
+    margin-bottom:9px;
+}
+
+.history-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.history-name{
+    font-size:13px;
+    font-weight:900;
+}
+
+.history-saving{
+    font-size:13px;
+    font-weight:900;
+    color:var(--green);
+}
+
+.history-info{
+    color:var(--muted);
+    font-size:10px;
+    margin-top:5px;
+}
 
 .toast{
-
     position:fixed;
-
     left:50%;
-
     bottom:94px;
-
-    transform:
-        translate(-50%,20px);
-
+    transform:translate(-50%,20px);
     opacity:0;
-
     pointer-events:none;
-
     background:var(--dark);
-
     color:white;
-
     padding:12px 17px;
-
     border-radius:14px;
-
     font-size:12px;
-
     font-weight:700;
-
     transition:.25s;
-
     z-index:200;
-
     white-space:nowrap;
 }
 
 .toast.show{
-
     opacity:1;
-
-    transform:
-        translate(-50%,0);
+    transform:translate(-50%,0);
 }
 
 </style>
 
 </head>
 
-
 <body>
 
 
-<!-- =====================================
-HOME
-===================================== -->
+<!-- HOME -->
 
 <div id="homePage" class="page active">
 
-    <header class="header">
+<header class="header">
 
-        <div>
+<div>
 
-            <div class="logo">
-                BIZDE.KZ
-            </div>
+<div class="logo">
+BIZDE.KZ
+</div>
 
-            <div
-                class="logo-sub"
-                id="brandSub"
-            >
-                PRIVILEGE CLUB
-            </div>
-
-        </div>
-
-        <button
-            class="lang-btn"
-            id="langButton"
-            onclick="openLanguage()"
-        >
-            RU
-        </button>
-
-    </header>
-
-
-    <main class="container">
-
-        <section class="hero">
-
-            <div
-                class="hero-label"
-                id="heroLabel"
-            >
-                КЛУБ ПРИВИЛЕГИЙ
-            </div>
-
-            <h1 id="heroTitle">
-                Ваши привилегии начинаются здесь.
-            </h1>
-
-            <p id="heroText">
-                Один статус. Десятки партнёров.
-                Больше возможностей каждый день.
-            </p>
-
-            <div class="hero-buttons">
-
-                <button
-                    class="hero-btn hero-primary"
-                    id="heroPrimary"
-                    onclick="openPrivileges()"
-                >
-                    Мои привилегии
-                </button>
-
-                <button
-                    class="hero-btn hero-secondary"
-                    id="heroSecondary"
-                    onclick="goToPartners()"
-                >
-                    Партнёры
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <section class="status-card">
-
-            <div class="status-icon">
-                ✦
-            </div>
-
-            <div class="status-info">
-
-                <div
-                    class="status-name"
-                    id="statusName"
-                >
-                    Участник BIZDE
-                </div>
-
-                <div
-                    class="status-text"
-                    id="statusText"
-                >
-                    Синхронизация профиля...
-                </div>
-
-            </div>
-
-            <div
-                class="status-badge"
-                id="statusBadge"
-            >
-                ...
-            </div>
-
-        </section>
-
-
-        <section class="section">
-
-            <div class="section-head">
-
-                <h2
-                    class="section-title"
-                    id="privilegesTitle"
-                >
-                    Ваши привилегии
-                </h2>
-
-                <button
-                    class="section-link"
-                    id="privilegesMore"
-                    onclick="openPrivileges()"
-                >
-                    Все
-                </button>
-
-            </div>
-
-
-            <div class="privileges">
-
-                <div class="privilege">
-
-                    <div class="privilege-icon">
-                        ✦
-                    </div>
-
-                    <h3 id="p1">
-                        Специальные условия
-                    </h3>
-
-                    <p id="p1s">
-                        Эксклюзивные предложения партнёров.
-                    </p>
-
-                </div>
-
-
-                <div class="privilege">
-
-                    <div class="privilege-icon">
-                        ◈
-                    </div>
-
-                    <h3 id="p2">
-                        Привилегии
-                    </h3>
-
-                    <p id="p2s">
-                        Больше возможностей для участников клуба.
-                    </p>
-
-                </div>
-
-
-                <div class="privilege">
-
-                    <div class="privilege-icon">
-                        ◎
-                    </div>
-
-                    <h3 id="p3">
-                        Экономия
-                    </h3>
-
-                    <p id="p3s">
-                        Получайте выгоду каждый день.
-                    </p>
-
-                </div>
-
-
-                <div class="privilege">
-
-                    <div class="privilege-icon">
-                        ♢
-                    </div>
-
-                    <h3 id="p4">
-                        Особый статус
-                    </h3>
-
-                    <p id="p4s">
-                        Вы — часть закрытого клуба.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <div class="search">
-
-            <input
-                id="searchInput"
-                type="search"
-                placeholder="Поиск партнёров..."
-            >
-
-        </div>
-
-
-        <section class="section">
-
-            <div class="section-head">
-
-                <h2
-                    class="section-title"
-                    id="categoriesTitle"
-                >
-                    Категории
-                </h2>
-
-                <button
-                    class="section-link"
-                    id="allButton"
-                    onclick="showAll()"
-                >
-                    Все
-                </button>
-
-            </div>
-
-
-            <div class="categories">
-
-                <button
-                    class="category active"
-                    data-category="all"
-                    onclick="filterCategory('all',this)"
-                >
-                    Все
-                </button>
-
-                <button
-                    class="category"
-                    data-category="restaurant"
-                    onclick="filterCategory('restaurant',this)"
-                >
-                    🍽 Рестораны
-                </button>
-
-                <button
-                    class="category"
-                    data-category="cafe"
-                    onclick="filterCategory('cafe',this)"
-                >
-                    ☕ Кафе
-                </button>
-
-                <button
-                    class="category"
-                    data-category="beauty"
-                    onclick="filterCategory('beauty',this)"
-                >
-                    ✦ Красота
-                </button>
-
-                <button
-                    class="category"
-                    data-category="health"
-                    onclick="filterCategory('health',this)"
-                >
-                    ♡ Здоровье
-                </button>
-
-                <button
-                    class="category"
-                    data-category="entertainment"
-                    onclick="filterCategory('entertainment',this)"
-                >
-                    ★ Развлечения
-                </button>
-
-                <button
-                    class="category"
-                    data-category="shops"
-                    onclick="filterCategory('shops',this)"
-                >
-                    ◇ Магазины
-                </button>
-
-                <button
-                    class="category"
-                    data-category="sport"
-                    onclick="filterCategory('sport',this)"
-                >
-                    ◉ Спорт
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <section class="section">
-
-            <div class="section-head">
-
-                <h2
-                    class="section-title"
-                    id="partnersTitle"
-                >
-                    Партнёры
-                </h2>
-
-                <button
-                    class="section-link"
-                    id="partnersAll"
-                    onclick="goToPartners()"
-                >
-                    Все
-                </button>
-
-            </div>
-
-
-            <div
-                class="partners"
-                id="partnersList"
-            >
-
-                <div
-                    class="partner"
-                    data-category="restaurant"
-                    data-name="Partner 1"
-                    onclick="openPartner('Partner 1','Ресторан восточной кухни','20%')"
-                >
-
-                    <div class="partner-image">
-                        P1
-                    </div>
-
-                    <div class="partner-info">
-
-                        <h3>
-                            Partner 1
-                        </h3>
-
-                        <p>
-                            Ресторан восточной кухни
-                        </p>
-
-                        <span
-                            class="partner-badge"
-                            data-offer="20%"
-                        >
-                            20% привилегия
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="heart"
-                        onclick="event.stopPropagation();toggleFavorite('Partner 1')"
-                    >
-                        ♡
-                    </button>
-
-                </div>
-
-
-                <div
-                    class="partner"
-                    data-category="cafe"
-                    data-name="VERO Café"
-                    onclick="openPartner('VERO Café','Кафе','20%')"
-                >
-
-                    <div class="partner-image">
-                        VC
-                    </div>
-
-                    <div class="partner-info">
-
-                        <h3>
-                            VERO Café
-                        </h3>
-
-                        <p>
-                            Кофе и десерты
-                        </p>
-
-                        <span
-                            class="partner-badge"
-                            data-offer="20%"
-                        >
-                            20% привилегия
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="heart"
-                        onclick="event.stopPropagation();toggleFavorite('VERO Café')"
-                    >
-                        ♡
-                    </button>
-
-                </div>
-
-
-                <div
-                    class="partner"
-                    data-category="sport"
-                    data-name="FITROOM"
-                    onclick="openPartner('FITROOM','Фитнес','15%')"
-                >
-
-                    <div class="partner-image">
-                        FR
-                    </div>
-
-                    <div class="partner-info">
-
-                        <h3>
-                            FITROOM
-                        </h3>
-
-                        <p>
-                            Спорт и тренировки
-                        </p>
-
-                        <span
-                            class="partner-badge"
-                            data-offer="15%"
-                        >
-                            15% привилегия
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="heart"
-                        onclick="event.stopPropagation();toggleFavorite('FITROOM')"
-                    >
-                        ♡
-                    </button>
-
-                </div>
-
-
-                <div
-                    class="partner"
-                    data-category="beauty"
-                    data-name="Beauty Room"
-                    onclick="openPartner('Beauty Room','Красота','15%')"
-                >
-
-                    <div class="partner-image">
-                        BR
-                    </div>
-
-                    <div class="partner-info">
-
-                        <h3>
-                            Beauty Room
-                        </h3>
-
-                        <p>
-                            Красота и уход
-                        </p>
-
-                        <span
-                            class="partner-badge"
-                            data-offer="15%"
-                        >
-                            15% привилегия
-                        </span>
-
-                    </div>
-
-                    <button
-                        class="heart"
-                        onclick="event.stopPropagation();toggleFavorite('Beauty Room')"
-                    >
-                        ♡
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
+<div class="logo-sub" id="brandSub">
+PRIVILEGE CLUB
+</div>
 
 </div>
 
+<button
+class="lang-btn"
+id="langButton"
+onclick="openLanguage()"
+>
+RU
+</button>
 
-<!-- =====================================
-FAVORITES
-===================================== -->
+</header>
+
+
+<main class="container">
+
+<section class="hero">
+
+<div class="hero-label" id="heroLabel">
+КЛУБ ПРИВИЛЕГИЙ
+</div>
+
+<h1 id="heroTitle">
+Ваши привилегии начинаются здесь.
+</h1>
+
+<p id="heroText">
+Один статус. Десятки партнёров.
+Больше возможностей каждый день.
+</p>
+
+<div class="hero-buttons">
+
+<button
+class="hero-btn hero-primary"
+id="heroPrimary"
+onclick="openPrivileges()"
+>
+Мои привилегии
+</button>
+
+<button
+class="hero-btn hero-secondary"
+id="heroSecondary"
+onclick="goToPartners()"
+>
+Партнёры
+</button>
+
+</div>
+
+</section>
+
+
+<section class="status-card">
+
+<div class="status-icon">
+✦
+</div>
+
+<div class="status-info">
 
 <div
-    id="favoritesPage"
-    class="page"
+class="status-name"
+id="statusName"
 >
-
-    <header class="header">
-
-        <div class="logo">
-            BIZDE.KZ
-        </div>
-
-    </header>
-
-    <main class="container">
-
-        <section class="section">
-
-            <h1
-                class="section-title"
-                id="favoritesTitle"
-            >
-                Избранное
-            </h1>
-
-            <p
-                id="favoritesText"
-                style="color:var(--muted);font-size:12px;margin-top:7px;margin-bottom:18px;"
-            >
-                Ваши любимые партнёры.
-            </p>
-
-            <div
-                id="favoritesList"
-            ></div>
-
-        </section>
-
-    </main>
-
+Участник BIZDE
 </div>
-
-
-<!-- =====================================
-MAP
-===================================== -->
 
 <div
-    id="mapPage"
-    class="page"
+class="status-text"
+id="statusText"
 >
-
-    <header class="header">
-
-        <div class="logo">
-            BIZDE.KZ
-        </div>
-
-    </header>
-
-    <main class="container">
-
-        <section class="section">
-
-            <h1
-                class="section-title"
-                id="mapTitle"
-            >
-                Партнёры на карте
-            </h1>
-
-            <p
-                id="mapLabel"
-                style="color:var(--muted);font-size:12px;margin-top:7px;margin-bottom:16px;"
-            >
-                Павлодар
-            </p>
-
-            <div class="map">
-
-                <div class="map-road"></div>
-                <div class="map-road"></div>
-                <div class="map-road"></div>
-
-                <button
-                    class="map-pin pin1"
-                    onclick="openPartner('Partner 1','Ресторан восточной кухни','20%')"
-                >
-                    P
-                </button>
-
-                <button
-                    class="map-pin pin2"
-                    onclick="openPartner('VERO Café','Кафе','20%')"
-                >
-                    V
-                </button>
-
-                <button
-                    class="map-pin pin3"
-                    onclick="openPartner('FITROOM','Фитнес','15%')"
-                >
-                    F
-                </button>
-
-                <button
-                    class="map-pin pin4"
-                    onclick="openPartner('Beauty Room','Красота','15%')"
-                >
-                    B
-                </button>
-
-            </div>
-
-        </section>
-
-    </main>
-
+Синхронизация профиля...
 </div>
 
-
-<!-- =====================================
-PROFILE
-===================================== -->
+</div>
 
 <div
-    id="profilePage"
-    class="page"
+class="status-badge"
+id="statusBadge"
 >
+...
+</div>
 
-    <header class="header">
+</section>
 
-        <div class="logo">
-            BIZDE.KZ
-        </div>
 
-        <button
-            class="lang-btn"
-            onclick="openLanguage()"
-            id="profileLang"
-        >
-            RU
-        </button>
+<section class="section">
 
-    </header>
+<div class="section-head">
 
-    <main class="container">
+<h2
+class="section-title"
+id="privilegesTitle"
+>
+Ваши привилегии
+</h2>
 
-        <section class="profile-head">
-
-            <div
-                class="avatar"
-                id="avatar"
-            >
-                B
-            </div>
-
-            <div
-                class="profile-name"
-                id="profileName"
-            >
-                Участник BIZDE
-            </div>
-
-            <div
-                class="profile-status"
-                id="profileStatus"
-            >
-                Синхронизация...
-            </div>
-
-        </section>
-
-
-        <div class="member-card">
-
-            <div class="member-label">
-                BIZDE PRIVILEGE CLUB
-            </div>
-
-            <div
-                class="member-name"
-                id="cardMemberLabel"
-            >
-                Участник BIZDE
-            </div>
-
-            <div
-                class="member-status"
-                id="cardStatusLabel"
-            >
-                MEMBER
-            </div>
-
-        </div>
-
-
-        <div class="profile-menu">
-
-            <button
-                class="profile-row"
-                onclick="openSubscription()"
-            >
-
-                <div class="profile-row-icon">
-                    🎟
-                </div>
-
-                <div class="profile-row-info">
-
-                    <div
-                        class="profile-row-title"
-                        id="menuSubscription"
-                    >
-                        Подписка
-                    </div>
-
-                    <div
-                        class="profile-row-sub"
-                        id="subscriptionSub"
-                    >
-                        Проверить статус
-                    </div>
-
-                </div>
-
-                <div class="profile-row-arrow">
-                    ›
-                </div>
-
-            </button>
-
-
-            <button
-                class="profile-row"
-                onclick="openCard()"
-            >
-
-                <div class="profile-row-icon">
-                    ◈
-                </div>
-
-                <div class="profile-row-info">
-
-                    <div
-                        class="profile-row-title"
-                        id="menuCard"
-                    >
-                        Карта участника
-                    </div>
-
-                    <div
-                        class="profile-row-sub"
-                    >
-                        QR и статус
-                    </div>
-
-                </div>
-
-                <div class="profile-row-arrow">
-                    ›
-                </div>
-
-            </button>
-
-
-            <button
-                class="profile-row"
-                onclick="openHistory()"
-            >
-
-                <div class="profile-row-icon">
-                    ◷
-                </div>
-
-                <div class="profile-row-info">
-
-                    <div
-                        class="profile-row-title"
-                        id="menuHistory"
-                    >
-                        История
-                    </div>
-
-                    <div
-                        class="profile-row-sub"
-                    >
-                        Использованные привилегии
-                    </div>
-
-                </div>
-
-                <div class="profile-row-arrow">
-                    ›
-                </div>
-
-            </button>
-
-
-            <button
-                class="profile-row"
-                onclick="openSavings()"
-            >
-
-                <div class="profile-row-icon">
-                    ₸
-                </div>
-
-                <div class="profile-row-info">
-
-                    <div
-                        class="profile-row-title"
-                        id="menuSavings"
-                    >
-                        Моя экономия
-                    </div>
-
-                    <div
-                        class="profile-row-sub"
-                    >
-                        Сколько вы сэкономили
-                    </div>
-
-                </div>
-
-                <div class="profile-row-arrow">
-                    ›
-                </div>
-
-            </button>
-
-
-            <button
-                class="profile-row"
-                onclick="openLanguage()"
-            >
-
-                <div class="profile-row-icon">
-                    🌐
-                </div>
-
-                <div class="profile-row-info">
-
-                    <div
-                        class="profile-row-title"
-                        id="menuLanguage"
-                    >
-                        Язык
-                    </div>
-
-                    <div
-                        class="profile-row-sub"
-                        id="languageSub"
-                    >
-                        Русский
-                    </div>
-
-                </div>
-
-                <div class="profile-row-arrow">
-                    ›
-                </div>
-
-            </button>
-
-        </div>
-
-    </main>
+<button
+class="section-link"
+id="privilegesMore"
+onclick="openPrivileges()"
+>
+Все
+</button>
 
 </div>
 
 
-<!-- =====================================
-BOTTOM NAV
-===================================== -->
+<div class="privileges">
+
+<div class="privilege">
+
+<div class="privilege-icon">
+✦
+</div>
+
+<h3 id="p1">
+Специальные условия
+</h3>
+
+<p id="p1s">
+Эксклюзивные предложения партнёров.
+</p>
+
+</div>
+
+
+<div class="privilege">
+
+<div class="privilege-icon">
+◈
+</div>
+
+<h3 id="p2">
+Привилегии
+</h3>
+
+<p id="p2s">
+Больше возможностей для участников клуба.
+</p>
+
+</div>
+
+
+<div class="privilege">
+
+<div class="privilege-icon">
+◎
+</div>
+
+<h3 id="p3">
+Экономия
+</h3>
+
+<p id="p3s">
+Получайте выгоду каждый день.
+</p>
+
+</div>
+
+
+<div class="privilege">
+
+<div class="privilege-icon">
+♢
+</div>
+
+<h3 id="p4">
+Особый статус
+</h3>
+
+<p id="p4s">
+Вы — часть закрытого клуба.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div class="search">
+
+<input
+id="searchInput"
+type="search"
+placeholder="Поиск партнёров..."
+>
+
+</div>
+
+
+<section class="section">
+
+<div class="section-head">
+
+<h2
+class="section-title"
+id="categoriesTitle"
+>
+Категории
+</h2>
+
+<button
+class="section-link"
+id="allButton"
+onclick="showAll()"
+>
+Все
+</button>
+
+</div>
+
+
+<div class="categories">
+
+<button
+class="category active"
+data-category="all"
+onclick="filterCategory('all',this)"
+>
+Все
+</button>
+
+<button
+class="category"
+data-category="restaurant"
+onclick="filterCategory('restaurant',this)"
+>
+🍽 Рестораны
+</button>
+
+<button
+class="category"
+data-category="cafe"
+onclick="filterCategory('cafe',this)"
+>
+☕ Кафе
+</button>
+
+<button
+class="category"
+data-category="beauty"
+onclick="filterCategory('beauty',this)"
+>
+✦ Красота
+</button>
+
+<button
+class="category"
+data-category="health"
+onclick="filterCategory('health',this)"
+>
+♡ Здоровье
+</button>
+
+<button
+class="category"
+data-category="entertainment"
+onclick="filterCategory('entertainment',this)"
+>
+★ Развлечения
+</button>
+
+<button
+class="category"
+data-category="shops"
+onclick="filterCategory('shops',this)"
+>
+◇ Магазины
+</button>
+
+<button
+class="category"
+data-category="sport"
+onclick="filterCategory('sport',this)"
+>
+◉ Спорт
+</button>
+
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-head">
+
+<h2
+class="section-title"
+id="partnersTitle"
+>
+Партнёры
+</h2>
+
+<button
+class="section-link"
+id="partnersAll"
+onclick="goToPartners()"
+>
+Все
+</button>
+
+</div>
+
+
+<div
+class="partners"
+id="partnersList"
+>
+
+<div class="partner"
+data-category="restaurant"
+data-name="Partner 1"
+onclick="openPartner('Partner 1','Ресторан восточной кухни','20%',1)"
+>
+
+<div class="partner-image">
+P1
+</div>
+
+<div class="partner-info">
+
+<h3>
+Partner 1
+</h3>
+
+<p>
+Ресторан восточной кухни
+</p>
+
+<span class="partner-badge">
+20% привилегия
+</span>
+
+</div>
+
+<button
+class="heart"
+onclick="event.stopPropagation();toggleFavorite('Partner 1')"
+>
+♡
+</button>
+
+</div>
+
+
+<div class="partner"
+data-category="cafe"
+data-name="VERO Café"
+onclick="openPartner('VERO Café','Кафе','20%',2)"
+>
+
+<div class="partner-image">
+VC
+</div>
+
+<div class="partner-info">
+
+<h3>
+VERO Café
+</h3>
+
+<p>
+Кофе и десерты
+</p>
+
+<span class="partner-badge">
+20% привилегия
+</span>
+
+</div>
+
+<button
+class="heart"
+onclick="event.stopPropagation();toggleFavorite('VERO Café')"
+>
+♡
+</button>
+
+</div>
+
+
+<div class="partner"
+data-category="sport"
+data-name="FITROOM"
+onclick="openPartner('FITROOM','Фитнес','15%',3)"
+>
+
+<div class="partner-image">
+FR
+</div>
+
+<div class="partner-info">
+
+<h3>
+FITROOM
+</h3>
+
+<p>
+Спорт и тренировки
+</p>
+
+<span class="partner-badge">
+15% привилегия
+</span>
+
+</div>
+
+<button
+class="heart"
+onclick="event.stopPropagation();toggleFavorite('FITROOM')"
+>
+♡
+</button>
+
+</div>
+
+
+<div class="partner"
+data-category="beauty"
+data-name="Beauty Room"
+onclick="openPartner('Beauty Room','Красота','15%',4)"
+>
+
+<div class="partner-image">
+BR
+</div>
+
+<div class="partner-info">
+
+<h3>
+Beauty Room
+</h3>
+
+<p>
+Красота и уход
+</p>
+
+<span class="partner-badge">
+15% привилегия
+</span>
+
+</div>
+
+<button
+class="heart"
+onclick="event.stopPropagation();toggleFavorite('Beauty Room')"
+>
+♡
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- FAVORITES -->
+
+<div id="favoritesPage" class="page">
+
+<header class="header">
+
+<div class="logo">
+BIZDE.KZ
+</div>
+
+</header>
+
+<main class="container">
+
+<section class="section">
+
+<h1
+class="section-title"
+id="favoritesTitle"
+>
+Избранное
+</h1>
+
+<p
+id="favoritesText"
+style="color:var(--muted);font-size:12px;margin-top:7px;margin-bottom:18px;"
+>
+Ваши любимые партнёры.
+</p>
+
+<div id="favoritesList"></div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- MAP -->
+
+<div id="mapPage" class="page">
+
+<header class="header">
+
+<div class="logo">
+BIZDE.KZ
+</div>
+
+</header>
+
+<main class="container">
+
+<section class="section">
+
+<h1
+class="section-title"
+id="mapTitle"
+>
+Партнёры на карте
+</h1>
+
+<p
+id="mapLabel"
+style="color:var(--muted);font-size:12px;margin-top:7px;margin-bottom:16px;"
+>
+Павлодар
+</p>
+
+<div class="map">
+
+<div class="map-road"></div>
+<div class="map-road"></div>
+<div class="map-road"></div>
+
+<button
+class="map-pin pin1"
+onclick="openPartner('Partner 1','Ресторан восточной кухни','20%',1)"
+>
+P
+</button>
+
+<button
+class="map-pin pin2"
+onclick="openPartner('VERO Café','Кафе','20%',2)"
+>
+V
+</button>
+
+<button
+class="map-pin pin3"
+onclick="openPartner('FITROOM','Фитнес','15%',3)"
+>
+F
+</button>
+
+<button
+class="map-pin pin4"
+onclick="openPartner('Beauty Room','Красота','15%',4)"
+>
+B
+</button>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- PROFILE -->
+
+<div id="profilePage" class="page">
+
+<header class="header">
+
+<div class="logo">
+BIZDE.KZ
+</div>
+
+<button
+class="lang-btn"
+onclick="openLanguage()"
+id="profileLang"
+>
+RU
+</button>
+
+</header>
+
+<main class="container">
+
+<section class="profile-head">
+
+<div
+class="avatar"
+id="avatar"
+>
+B
+</div>
+
+<div
+class="profile-name"
+id="profileName"
+>
+Участник BIZDE
+</div>
+
+<div
+class="profile-status"
+id="profileStatus"
+>
+Синхронизация...
+</div>
+
+</section>
+
+
+<div class="member-card">
+
+<div class="member-label">
+BIZDE PRIVILEGE CLUB
+</div>
+
+<div
+class="member-name"
+id="cardMemberLabel"
+>
+Участник BIZDE
+</div>
+
+<div
+class="member-status"
+id="cardStatusLabel"
+>
+MEMBER
+</div>
+
+</div>
+
+
+<div class="profile-menu">
+
+<button
+class="profile-row"
+onclick="openSubscription()"
+>
+
+<div class="profile-row-icon">
+🎟
+</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuSubscription"
+>
+Подписка
+</div>
+
+<div
+class="profile-row-sub"
+>
+Проверить статус
+</div>
+
+</div>
+
+<div class="profile-row-arrow">
+›
+</div>
+
+</button>
+
+
+<button
+class="profile-row"
+onclick="openCard()"
+>
+
+<div class="profile-row-icon">
+◈
+</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuCard"
+>
+Карта участника
+</div>
+
+<div class="profile-row-sub">
+QR и статус
+</div>
+
+</div>
+
+<div class="profile-row-arrow">
+›
+</div>
+
+</button>
+
+
+<button
+class="profile-row"
+onclick="openHistory()"
+>
+
+<div class="profile-row-icon">
+◷
+</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuHistory"
+>
+История
+</div>
+
+<div class="profile-row-sub">
+Использованные привилегии
+</div>
+
+</div>
+
+<div class="profile-row-arrow">
+›
+</div>
+
+</button>
+
+
+<button
+class="profile-row"
+onclick="openSavings()"
+>
+
+<div class="profile-row-icon">
+₸
+</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuSavings"
+>
+Моя экономия
+</div>
+
+<div class="profile-row-sub">
+Сколько вы сэкономили
+</div>
+
+</div>
+
+<div class="profile-row-arrow">
+›
+</div>
+
+</button>
+
+
+<button
+class="profile-row"
+onclick="openLanguage()"
+>
+
+<div class="profile-row-icon">
+🌐
+</div>
+
+<div class="profile-row-info">
+
+<div
+class="profile-row-title"
+id="menuLanguage"
+>
+Язык
+</div>
+
+<div
+class="profile-row-sub"
+id="languageSub"
+>
+Русский
+</div>
+
+</div>
+
+<div class="profile-row-arrow">
+›
+</div>
+
+</button>
+
+</div>
+
+</main>
+
+</div>
+
+
+<!-- NAV -->
 
 <nav class="bottom-nav">
 
-    <button
-        class="nav-item active"
-        id="navHome"
-        onclick="goPage('homePage',this)"
-    >
-        <span>⌂</span>
-        <span>Главная</span>
-    </button>
+<button
+class="nav-item active"
+id="navHome"
+onclick="goPage('homePage',this)"
+>
 
-    <button
-        class="nav-item"
-        id="navFavorites"
-        onclick="goPage('favoritesPage',this)"
-    >
-        <span>♡</span>
-        <span>Избранное</span>
-    </button>
+<span>⌂</span>
+<span>Главная</span>
 
-    <button
-        class="nav-item"
-        id="navMap"
-        onclick="goPage('mapPage',this)"
-    >
-        <span>⌖</span>
-        <span>Карта</span>
-    </button>
+</button>
 
-    <button
-        class="nav-item"
-        id="navProfile"
-        onclick="goPage('profilePage',this)"
-    >
-        <span>◉</span>
-        <span>Профиль</span>
-    </button>
+<button
+class="nav-item"
+id="navFavorites"
+onclick="goPage('favoritesPage',this)"
+>
+
+<span>♡</span>
+<span>Избранное</span>
+
+</button>
+
+<button
+class="nav-item"
+id="navMap"
+onclick="goPage('mapPage',this)"
+>
+
+<span>⌖</span>
+<span>Карта</span>
+
+</button>
+
+<button
+class="nav-item"
+id="navProfile"
+onclick="goPage('profilePage',this)"
+>
+
+<span>◉</span>
+<span>Профиль</span>
+
+</button>
 
 </nav>
 
 
-<!-- =====================================
-MODAL
-===================================== -->
+<!-- MODAL -->
 
 <div
-    class="modal"
-    id="modal"
-    onclick="closeModal(event)"
+class="modal"
+id="modal"
+onclick="closeModal(event)"
 >
 
-    <div
-        class="modal-box"
-        onclick="event.stopPropagation()"
-    >
+<div
+class="modal-box"
+onclick="event.stopPropagation()"
+>
 
-        <button
-            class="modal-close"
-            onclick="closeModal()"
-        >
-            ×
-        </button>
+<button
+class="modal-close"
+onclick="closeModal()"
+>
+×
+</button>
 
-        <div
-            id="modalContent"
-        ></div>
+<div id="modalContent"></div>
 
-    </div>
+</div>
 
 </div>
 
 
 <div
-    class="toast"
-    id="toast"
+class="toast"
+id="toast"
 ></div>
 
 
 <script>
 
-
-/* =====================================================
+/* =========================================
 TELEGRAM
-===================================================== */
+========================================= */
 
 const tg = window.Telegram?.WebApp;
 
 if(tg){
 
     tg.ready();
-
     tg.expand();
 
     try{
 
         tg.setHeaderColor("#f4f5f2");
-
         tg.setBackgroundColor("#f4f5f2");
 
     }catch(e){}
@@ -2174,264 +1788,189 @@ if(tg){
 }
 
 
-/* =====================================================
+/* =========================================
 API
-===================================================== */
+========================================= */
 
 const API_URL =
     "https://bizde-bot.onrender.com";
 
 
-/* =====================================================
-LANGUAGE
-===================================================== */
+/* =========================================
+STATE
+========================================= */
 
 let currentLanguage =
-    localStorage.getItem(
-        "bizdeLanguage"
-    ) || "ru";
-
+    localStorage.getItem("bizdeLanguage") || "ru";
 
 let bizdeUser = null;
 
 
-/* =====================================================
+/* =========================================
 TRANSLATIONS
-===================================================== */
+========================================= */
 
 const translations = {
 
-    ru:{
+ru:{
 
-        brandSub:"PRIVILEGE CLUB",
+brandSub:"PRIVILEGE CLUB",
 
-        heroLabel:"КЛУБ ПРИВИЛЕГИЙ",
+heroLabel:"КЛУБ ПРИВИЛЕГИЙ",
 
-        heroTitle:
-            "Ваши привилегии начинаются здесь.",
+heroTitle:
+"Ваши привилегии начинаются здесь.",
 
-        heroText:
-            "Один статус. Десятки партнёров. Больше возможностей каждый день.",
+heroText:
+"Один статус. Десятки партнёров. Больше возможностей каждый день.",
 
-        heroPrimary:
-            "Мои привилегии",
+heroPrimary:"Мои привилегии",
 
-        heroSecondary:
-            "Партнёры",
+heroSecondary:"Партнёры",
 
-        privilegesTitle:
-            "Ваши привилегии",
+privilegesTitle:"Ваши привилегии",
 
-        privilegesMore:
-            "Все",
+privilegesMore:"Все",
 
-        p1:
-            "Специальные условия",
+p1:"Специальные условия",
 
-        p1s:
-            "Эксклюзивные предложения партнёров.",
+p1s:"Эксклюзивные предложения партнёров.",
 
-        p2:
-            "Привилегии",
+p2:"Привилегии",
 
-        p2s:
-            "Больше возможностей для участников клуба.",
+p2s:"Больше возможностей для участников клуба.",
 
-        p3:
-            "Экономия",
+p3:"Экономия",
 
-        p3s:
-            "Получайте выгоду каждый день.",
+p3s:"Получайте выгоду каждый день.",
 
-        p4:
-            "Особый статус",
+p4:"Особый статус",
 
-        p4s:
-            "Вы — часть закрытого клуба.",
+p4s:"Вы — часть закрытого клуба.",
 
-        categoriesTitle:
-            "Категории",
+categoriesTitle:"Категории",
 
-        all:
-            "Все",
+all:"Все",
 
-        partnersTitle:
-            "Партнёры",
+partnersTitle:"Партнёры",
 
-        partnersAll:
-            "Все",
+partnersAll:"Все",
 
-        search:
-            "Поиск партнёров...",
+search:"Поиск партнёров...",
 
-        active:
-            "АКТИВЕН",
+active:"АКТИВЕН",
 
-        inactive:
-            "НЕ АКТИВЕН",
+inactive:"НЕ АКТИВЕН",
 
-        activeText:
-            "Активный участник клуба",
+activeText:"Активный участник клуба",
 
-        inactiveText:
-            "Подписка пока не активна",
+inactiveText:"Подписка пока не активна",
 
-        favorites:
-            "Избранное",
+favorites:"Избранное",
 
-        favoritesText:
-            "Ваши любимые партнёры.",
+favoritesText:"Ваши любимые партнёры.",
 
-        map:
-            "Партнёры на карте",
+map:"Партнёры на карте",
 
-        pavlodar:
-            "Павлодар",
+pavlodar:"Павлодар",
 
-        profile:
-            "Профиль",
+subscription:"Подписка",
 
-        member:
-            "Участник BIZDE",
+card:"Карта участника",
 
-        subscription:
-            "Подписка",
+history:"История",
 
-        card:
-            "Карта участника",
+savings:"Моя экономия",
 
-        history:
-            "История",
+language:"Язык",
 
-        savings:
-            "Моя экономия",
+russian:"Русский",
 
-        language:
-            "Язык",
+kazakh:"Қазақша",
 
-        russian:
-            "Русский",
+member:"Участник BIZDE"
 
-        kazakh:
-            "Қазақша"
+},
 
-    },
+kk:{
 
-    kk:{
+brandSub:"PRIVILEGE CLUB",
 
-        brandSub:"PRIVILEGE CLUB",
+heroLabel:"АРТЫҚШЫЛЫҚТАР КЛУБЫ",
 
-        heroLabel:"АРТЫҚШЫЛЫҚТАР КЛУБЫ",
+heroTitle:
+"Сіздің артықшылықтарыңыз осы жерден басталады.",
 
-        heroTitle:
-            "Сіздің артықшылықтарыңыз осы жерден басталады.",
+heroText:
+"Бір мәртебе. Ондаған серіктес. Күн сайын көбірек мүмкіндік.",
 
-        heroText:
-            "Бір мәртебе. Ондаған серіктес. Күн сайын көбірек мүмкіндік.",
+heroPrimary:"Менің артықшылықтарым",
 
-        heroPrimary:
-            "Менің артықшылықтарым",
+heroSecondary:"Серіктестер",
 
-        heroSecondary:
-            "Серіктестер",
+privilegesTitle:"Сіздің артықшылықтарыңыз",
 
-        privilegesTitle:
-            "Сіздің артықшылықтарыңыз",
+privilegesMore:"Барлығы",
 
-        privilegesMore:
-            "Барлығы",
+p1:"Арнайы шарттар",
 
-        p1:
-            "Арнайы шарттар",
+p1s:"Серіктестердің эксклюзивті ұсыныстары.",
 
-        p1s:
-            "Серіктестердің эксклюзивті ұсыныстары.",
+p2:"Артықшылықтар",
 
-        p2:
-            "Артықшылықтар",
+p2s:"Клуб мүшелеріне көбірек мүмкіндік.",
 
-        p2s:
-            "Клуб мүшелеріне көбірек мүмкіндік.",
+p3:"Үнемдеу",
 
-        p3:
-            "Үнемдеу",
+p3s:"Күн сайын тиімді пайдаланыңыз.",
 
-        p3s:
-            "Күн сайын тиімді пайдаланыңыз.",
+p4:"Ерекше мәртебе",
 
-        p4:
-            "Ерекше мәртебе",
+p4s:"Сіз — жабық клубтың мүшесісіз.",
 
-        p4s:
-            "Сіз — жабық клубтың мүшесісіз.",
+categoriesTitle:"Санаттар",
 
-        categoriesTitle:
-            "Санаттар",
+all:"Барлығы",
 
-        all:
-            "Барлығы",
+partnersTitle:"Серіктестер",
 
-        partnersTitle:
-            "Серіктестер",
+partnersAll:"Барлығы",
 
-        partnersAll:
-            "Барлығы",
+search:"Серіктестерді іздеу...",
 
-        search:
-            "Серіктестерді іздеу...",
+active:"БЕЛСЕНДІ",
 
-        active:
-            "БЕЛСЕНДІ",
+inactive:"БЕЛСЕНДІ ЕМЕС",
 
-        inactive:
-            "БЕЛСЕНДІ ЕМЕС",
+activeText:"Клубтың белсенді мүшесі",
 
-        activeText:
-            "Клубтың белсенді мүшесі",
+inactiveText:"Жазылым әлі белсенді емес",
 
-        inactiveText:
-            "Жазылым әлі белсенді емес",
+favorites:"Таңдаулылар",
 
-        favorites:
-            "Таңдаулылар",
+favoritesText:"Сіздің сүйікті серіктестеріңіз.",
 
-        favoritesText:
-            "Сіздің сүйікті серіктестеріңіз.",
+map:"Картадағы серіктестер",
 
-        map:
-            "Картадағы серіктестер",
+pavlodar:"Павлодар",
 
-        pavlodar:
-            "Павлодар",
+subscription:"Жазылым",
 
-        profile:
-            "Профиль",
+card:"Мүше картасы",
 
-        member:
-            "BIZDE мүшесі",
+history:"Тарих",
 
-        subscription:
-            "Жазылым",
+savings:"Менің үнемім",
 
-        card:
-            "Мүше картасы",
+language:"Тіл",
 
-        history:
-            "Тарих",
+russian:"Русский",
 
-        savings:
-            "Менің үнемім",
+kazakh:"Қазақша",
 
-        language:
-            "Тіл",
+member:"BIZDE мүшесі"
 
-        russian:
-            "Русский",
-
-        kazakh:
-            "Қазақша"
-
-    }
+}
 
 };
 
@@ -2439,212 +1978,128 @@ const translations = {
 function t(key){
 
     return (
-        translations[currentLanguage]?.[key]
-        ||
-        translations.ru[key]
-        ||
+        translations[currentLanguage]?.[key] ||
+        translations.ru[key] ||
         key
     );
 
 }
 
 
-/* =====================================================
-APPLY LANGUAGE
-===================================================== */
+/* =========================================
+LANGUAGE
+========================================= */
 
 function applyLanguage(){
 
-    const ids = [
-
-        "brandSub",
-        "heroLabel",
-        "heroTitle",
-        "heroText",
-        "heroPrimary",
-        "heroSecondary",
-        "privilegesTitle",
-        "privilegesMore",
-        "p1",
-        "p1s",
-        "p2",
-        "p2s",
-        "p3",
-        "p3s",
-        "p4",
-        "p4s",
-        "categoriesTitle",
-        "partnersTitle",
-        "partnersAll",
-        "favoritesTitle",
-        "favoritesText",
-        "mapTitle",
-        "mapLabel",
-        "menuSubscription",
-        "menuCard",
-        "menuHistory",
-        "menuSavings",
-        "menuLanguage"
-    ];
-
-    ids.forEach(id=>{
-
-        const el =
-            document.getElementById(id);
-
-        if(el && translations[currentLanguage][id]){
-            el.textContent =
-                translations[currentLanguage][id];
-        }
-
-    });
-
-
-    document.getElementById(
-        "brandSub"
-    ).textContent =
+    document.getElementById("brandSub").textContent =
         t("brandSub");
 
-    document.getElementById(
-        "heroLabel"
-    ).textContent =
+    document.getElementById("heroLabel").textContent =
         t("heroLabel");
 
-    document.getElementById(
-        "heroTitle"
-    ).textContent =
+    document.getElementById("heroTitle").textContent =
         t("heroTitle");
 
-    document.getElementById(
-        "heroText"
-    ).textContent =
+    document.getElementById("heroText").textContent =
         t("heroText");
 
-    document.getElementById(
-        "heroPrimary"
-    ).textContent =
+    document.getElementById("heroPrimary").textContent =
         t("heroPrimary");
 
-    document.getElementById(
-        "heroSecondary"
-    ).textContent =
+    document.getElementById("heroSecondary").textContent =
         t("heroSecondary");
 
-    document.getElementById(
-        "privilegesTitle"
-    ).textContent =
+    document.getElementById("privilegesTitle").textContent =
         t("privilegesTitle");
 
-    document.getElementById(
-        "privilegesMore"
-    ).textContent =
+    document.getElementById("privilegesMore").textContent =
         t("privilegesMore");
 
-    document.getElementById(
-        "categoriesTitle"
-    ).textContent =
+    document.getElementById("p1").textContent =
+        t("p1");
+
+    document.getElementById("p1s").textContent =
+        t("p1s");
+
+    document.getElementById("p2").textContent =
+        t("p2");
+
+    document.getElementById("p2s").textContent =
+        t("p2s");
+
+    document.getElementById("p3").textContent =
+        t("p3");
+
+    document.getElementById("p3s").textContent =
+        t("p3s");
+
+    document.getElementById("p4").textContent =
+        t("p4");
+
+    document.getElementById("p4s").textContent =
+        t("p4s");
+
+    document.getElementById("categoriesTitle").textContent =
         t("categoriesTitle");
 
-    document.getElementById(
-        "partnersTitle"
-    ).textContent =
+    document.getElementById("partnersTitle").textContent =
         t("partnersTitle");
 
-    document.getElementById(
-        "partnersAll"
-    ).textContent =
+    document.getElementById("partnersAll").textContent =
         t("partnersAll");
 
-    document.getElementById(
-        "favoritesTitle"
-    ).textContent =
+    document.getElementById("favoritesTitle").textContent =
         t("favorites");
 
-    document.getElementById(
-        "favoritesText"
-    ).textContent =
+    document.getElementById("favoritesText").textContent =
         t("favoritesText");
 
-    document.getElementById(
-        "mapTitle"
-    ).textContent =
+    document.getElementById("mapTitle").textContent =
         t("map");
 
-    document.getElementById(
-        "mapLabel"
-    ).textContent =
+    document.getElementById("mapLabel").textContent =
         t("pavlodar");
 
-    document.getElementById(
-        "menuSubscription"
-    ).textContent =
+    document.getElementById("menuSubscription").textContent =
         t("subscription");
 
-    document.getElementById(
-        "menuCard"
-    ).textContent =
+    document.getElementById("menuCard").textContent =
         t("card");
 
-    document.getElementById(
-        "menuHistory"
-    ).textContent =
+    document.getElementById("menuHistory").textContent =
         t("history");
 
-    document.getElementById(
-        "menuSavings"
-    ).textContent =
+    document.getElementById("menuSavings").textContent =
         t("savings");
 
-    document.getElementById(
-        "menuLanguage"
-    ).textContent =
+    document.getElementById("menuLanguage").textContent =
         t("language");
 
-
-    document.getElementById(
-        "langButton"
-    ).textContent =
-        currentLanguage === "ru"
-            ? "RU"
-            : "KZ";
-
-
-    document.getElementById(
-        "profileLang"
-    ).textContent =
-        currentLanguage === "ru"
-            ? "RU"
-            : "KZ";
-
-
-    document.getElementById(
-        "languageSub"
-    ).textContent =
-        currentLanguage === "ru"
-            ? t("russian")
-            : t("kazakh");
-
-
-    document.getElementById(
-        "allButton"
-    ).textContent =
+    document.getElementById("allButton").textContent =
         t("all");
 
-
-    document.getElementById(
-        "searchInput"
-    ).placeholder =
+    document.getElementById("searchInput").placeholder =
         t("search");
 
+    document.getElementById("langButton").textContent =
+        currentLanguage === "ru" ? "RU" : "KZ";
+
+    document.getElementById("profileLang").textContent =
+        currentLanguage === "ru" ? "RU" : "KZ";
+
+    document.getElementById("languageSub").textContent =
+        currentLanguage === "ru"
+        ? t("russian")
+        : t("kazakh");
 
     applyUserToUI();
-
 }
 
 
-/* =====================================================
+/* =========================================
 AUTH
-===================================================== */
+========================================= */
 
 async function authWithBackend(){
 
@@ -2652,27 +2107,244 @@ async function authWithBackend(){
 
         showToast(
             currentLanguage === "ru"
-                ? "Откройте BIZDE через Telegram"
-                : "BIZDE-ні Telegram арқылы ашыңыз"
+            ? "Откройте BIZDE через Telegram"
+            : "BIZDE-ні Telegram арқылы ашыңыз"
         );
 
         return;
 
     }
-
 
     if(!tg.initData){
 
         showToast(
             currentLanguage === "ru"
-                ? "Telegram не передал данные пользователя"
-                : "Telegram пайдаланушы деректерін жібермеді"
+            ? "Telegram не передал данные"
+            : "Telegram деректерді жібермеді"
         );
 
         return;
 
     }
 
+    try{
+
+        const response = await fetch(
+            `${API_URL}/api/auth`,
+            {
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+
+                    init_data:tg.initData,
+
+                    language:currentLanguage
+
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if(data.ok && data.user){
+
+            bizdeUser =
+                data.user;
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(data.user)
+            );
+
+            applyUserToUI();
+
+            checkRegistration();
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Ошибка соединения с BIZDE"
+            : "BIZDE серверіне қосылу қатесі"
+        );
+
+    }
+
+}
+
+
+/* =========================================
+REGISTRATION
+========================================= */
+
+function checkRegistration(){
+
+    if(!bizdeUser){
+
+        return;
+
+    }
+
+    const phone =
+        bizdeUser.phone;
+
+    if(!phone){
+
+        setTimeout(
+            openRegistration,
+            400
+        );
+
+    }
+
+}
+
+
+function openRegistration(){
+
+    openModal(`
+
+        <div class="modal-title">
+            ${
+                currentLanguage === "ru"
+                ? "Добро пожаловать в BIZDE"
+                : "BIZDE-ге қош келдіңіз"
+            }
+        </div>
+
+        <div class="modal-text">
+            ${
+                currentLanguage === "ru"
+                ?
+                "Завершите регистрацию участника клуба."
+                :
+                "Клуб мүшесі ретінде тіркелуді аяқтаңыз."
+            }
+        </div>
+
+        <input
+            class="modal-input"
+            id="registrationName"
+            type="text"
+            placeholder="${
+                currentLanguage === "ru"
+                ? "Ваше имя"
+                : "Атыңыз"
+            }"
+            value="${
+                tg?.initDataUnsafe?.user?.first_name || ""
+            }"
+        >
+
+        <input
+            class="modal-input"
+            id="registrationPhone"
+            type="tel"
+            placeholder="${
+                currentLanguage === "ru"
+                ? "Номер телефона"
+                : "Телефон нөмірі"
+            }"
+        >
+
+        <div class="checkbox-row">
+
+            <input
+                type="checkbox"
+                id="termsCheckbox"
+            >
+
+            <label for="termsCheckbox">
+
+                ${
+                    currentLanguage === "ru"
+                    ?
+                    "Я принимаю условия использования сервиса BIZDE.KZ."
+                    :
+                    "Мен BIZDE.KZ сервисінің пайдалану шарттарын қабылдаймын."
+                }
+
+            </label>
+
+        </div>
+
+        <button
+            class="modal-button"
+            onclick="submitRegistration()"
+        >
+            ${
+                currentLanguage === "ru"
+                ? "Завершить регистрацию"
+                : "Тіркелуді аяқтау"
+            }
+        </button>
+
+    `);
+
+}
+
+
+async function submitRegistration(){
+
+    const name =
+        document.getElementById(
+            "registrationName"
+        ).value.trim();
+
+    const phone =
+        document.getElementById(
+            "registrationPhone"
+        ).value.trim();
+
+    const accepted =
+        document.getElementById(
+            "termsCheckbox"
+        ).checked;
+
+    if(!name){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Введите имя"
+            : "Атыңызды енгізіңіз"
+        );
+
+        return;
+
+    }
+
+    if(!phone){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Введите номер телефона"
+            : "Телефон нөмірін енгізіңіз"
+        );
+
+        return;
+
+    }
+
+    if(!accepted){
+
+        showToast(
+            currentLanguage === "ru"
+            ? "Примите условия сервиса"
+            : "Сервис шарттарын қабылдаңыз"
+        );
+
+        return;
+
+    }
 
     try{
 
@@ -2693,16 +2365,23 @@ async function authWithBackend(){
                             tg.initData,
 
                         language:
-                            currentLanguage
+                            currentLanguage,
+
+                        phone:
+                            phone,
+
+                        name:
+                            name,
+
+                        terms_accepted:
+                            true
 
                     })
                 }
             );
 
-
         const data =
             await response.json();
-
 
         if(
             data.ok &&
@@ -2712,43 +2391,39 @@ async function authWithBackend(){
             bizdeUser =
                 data.user;
 
-
             localStorage.setItem(
                 "bizdeUser",
-                JSON.stringify(
-                    data.user
-                )
+                JSON.stringify(data.user)
             );
-
 
             applyUserToUI();
 
-        }else{
-
-            console.error(
-                "BIZDE AUTH:",
-                data
-            );
+            closeModal();
 
             showToast(
                 currentLanguage === "ru"
-                    ? "Не удалось синхронизировать профиль"
-                    : "Профильді синхрондау мүмкін болмады"
+                ? "Регистрация завершена ✓"
+                : "Тіркеу аяқталды ✓"
+            );
+
+        }else{
+
+            showToast(
+                currentLanguage === "ru"
+                ? "Не удалось сохранить регистрацию"
+                : "Тіркеуді сақтау мүмкін болмады"
             );
 
         }
 
     }catch(error){
 
-        console.error(
-            "AUTH ERROR:",
-            error
-        );
+        console.error(error);
 
         showToast(
             currentLanguage === "ru"
-                ? "Ошибка соединения с BIZDE"
-                : "BIZDE серверіне қосылу қатесі"
+            ? "Ошибка соединения"
+            : "Қосылу қатесі"
         );
 
     }
@@ -2756,9 +2431,9 @@ async function authWithBackend(){
 }
 
 
-/* =====================================================
+/* =========================================
 USER UI
-===================================================== */
+========================================= */
 
 function applyUserToUI(){
 
@@ -2786,84 +2461,65 @@ function applyUserToUI(){
 
     }
 
-
     const name =
         bizdeUser?.name ||
         tg?.initDataUnsafe?.user?.first_name ||
         t("member");
 
-
     document.getElementById(
         "statusName"
-    ).textContent =
-        name;
-
+    ).textContent = name;
 
     document.getElementById(
         "profileName"
-    ).textContent =
-        name;
-
+    ).textContent = name;
 
     document.getElementById(
         "cardMemberLabel"
-    ).textContent =
-        name;
-
+    ).textContent = name;
 
     const active =
         Boolean(
             bizdeUser?.subscription_active
         );
 
-
     document.getElementById(
         "statusBadge"
     ).textContent =
         active
-            ? t("active")
-            : t("inactive");
-
+        ? t("active")
+        : t("inactive");
 
     document.getElementById(
         "statusText"
     ).textContent =
         active
-            ? t("activeText")
-            : t("inactiveText");
-
+        ? t("activeText")
+        : t("inactiveText");
 
     document.getElementById(
         "profileStatus"
     ).textContent =
         active
-            ? "✓ " + t("activeText")
-            : "○ " + t("inactiveText");
-
+        ? "✓ " + t("activeText")
+        : "○ " + t("inactiveText");
 
     document.getElementById(
         "cardStatusLabel"
     ).textContent =
         active
-            ? "ACTIVE MEMBER"
-            : "MEMBER";
-
+        ? "ACTIVE MEMBER"
+        : "MEMBER";
 
     const avatar =
-        document.getElementById(
-            "avatar"
-        );
-
+        document.getElementById("avatar");
 
     const words =
-        name
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
+        name.trim()
+        .split(/\s+/)
+        .filter(Boolean);
 
     let initials = "B";
-
 
     if(words.length >= 2){
 
@@ -2878,52 +2534,37 @@ function applyUserToUI(){
 
     }
 
-
     avatar.textContent =
         initials.toUpperCase();
 
 }
 
 
-/* =====================================================
+/* =========================================
 NAVIGATION
-===================================================== */
+========================================= */
 
-function goPage(
-    pageId,
-    button
-){
+function goPage(pageId,button){
 
     document
         .querySelectorAll(".page")
         .forEach(page=>{
-            page.classList.remove(
-                "active"
-            );
+            page.classList.remove("active");
         });
-
 
     document
         .getElementById(pageId)
-        .classList.add(
-            "active"
-        );
-
+        .classList.add("active");
 
     document
         .querySelectorAll(".nav-item")
         .forEach(item=>{
-            item.classList.remove(
-                "active"
-            );
+            item.classList.remove("active");
         });
-
 
     if(button){
 
-        button.classList.add(
-            "active"
-        );
+        button.classList.add("active");
 
     }
 
@@ -2934,16 +2575,11 @@ function goToPartners(){
 
     goPage(
         "homePage",
-        document.getElementById(
-            "navHome"
-        )
+        document.getElementById("navHome")
     );
 
-
     document
-        .getElementById(
-            "partnersTitle"
-        )
+        .getElementById("partnersTitle")
         .scrollIntoView({
             behavior:"smooth"
         });
@@ -2951,39 +2587,26 @@ function goToPartners(){
 }
 
 
-/* =====================================================
+/* =========================================
 CATEGORIES
-===================================================== */
+========================================= */
 
-function filterCategory(
-    category,
-    button
-){
+function filterCategory(category,button){
 
     document
-        .querySelectorAll(
-            ".category"
-        )
+        .querySelectorAll(".category")
         .forEach(item=>{
-            item.classList.remove(
-                "active"
-            );
+            item.classList.remove("active");
         });
-
 
     if(button){
 
-        button.classList.add(
-            "active"
-        );
+        button.classList.add("active");
 
     }
 
-
     document
-        .querySelectorAll(
-            ".partner"
-        )
+        .querySelectorAll(".partner")
         .forEach(partner=>{
 
             if(
@@ -3018,39 +2641,33 @@ function showAll(){
 }
 
 
-/* =====================================================
+/* =========================================
 SEARCH
-===================================================== */
+========================================= */
 
 document
-    .getElementById(
-        "searchInput"
-    )
+    .getElementById("searchInput")
     .addEventListener(
         "input",
         function(){
 
             const query =
                 this.value
-                    .toLowerCase()
-                    .trim();
-
+                .toLowerCase()
+                .trim();
 
             document
-                .querySelectorAll(
-                    ".partner"
-                )
+                .querySelectorAll(".partner")
                 .forEach(partner=>{
 
                     const name =
                         partner.dataset.name
-                            .toLowerCase();
-
+                        .toLowerCase();
 
                     partner.style.display =
                         name.includes(query)
-                            ? "flex"
-                            : "none";
+                        ? "flex"
+                        : "none";
 
                 });
 
@@ -3058,19 +2675,20 @@ document
     );
 
 
-/* =====================================================
+/* =========================================
 PRIVILEGES
-===================================================== */
+========================================= */
 
 function openPrivileges(){
 
-    openModal(
-        `
+    openModal(`
+
         <div class="modal-title">
             ${t("privilegesTitle")}
         </div>
 
         <div class="modal-text">
+
             ${
                 currentLanguage === "ru"
                 ?
@@ -3078,6 +2696,7 @@ function openPrivileges(){
                 :
                 "BIZDE — бұл жай ғана жеңілдіктер емес. Бұл серіктестерден арнайы шарттар алатын артықшылықтар клубы."
             }
+
         </div>
 
         <button
@@ -3090,25 +2709,25 @@ function openPrivileges(){
                 : "Түсінікті"
             }
         </button>
-        `
-    );
+
+    `);
 
 }
 
 
-/* =====================================================
+/* =========================================
 PARTNER
-===================================================== */
+========================================= */
 
 function openPartner(
     name,
     category,
-    discount
+    discount,
+    partnerId
 ){
 
-    openModal(
+    openModal(`
 
-        `
         <div class="modal-title">
             ${name}
         </div>
@@ -3140,15 +2759,17 @@ function openPartner(
 
             ${
                 currentLanguage === "ru"
-                ? "Покажите QR-код участника партнёру перед оплатой."
-                : "Төлем алдында мүше QR-кодын серіктеске көрсетіңіз."
+                ?
+                "Покажите QR-код участника партнёру перед оплатой."
+                :
+                "Төлем алдында мүше QR-кодын серіктеске көрсетіңіз."
             }
 
         </div>
 
         <button
             class="modal-button"
-            onclick="useOffer('${name}','${discount}')"
+            onclick="useOffer('${name}','${discount}',${partnerId})"
         >
             ${
                 currentLanguage === "ru"
@@ -3156,37 +2777,56 @@ function openPartner(
                 : "Артықшылықты пайдалану"
             }
         </button>
-        `
-    );
+
+    `);
 
 }
 
 
-/* =====================================================
+/* =========================================
 USE OFFER
-===================================================== */
+========================================= */
 
 function useOffer(
     name,
-    discount
+    discount,
+    partnerId
 ){
 
+    if(!bizdeUser){
+
+        openRegistration();
+
+        return;
+
+    }
+
+    if(!bizdeUser.phone){
+
+        openRegistration();
+
+        return;
+
+    }
+
     if(
-        !bizdeUser?.subscription_active
+        !bizdeUser.subscription_active
     ){
 
-        openModal(
+        openModal(`
 
-            `
             <div class="modal-title">
+
                 ${
                     currentLanguage === "ru"
                     ? "Подписка не активна"
                     : "Жазылым белсенді емес"
                 }
+
             </div>
 
             <div class="modal-text">
+
                 ${
                     currentLanguage === "ru"
                     ?
@@ -3194,6 +2834,7 @@ function useOffer(
                     :
                     "Артықшылықтарды пайдалану үшін клуб мүшесінің белсенді мәртебесі қажет."
                 }
+
             </div>
 
             <button
@@ -3206,13 +2847,12 @@ function useOffer(
                     : "Жазылымды тексеру"
                 }
             </button>
-            `
-        );
+
+        `);
 
         return;
 
     }
-
 
     showQR(
         name,
@@ -3222,69 +2862,126 @@ function useOffer(
 }
 
 
-/* =====================================================
-QR
-===================================================== */
+/* =========================================
+REAL QR
+========================================= */
 
 function showQR(
     name,
     discount
 ){
 
-    let cells = "";
+    const memberCode =
+        bizdeUser?.member_code;
 
-    for(
-        let i = 0;
-        i < 121;
-        i++
-    ){
+    if(!memberCode){
 
-        cells +=
-            "<span></span>";
+        showToast(
+            currentLanguage === "ru"
+            ? "Member ID ещё не создан"
+            : "Member ID әлі жасалмаған"
+        );
+
+        return;
 
     }
 
+    openModal(`
 
-    openModal(
-
-        `
         <div class="modal-title">
             QR участника
         </div>
 
         <div class="modal-text">
+
             ${name}
+
             <br>
-            Привилегия: <b>${discount}</b>
+
+            ${
+                currentLanguage === "ru"
+                ? "Привилегия:"
+                : "Артықшылық:"
+            }
+
+            <b>${discount}</b>
+
         </div>
 
-        <div class="qr">
-            ${cells}
+        <div
+            id="realQR"
+            class="qr-real"
+        ></div>
+
+        <div class="member-code">
+            ${memberCode}
         </div>
 
         <div class="qr-code">
+
+            <br>
+
             ${
                 currentLanguage === "ru"
                 ?
-                "Покажите этот QR-код партнёру."
+                "Покажите QR-код партнёру для проверки участника."
                 :
-                "Осы QR-кодты серіктеске көрсетіңіз."
+                "Мүшелікті тексеру үшін QR-кодты серіктеске көрсетіңіз."
             }
+
         </div>
-        `
-    );
+
+    `);
+
+    setTimeout(()=>{
+
+        const qr =
+            document.getElementById("realQR");
+
+        if(qr){
+
+            new QRCode(
+                qr,
+                {
+                    text:memberCode,
+                    width:200,
+                    height:200,
+                    correctLevel:
+                        QRCode.CorrectLevel.M
+                }
+            );
+
+        }
+
+    },100);
 
 }
 
 
-/* =====================================================
+/* =========================================
 CARD
-===================================================== */
+========================================= */
 
 function openCard(){
 
+    if(!bizdeUser){
+
+        openRegistration();
+
+        return;
+
+    }
+
+    if(!bizdeUser.phone){
+
+        openRegistration();
+
+        return;
+
+    }
+
     if(
-        !bizdeUser?.subscription_active
+        !bizdeUser.subscription_active
     ){
 
         openSubscription();
@@ -3292,7 +2989,6 @@ function openCard(){
         return;
 
     }
-
 
     showQR(
         "BIZDE PRIVILEGE CLUB",
@@ -3302,9 +2998,9 @@ function openCard(){
 }
 
 
-/* =====================================================
+/* =========================================
 SUBSCRIPTION
-===================================================== */
+========================================= */
 
 function openSubscription(){
 
@@ -3313,16 +3009,16 @@ function openSubscription(){
             bizdeUser?.subscription_active
         );
 
+    openModal(`
 
-    openModal(
-
-        `
         <div class="modal-title">
+
             ${
                 currentLanguage === "ru"
                 ? "Моя подписка"
                 : "Менің жазылымым"
             }
+
         </div>
 
         <div class="modal-text">
@@ -3358,75 +3054,174 @@ function openSubscription(){
             class="modal-button"
             onclick="closeModal()"
         >
+
             ${
                 currentLanguage === "ru"
                 ? "Закрыть"
                 : "Жабу"
             }
+
         </button>
-        `
-    );
+
+    `);
 
 }
 
 
-/* =====================================================
+/* =========================================
 HISTORY
-===================================================== */
+========================================= */
 
-function openHistory(){
+async function openHistory(){
 
-    openModal(
+    if(!tg?.initData){
 
-        `
+        showToast(
+            "Откройте приложение через Telegram"
+        );
+
+        return;
+
+    }
+
+    openModal(`
+
         <div class="modal-title">
             ${t("history")}
         </div>
 
-        <div class="empty">
-
-            <div class="empty-icon">
-                ◷
-            </div>
-
-            <h3>
-                ${
-                    currentLanguage === "ru"
-                    ? "История пока пуста"
-                    : "Тарих әзірге бос"
-                }
-            </h3>
-
-            <p>
-                ${
-                    currentLanguage === "ru"
-                    ?
-                    "Здесь будут отображаться ваши использованные привилегии."
-                    :
-                    "Мұнда пайдаланған артықшылықтарыңыз көрсетіледі."
-                }
-            </p>
-
+        <div
+            id="historyContent"
+            class="modal-text"
+        >
+            ${
+                currentLanguage === "ru"
+                ? "Загрузка..."
+                : "Жүктелуде..."
+            }
         </div>
-        `
-    );
+
+    `);
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_URL}/api/history?init_data=${encodeURIComponent(tg.initData)}`
+            );
+
+        const data =
+            await response.json();
+
+        const container =
+            document.getElementById(
+                "historyContent"
+            );
+
+        if(
+            !data.ok ||
+            !data.history ||
+            data.history.length === 0
+        ){
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        ◷
+                    </div>
+
+                    <h3>
+                        ${
+                            currentLanguage === "ru"
+                            ? "История пока пуста"
+                            : "Тарих әзірге бос"
+                        }
+                    </h3>
+
+                    <p>
+                        ${
+                            currentLanguage === "ru"
+                            ?
+                            "Здесь будут отображаться ваши использованные привилегии."
+                            :
+                            "Мұнда пайдаланған артықшылықтарыңыз көрсетіледі."
+                        }
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+        container.innerHTML =
+            data.history.map(item=>`
+
+                <div class="history-item">
+
+                    <div class="history-top">
+
+                        <div class="history-name">
+                            ${item.partner_name}
+                        </div>
+
+                        <div class="history-saving">
+                            +${item.savings} ₸
+                        </div>
+
+                    </div>
+
+                    <div class="history-info">
+
+                        ${
+                            currentLanguage === "ru"
+                            ? "Чек"
+                            : "Чек"
+                        }
+
+                        ${item.receipt_amount} ₸
+
+                        ·
+
+                        ${item.discount_percent}%
+
+                    </div>
+
+                </div>
+
+            `).join("");
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "historyContent"
+        ).innerHTML =
+            "Не удалось загрузить историю.";
+
+    }
 
 }
 
 
-/* =====================================================
+/* =========================================
 SAVINGS
-===================================================== */
+========================================= */
 
 function openSavings(){
 
     const savings =
-        bizdeUser?.total_savings || 0;
+        Number(
+            bizdeUser?.total_savings || 0
+        ).toFixed(2);
 
+    openModal(`
 
-    openModal(
-
-        `
         <div class="modal-title">
             ${t("savings")}
         </div>
@@ -3443,6 +3238,7 @@ function openSavings(){
         </div>
 
         <div class="modal-text">
+
             ${
                 currentLanguage === "ru"
                 ?
@@ -3450,33 +3246,35 @@ function openSavings(){
                 :
                 "BIZDE арқылы жинаған жалпы үнеміңіз."
             }
+
         </div>
 
         <button
             class="modal-button"
             onclick="closeModal()"
         >
+
             ${
                 currentLanguage === "ru"
                 ? "Закрыть"
                 : "Жабу"
             }
+
         </button>
-        `
-    );
+
+    `);
 
 }
 
 
-/* =====================================================
+/* =========================================
 LANGUAGE
-===================================================== */
+========================================= */
 
 function openLanguage(){
 
-    openModal(
+    openModal(`
 
-        `
         <div class="modal-title">
             ${t("language")}
         </div>
@@ -3505,15 +3303,13 @@ function openLanguage(){
             </button>
 
         </div>
-        `
-    );
+
+    `);
 
 }
 
 
-async function changeLanguage(
-    language
-){
+async function changeLanguage(language){
 
     currentLanguage =
         language;
@@ -3523,11 +3319,9 @@ async function changeLanguage(
         language
     );
 
-
     applyLanguage();
 
     closeModal();
-
 
     if(
         tg &&
@@ -3560,10 +3354,7 @@ async function changeLanguage(
 
         }catch(e){
 
-            console.error(
-                "LANGUAGE ERROR",
-                e
-            );
+            console.error(e);
 
         }
 
@@ -3572,9 +3363,9 @@ async function changeLanguage(
 }
 
 
-/* =====================================================
+/* =========================================
 FAVORITES
-===================================================== */
+========================================= */
 
 function getFavorites(){
 
@@ -3600,21 +3391,19 @@ function toggleFavorite(name){
     let favorites =
         getFavorites();
 
-
     if(
         favorites.includes(name)
     ){
 
         favorites =
             favorites.filter(
-                item =>
-                    item !== name
+                item=>item !== name
             );
 
         showToast(
             currentLanguage === "ru"
-                ? "Удалено из избранного"
-                : "Таңдаулылардан жойылды"
+            ? "Удалено из избранного"
+            : "Таңдаулылардан жойылды"
         );
 
     }else{
@@ -3623,18 +3412,16 @@ function toggleFavorite(name){
 
         showToast(
             currentLanguage === "ru"
-                ? "Добавлено в избранное"
-                : "Таңдаулыларға қосылды"
+            ? "Добавлено в избранное"
+            : "Таңдаулыларға қосылды"
         );
 
     }
-
 
     localStorage.setItem(
         "bizdeFavorites",
         JSON.stringify(favorites)
     );
-
 
     renderFavorites();
 
@@ -3648,10 +3435,8 @@ function renderFavorites(){
             "favoritesList"
         );
 
-
     const favorites =
         getFavorites();
-
 
     if(
         favorites.length === 0
@@ -3691,131 +3476,92 @@ function renderFavorites(){
 
     }
 
-
     container.innerHTML =
-        favorites
-            .map(name=>`
+        favorites.map(name=>`
 
-                <div
-                    class="partner"
-                    style="margin-bottom:10px"
-                    onclick="
-                        openPartner(
-                            '${name}',
-                            'Партнёр',
-                            '20%'
-                        )
-                    "
-                >
+            <div
+                class="partner"
+                style="margin-bottom:10px"
+                onclick="openPartner('${name}','Партнёр','20%',1)"
+            >
 
-                    <div class="partner-image">
-                        P
-                    </div>
+                <div class="partner-image">
+                    P
+                </div>
 
-                    <div class="partner-info">
+                <div class="partner-info">
 
-                        <h3>
-                            ${name}
-                        </h3>
+                    <h3>
+                        ${name}
+                    </h3>
 
-                        <p>
-                            BIZDE.KZ
-                        </p>
-
-                    </div>
+                    <p>
+                        BIZDE.KZ
+                    </p>
 
                 </div>
 
-            `)
-            .join("");
+            </div>
+
+        `).join("");
 
 }
 
 
-function restoreFavorites(){
-
-    renderFavorites();
-
-}
-
-
-/* =====================================================
+/* =========================================
 MODAL
-===================================================== */
+========================================= */
 
-function openModal(
-    content
-){
+function openModal(content){
 
     document.getElementById(
         "modalContent"
     ).innerHTML =
         content;
 
-
     document.getElementById(
         "modal"
-    ).classList.add(
-        "show"
-    );
+    ).classList.add("show");
 
 }
 
 
-function closeModal(
-    event
-){
+function closeModal(event){
 
     if(
         event &&
         event.target !==
-        document.getElementById(
-            "modal"
-        )
+        document.getElementById("modal")
     ){
 
         return;
 
     }
 
-
     document.getElementById(
         "modal"
-    ).classList.remove(
-        "show"
-    );
+    ).classList.remove("show");
 
 }
 
 
-/* =====================================================
+/* =========================================
 TOAST
-===================================================== */
+========================================= */
 
-function showToast(
-    message
-){
+function showToast(message){
 
     const toast =
-        document.getElementById(
-            "toast"
-        );
-
+        document.getElementById("toast");
 
     toast.textContent =
         message;
 
-
-    toast.classList.add(
-        "show"
-    );
-
+    toast.classList.add("show");
 
     setTimeout(
         ()=>{
-            toast.classList.remove(
-                "show"
-            );
+            toast.classList.remove("show");
         },
         2500
     );
@@ -3823,43 +3569,19 @@ function showToast(
 }
 
 
-/* =====================================================
-HAPTIC
-===================================================== */
-
-function haptic(){
-
-    try{
-
-        tg?.HapticFeedback
-            ?.impactOccurred(
-                "light"
-            );
-
-    }catch(e){}
-
-}
-
-
-/* =====================================================
+/* =========================================
 START
-===================================================== */
+========================================= */
 
 applyLanguage();
 
 restoreFavorites();
 
-
-// Сначала показываем сохранённые данные,
-// затем синхронизируем их с Render.
-
 applyUserToUI();
 
 authWithBackend();
 
-
 </script>
 
 </body>
-
 </html>
