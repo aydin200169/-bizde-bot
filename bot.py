@@ -5,6 +5,7 @@ import hashlib
 import secrets
 import threading
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -39,10 +40,6 @@ PORT = int(os.environ.get("PORT", "10000"))
 
 ALLOWED_ORIGIN = "https://aydin200169.github.io"
 
-
-# =========================================================
-# ПРОВЕРКА НАСТРОЕК
-# =========================================================
 
 if not TOKEN:
     raise RuntimeError("BOT_TOKEN is not configured")
@@ -80,23 +77,39 @@ def init_database():
                 member_code TEXT UNIQUE,
                 subscription_active BOOLEAN DEFAULT FALSE,
                 total_savings NUMERIC(12,2) DEFAULT 0,
+                terms_accepted BOOLEAN DEFAULT FALSE,
                 registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
         # -------------------------------------------------
-        # ИСПРАВЛЕНИЕ СТАРОЙ БАЗЫ
+        # MIGRATIONS FOR OLD DATABASE
         # -------------------------------------------------
 
         cur.execute("""
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS member_code TEXT UNIQUE
+            ADD COLUMN IF NOT EXISTS name TEXT
         """)
 
         cur.execute("""
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS total_savings NUMERIC(12,2) DEFAULT 0
+            ADD COLUMN IF NOT EXISTS username TEXT
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS phone TEXT
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS language VARCHAR(5) DEFAULT 'ru'
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS member_code TEXT
         """)
 
         cur.execute("""
@@ -106,7 +119,12 @@ def init_database():
 
         cur.execute("""
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS language VARCHAR(5) DEFAULT 'ru'
+            ADD COLUMN IF NOT EXISTS total_savings NUMERIC(12,2) DEFAULT 0
+        """)
+
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS terms_accepted BOOLEAN DEFAULT FALSE
         """)
 
         cur.execute("""
@@ -158,17 +176,16 @@ def init_database():
         """)
 
         # -------------------------------------------------
-        # DEMO PARTNERS
+        # CREATE DEMO PARTNERS
         # -------------------------------------------------
 
         cur.execute("SELECT COUNT(*) FROM partners")
-        count = cur.fetchone()[0]
+        partner_count = cur.fetchone()[0]
 
-        if count == 0:
+        if partner_count == 0:
 
             cur.execute("""
-                INSERT INTO partners
-                (
+                INSERT INTO partners (
                     name,
                     category,
                     description,
@@ -180,8 +197,7 @@ def init_database():
                     image_url,
                     active
                 )
-                VALUES
-                (
+                VALUES (
                     'Партнёр 1',
                     'Рестораны',
                     'Восточная кухня',
@@ -196,8 +212,7 @@ def init_database():
             """)
 
             cur.execute("""
-                INSERT INTO partners
-                (
+                INSERT INTO partners (
                     name,
                     category,
                     description,
@@ -209,8 +224,7 @@ def init_database():
                     image_url,
                     active
                 )
-                VALUES
-                (
+                VALUES (
                     'VERO Café',
                     'Кафе',
                     'Кофе и десерты',
@@ -225,8 +239,7 @@ def init_database():
             """)
 
             cur.execute("""
-                INSERT INTO partners
-                (
+                INSERT INTO partners (
                     name,
                     category,
                     description,
@@ -238,8 +251,7 @@ def init_database():
                     image_url,
                     active
                 )
-                VALUES
-                (
+                VALUES (
                     'FITROOM',
                     'Спорт',
                     'Фитнес и тренировки',
@@ -254,8 +266,7 @@ def init_database():
             """)
 
             cur.execute("""
-                INSERT INTO partners
-                (
+                INSERT INTO partners (
                     name,
                     category,
                     description,
@@ -267,8 +278,7 @@ def init_database():
                     image_url,
                     active
                 )
-                VALUES
-                (
+                VALUES (
                     'Beauty Room',
                     'Красота',
                     'Услуги красоты',
@@ -282,9 +292,25 @@ def init_database():
                 )
             """)
 
+        # -------------------------------------------------
+        # MEMBER CODE UNIQUE INDEX
+        # -------------------------------------------------
+
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            users_member_code_unique_idx
+            ON users(member_code)
+            WHERE member_code IS NOT NULL
+        """)
+
         conn.commit()
 
         print("PostgreSQL database initialized successfully.")
+
+    except Exception as e:
+        conn.rollback()
+        print("Database initialization error:", e)
+        raise
 
     finally:
         conn.close()
@@ -306,17 +332,20 @@ def get_unique_member_code(conn):
 
         cur = conn.cursor()
 
-        cur.execute(
-            "SELECT id FROM users WHERE member_code = %s",
-            (code,)
-        )
+        cur.execute("""
+            SELECT id
+            FROM users
+            WHERE member_code = %s
+        """, (code,))
 
-        if not cur.fetchone():
+        existing = cur.fetchone()
+
+        if not existing:
             return code
 
 
 # =========================================================
-# USER FUNCTIONS
+# USER
 # =========================================================
 
 def upsert_user(
@@ -324,7 +353,8 @@ def upsert_user(
     name=None,
     username=None,
     phone=None,
-    language="ru"
+    language="ru",
+    terms_accepted=False
 ):
 
     conn = get_db()
@@ -334,7 +364,11 @@ def upsert_user(
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT id, member_code
+            SELECT
+                id,
+                member_code,
+                phone,
+                terms_accepted
             FROM users
             WHERE telegram_id = %s
         """, (telegram_id,))
@@ -346,72 +380,71 @@ def upsert_user(
             member_code = existing[1]
 
             if not member_code:
-
                 member_code = get_unique_member_code(conn)
 
-                cur.execute("""
-                    UPDATE users
-                    SET
-                        name = COALESCE(%s, name),
-                        username = COALESCE(%s, username),
-                        phone = COALESCE(%s, phone),
-                        language = COALESCE(%s, language),
-                        member_code = %s,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE telegram_id = %s
-                """, (
-                    name,
-                    username,
-                    phone,
-                    language,
-                    member_code,
-                    telegram_id
-                ))
-
-            else:
-
-                cur.execute("""
-                    UPDATE users
-                    SET
-                        name = COALESCE(%s, name),
-                        username = COALESCE(%s, username),
-                        phone = COALESCE(%s, phone),
-                        language = COALESCE(%s, language),
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE telegram_id = %s
-                """, (
-                    name,
-                    username,
-                    phone,
-                    language,
-                    telegram_id
-                ))
+            cur.execute("""
+                UPDATE users
+                SET
+                    name = COALESCE(%s, name),
+                    username = COALESCE(%s, username),
+                    phone = COALESCE(%s, phone),
+                    language = COALESCE(%s, language),
+                    member_code = %s,
+                    terms_accepted =
+                        CASE
+                            WHEN %s = TRUE THEN TRUE
+                            ELSE terms_accepted
+                        END,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE telegram_id = %s
+            """, (
+                name,
+                username,
+                phone,
+                language,
+                member_code,
+                terms_accepted,
+                telegram_id
+            ))
 
         else:
 
             member_code = get_unique_member_code(conn)
 
             cur.execute("""
-                INSERT INTO users
-                (
+                INSERT INTO users (
                     telegram_id,
                     name,
                     username,
                     phone,
                     language,
-                    member_code
+                    member_code,
+                    terms_accepted
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s
+                )
             """, (
                 telegram_id,
                 name,
                 username,
                 phone,
                 language,
-                member_code
+                member_code,
+                terms_accepted
             ))
 
         conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
 
     finally:
         conn.close()
@@ -423,9 +456,7 @@ def get_user(telegram_id):
 
     try:
 
-        cur = conn.cursor(
-            cursor_factory=RealDictCursor
-        )
+        cur = conn.cursor(cursor_factory=RealDictCursor)
 
         cur.execute("""
             SELECT
@@ -438,7 +469,9 @@ def get_user(telegram_id):
                 member_code,
                 subscription_active,
                 total_savings,
-                registered_at
+                terms_accepted,
+                registered_at,
+                updated_at
             FROM users
             WHERE telegram_id = %s
         """, (telegram_id,))
@@ -475,7 +508,7 @@ def update_language(telegram_id, language):
 
 
 # =========================================================
-# TELEGRAM INIT DATA
+# TELEGRAM WEB APP AUTH
 # =========================================================
 
 def validate_telegram_init_data(init_data):
@@ -501,13 +534,12 @@ def validate_telegram_init_data(init_data):
             return None
 
         current_time = int(
-            datetime.now(
-                timezone.utc
-            ).timestamp()
+            datetime.now(timezone.utc).timestamp()
         )
 
         auth_time = int(auth_date)
 
+        # 24 hours
         if current_time - auth_time > 86400:
             return None
 
@@ -522,9 +554,7 @@ def validate_telegram_init_data(init_data):
                 f"{key}={data[key]}"
             )
 
-        data_check_string = "\n".join(
-            data_check
-        )
+        data_check_string = "\n".join(data_check)
 
         secret_key = hmac.new(
             b"WebAppData",
@@ -544,6 +574,9 @@ def validate_telegram_init_data(init_data):
         ):
             return None
 
+        if "user" not in data:
+            return None
+
         telegram_user = json.loads(
             data["user"]
         )
@@ -561,7 +594,7 @@ def validate_telegram_init_data(init_data):
 
 
 # =========================================================
-# JSON RESPONSE
+# HTTP HELPERS
 # =========================================================
 
 def send_json(
@@ -608,10 +641,6 @@ def send_json(
     handler.wfile.write(body)
 
 
-# =========================================================
-# READ JSON
-# =========================================================
-
 def read_json(handler):
 
     try:
@@ -623,9 +652,7 @@ def read_json(handler):
             )
         )
 
-        raw = handler.rfile.read(
-            length
-        )
+        raw = handler.rfile.read(length)
 
         return json.loads(
             raw.decode("utf-8")
@@ -637,7 +664,7 @@ def read_json(handler):
 
 
 # =========================================================
-# API SERVER
+# API
 # =========================================================
 
 class APIHandler(BaseHTTPRequestHandler):
@@ -680,9 +707,7 @@ class APIHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        parsed = urlparse(
-            self.path
-        )
+        parsed = urlparse(self.path)
 
         path = parsed.path
 
@@ -690,7 +715,10 @@ class APIHandler(BaseHTTPRequestHandler):
             parsed.query
         )
 
-        # Health check
+        # -------------------------------------------------
+        # HEALTH CHECK
+        # -------------------------------------------------
+
         if path == "/":
 
             self.send_response(200)
@@ -709,7 +737,7 @@ class APIHandler(BaseHTTPRequestHandler):
             return
 
         # -------------------------------------------------
-        # GET /api/user
+        # USER
         # -------------------------------------------------
 
         if path == "/api/user":
@@ -725,7 +753,26 @@ class APIHandler(BaseHTTPRequestHandler):
                     self,
                     {
                         "ok": False,
-                        "error": "telegram_id required"
+                        "error": "telegram_id_required"
+                    },
+                    400
+                )
+
+                return
+
+            try:
+
+                telegram_id = int(
+                    telegram_id
+                )
+
+            except ValueError:
+
+                send_json(
+                    self,
+                    {
+                        "ok": False,
+                        "error": "invalid_telegram_id"
                     },
                     400
                 )
@@ -733,7 +780,7 @@ class APIHandler(BaseHTTPRequestHandler):
                 return
 
             user = get_user(
-                int(telegram_id)
+                telegram_id
             )
 
             if not user:
@@ -760,7 +807,7 @@ class APIHandler(BaseHTTPRequestHandler):
             return
 
         # -------------------------------------------------
-        # GET /api/partners
+        # PARTNERS
         # -------------------------------------------------
 
         if path == "/api/partners":
@@ -819,7 +866,7 @@ class APIHandler(BaseHTTPRequestHandler):
             return
 
         # -------------------------------------------------
-        # GET /api/history
+        # HISTORY
         # -------------------------------------------------
 
         if path == "/api/history":
@@ -829,10 +876,8 @@ class APIHandler(BaseHTTPRequestHandler):
                 [None]
             )[0]
 
-            telegram_user = (
-                validate_telegram_init_data(
-                    init_data
-                )
+            telegram_user = validate_telegram_init_data(
+                init_data
             )
 
             if not telegram_user:
@@ -869,7 +914,7 @@ class APIHandler(BaseHTTPRequestHandler):
                         p.category
                     FROM transactions t
                     JOIN partners p
-                    ON p.id = t.partner_id
+                        ON p.id = t.partner_id
                     WHERE t.telegram_id = %s
                     ORDER BY t.created_at DESC
                     LIMIT 100
@@ -896,6 +941,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
             return
 
+        # -------------------------------------------------
+        # NOT FOUND
+        # -------------------------------------------------
+
         send_json(
             self,
             {
@@ -917,11 +966,13 @@ class APIHandler(BaseHTTPRequestHandler):
 
         path = parsed.path
 
-        data = read_json(self)
+        data = read_json(
+            self
+        )
 
-        # -------------------------------------------------
-        # AUTH
-        # -------------------------------------------------
+        # =================================================
+        # AUTH / REGISTRATION
+        # =================================================
 
         if path == "/api/auth":
 
@@ -934,10 +985,19 @@ class APIHandler(BaseHTTPRequestHandler):
                 "ru"
             )
 
-            telegram_user = (
-                validate_telegram_init_data(
-                    init_data
+            phone = data.get(
+                "phone"
+            )
+
+            terms_accepted = bool(
+                data.get(
+                    "terms_accepted",
+                    False
                 )
+            )
+
+            telegram_user = validate_telegram_init_data(
+                init_data
             )
 
             if not telegram_user:
@@ -966,20 +1026,24 @@ class APIHandler(BaseHTTPRequestHandler):
             )
 
             name = (
-                first_name
-                + " "
-                + last_name
+                first_name + " " + last_name
             ).strip()
 
             username = telegram_user.get(
                 "username"
             )
 
+            # -------------------------------------------------
+            # BASIC TELEGRAM DATA
+            # -------------------------------------------------
+
             upsert_user(
                 telegram_id=telegram_id,
                 name=name,
                 username=username,
-                language=language
+                phone=phone,
+                language=language,
+                terms_accepted=terms_accepted
             )
 
             user = get_user(
@@ -996,9 +1060,9 @@ class APIHandler(BaseHTTPRequestHandler):
 
             return
 
-        # -------------------------------------------------
+        # =================================================
         # LANGUAGE
-        # -------------------------------------------------
+        # =================================================
 
         if path == "/api/language":
 
@@ -1011,10 +1075,14 @@ class APIHandler(BaseHTTPRequestHandler):
                 "ru"
             )
 
-            telegram_user = (
-                validate_telegram_init_data(
-                    init_data
-                )
+            if language not in (
+                "ru",
+                "kk"
+            ):
+                language = "ru"
+
+            telegram_user = validate_telegram_init_data(
+                init_data
             )
 
             if not telegram_user:
@@ -1047,9 +1115,9 @@ class APIHandler(BaseHTTPRequestHandler):
 
             return
 
-        # -------------------------------------------------
+        # =================================================
         # VERIFY MEMBER
-        # -------------------------------------------------
+        # =================================================
 
         if path == "/api/verify-member":
 
@@ -1069,6 +1137,10 @@ class APIHandler(BaseHTTPRequestHandler):
                 )
 
                 return
+
+            member_code = str(
+                member_code
+            ).strip().upper()
 
             conn = get_db()
 
@@ -1116,18 +1188,16 @@ class APIHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "member": dict(user),
                     "active": bool(
-                        user[
-                            "subscription_active"
-                        ]
+                        user["subscription_active"]
                     )
                 }
             )
 
             return
 
-        # -------------------------------------------------
+        # =================================================
         # USE OFFER
-        # -------------------------------------------------
+        # =================================================
 
         if path == "/api/use-offer":
 
@@ -1143,10 +1213,8 @@ class APIHandler(BaseHTTPRequestHandler):
                 "receipt_amount"
             )
 
-            telegram_user = (
-                validate_telegram_init_data(
-                    init_data
-                )
+            telegram_user = validate_telegram_init_data(
+                init_data
             )
 
             if not telegram_user:
@@ -1188,6 +1256,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
                 return
 
+            # -------------------------------------------------
+            # RECEIPT
+            # -------------------------------------------------
+
             try:
 
                 receipt_amount = float(
@@ -1210,6 +1282,25 @@ class APIHandler(BaseHTTPRequestHandler):
 
                 return
 
+            try:
+
+                partner_id = int(
+                    partner_id
+                )
+
+            except Exception:
+
+                send_json(
+                    self,
+                    {
+                        "ok": False,
+                        "error": "invalid_partner_id"
+                    },
+                    400
+                )
+
+                return
+
             telegram_id = telegram_user["id"]
 
             conn = get_db()
@@ -1220,7 +1311,10 @@ class APIHandler(BaseHTTPRequestHandler):
                     cursor_factory=RealDictCursor
                 )
 
-                # Проверяем пользователя
+                # ---------------------------------------------
+                # USER
+                # ---------------------------------------------
+
                 cur.execute("""
                     SELECT
                         telegram_id,
@@ -1246,9 +1340,11 @@ class APIHandler(BaseHTTPRequestHandler):
 
                     return
 
-                if not user[
-                    "subscription_active"
-                ]:
+                # ---------------------------------------------
+                # SUBSCRIPTION
+                # ---------------------------------------------
+
+                if not user["subscription_active"]:
 
                     send_json(
                         self,
@@ -1261,7 +1357,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
                     return
 
-                # Получаем партнёра
+                # ---------------------------------------------
+                # PARTNER
+                # ---------------------------------------------
+
                 cur.execute("""
                     SELECT
                         id,
@@ -1302,31 +1401,41 @@ class APIHandler(BaseHTTPRequestHandler):
 
                     return
 
+                # ---------------------------------------------
+                # CALCULATE SAVINGS
+                # ---------------------------------------------
+
                 discount = float(
-                    partner[
-                        "discount_percent"
-                    ]
+                    partner["discount_percent"]
                 )
 
                 savings = round(
-                    receipt_amount
-                    * discount
-                    / 100,
+                    receipt_amount * discount / 100,
                     2
                 )
 
-                # Сохраняем операцию
+                # ---------------------------------------------
+                # TRANSACTION
+                # ---------------------------------------------
+
                 cur.execute("""
-                    INSERT INTO transactions
-                    (
+                    INSERT INTO transactions (
                         telegram_id,
                         partner_id,
                         receipt_amount,
                         discount_percent,
                         savings
                     )
-                    VALUES (%s, %s, %s, %s, %s)
-                    RETURNING id, created_at
+                    VALUES (
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                    )
+                    RETURNING
+                        id,
+                        created_at
                 """, (
                     telegram_id,
                     partner_id,
@@ -1337,17 +1446,16 @@ class APIHandler(BaseHTTPRequestHandler):
 
                 transaction = cur.fetchone()
 
-                # Обновляем общую экономию
+                # ---------------------------------------------
+                # TOTAL SAVINGS
+                # ---------------------------------------------
+
                 cur.execute("""
                     UPDATE users
                     SET
                         total_savings =
-                            COALESCE(
-                                total_savings,
-                                0
-                            ) + %s,
-                        updated_at =
-                            CURRENT_TIMESTAMP
+                            COALESCE(total_savings, 0) + %s,
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE telegram_id = %s
                 """, (
                     savings,
@@ -1355,6 +1463,12 @@ class APIHandler(BaseHTTPRequestHandler):
                 ))
 
                 conn.commit()
+
+            except Exception:
+
+                conn.rollback()
+
+                raise
 
             finally:
 
@@ -1364,20 +1478,19 @@ class APIHandler(BaseHTTPRequestHandler):
                 self,
                 {
                     "ok": True,
-                    "transaction_id":
-                        transaction["id"],
-                    "receipt_amount":
-                        receipt_amount,
-                    "discount_percent":
-                        discount,
-                    "savings":
-                        savings,
-                    "created_at":
-                        transaction["created_at"]
+                    "transaction_id": transaction["id"],
+                    "receipt_amount": receipt_amount,
+                    "discount_percent": discount,
+                    "savings": savings,
+                    "created_at": transaction["created_at"]
                 }
             )
 
             return
+
+        # =================================================
+        # NOT FOUND
+        # =================================================
 
         send_json(
             self,
@@ -1390,7 +1503,7 @@ class APIHandler(BaseHTTPRequestHandler):
 
 
 # =========================================================
-# HTTP SERVER
+# RENDER HTTP SERVER
 # =========================================================
 
 def run_http_server():
@@ -1425,6 +1538,7 @@ async def start(
     )
 
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "📱 Открыть BIZDE",
@@ -1433,22 +1547,26 @@ async def start(
                 )
             )
         ],
+
         [
             InlineKeyboardButton(
                 "📂 Категории",
                 callback_data="categories"
             ),
+
             InlineKeyboardButton(
                 "🏪 Партнёры",
                 callback_data="partners"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🎟 Моя подписка",
                 callback_data="subscription"
             )
         ]
+
     ]
 
     reply_markup = InlineKeyboardMarkup(
@@ -1456,17 +1574,21 @@ async def start(
     )
 
     await update.message.reply_text(
+
         "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
+
         "Клуб привилегий, который даёт больше "
         "возможностей каждый день.\n\n"
+
         "Открывайте партнёров, пользуйтесь "
         "привилегиями и экономьте.",
+
         reply_markup=reply_markup
     )
 
 
 # =========================================================
-# CALLBACKS
+# CALLBACK BUTTONS
 # =========================================================
 
 async def button_callback(
@@ -1478,10 +1600,16 @@ async def button_callback(
 
     await query.answer()
 
+    # -----------------------------------------------------
+    # CATEGORIES
+    # -----------------------------------------------------
+
     if query.data == "categories":
 
         await query.message.reply_text(
+
             "📂 Категории BIZDE:\n\n"
+
             "🍽 Рестораны\n"
             "☕ Кафе\n"
             "💆 Красота\n"
@@ -1490,6 +1618,10 @@ async def button_callback(
             "🛍 Магазины\n"
             "🥊 Спорт"
         )
+
+    # -----------------------------------------------------
+    # PARTNERS
+    # -----------------------------------------------------
 
     elif query.data == "partners":
 
@@ -1518,7 +1650,8 @@ async def button_callback(
         if not partners:
 
             text = (
-                "🏪 Пока нет активных партнёров."
+                "🏪 Пока нет активных "
+                "партнёров."
             )
 
         else:
@@ -1543,15 +1676,17 @@ async def button_callback(
             text
         )
 
+    # -----------------------------------------------------
+    # SUBSCRIPTION
+    # -----------------------------------------------------
+
     elif query.data == "subscription":
 
         user = get_user(
             query.from_user.id
         )
 
-        if user and user[
-            "subscription_active"
-        ]:
+        if user and user["subscription_active"]:
 
             status = "🟢 Активна"
 
@@ -1559,11 +1694,19 @@ async def button_callback(
 
             status = "⚪ Не активна"
 
+        member_code = (
+            user["member_code"]
+            if user
+            else "—"
+        )
+
         await query.message.reply_text(
+
             f"🎟 Ваша подписка\n\n"
+
             f"Статус: {status}\n\n"
-            f"Member ID: "
-            f"{user['member_code'] if user else '—'}"
+
+            f"Member ID: {member_code}"
         )
 
 
@@ -1577,9 +1720,10 @@ def main():
         "Starting BIZDE.KZ..."
     )
 
+    # Database
     init_database()
 
-    # HTTP server для Render
+    # Render HTTP server
     http_thread = threading.Thread(
         target=run_http_server,
         daemon=True
@@ -1615,6 +1759,10 @@ def main():
         drop_pending_updates=True
     )
 
+
+# =========================================================
+# START
+# =========================================================
 
 if __name__ == "__main__":
     main()
