@@ -1,1 +1,814 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
+<title>BIZDE.KZ — Admin</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:#08090b;
+    color:#fff;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.logo{
+    font-size:26px;
+    font-weight:900;
+    letter-spacing:-1px;
+}
+
+.logo span{
+    color:#c9a85d;
+}
+
+.admin-label{
+    color:#aaa;
+    font-size:13px;
+}
+
+.card{
+    background:#111316;
+    border:1px solid #25282d;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:18px;
+}
+
+h2{
+    font-size:20px;
+    margin-bottom:18px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    background:#08090b;
+    color:#fff;
+    border:1px solid #292d33;
+    border-radius:12px;
+    padding:13px;
+    outline:none;
+    font-size:14px;
+}
+
+textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:#c9a85d;
+}
+
+.full{
+    grid-column:1 / -1;
+}
+
+button{
+    border:none;
+    border-radius:12px;
+    padding:13px 18px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+}
+
+.primary{
+    background:#c9a85d;
+    color:#08090b;
+}
+
+.secondary{
+    background:#202329;
+    color:#fff;
+}
+
+.danger{
+    background:#3a1717;
+    color:#ff8b8b;
+}
+
+.partner{
+    border:1px solid #292d33;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:12px;
+    background:#0d0f12;
+}
+
+.partner-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+
+.partner-name{
+    font-size:17px;
+    font-weight:800;
+}
+
+.partner-category{
+    color:#aaa;
+    font-size:12px;
+    margin-top:4px;
+}
+
+.discount{
+    color:#c9a85d;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.partner-description{
+    color:#bbb;
+    font-size:13px;
+    margin:12px 0;
+    line-height:1.5;
+}
+
+.partner-conditions{
+    color:#999;
+    font-size:12px;
+    line-height:1.5;
+    margin-bottom:14px;
+}
+
+.actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.status{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:8px;
+    font-size:11px;
+    margin-top:8px;
+}
+
+.active{
+    background:#16351f;
+    color:#70df91;
+}
+
+.inactive{
+    background:#351616;
+    color:#ff8888;
+}
+
+.message{
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:15px;
+    display:none;
+    font-size:13px;
+}
+
+.success{
+    background:#15351f;
+    color:#7ee89a;
+}
+
+.error{
+    background:#351616;
+    color:#ff8b8b;
+}
+
+.empty{
+    color:#888;
+    text-align:center;
+    padding:30px 10px;
+}
+
+@media(max-width:600px){
+    body{
+        padding:14px;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .full{
+        grid-column:auto;
+    }
+
+    .header{
+        align-items:flex-start;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <div class="logo">BIZDE<span>.KZ</span></div>
+            <div class="admin-label">Панель управления</div>
+        </div>
+
+        <button class="secondary" onclick="loadPartners()">
+            ↻ Обновить
+        </button>
+    </div>
+
+
+    <div id="message" class="message"></div>
+
+
+    <!-- ДОБАВЛЕНИЕ ПАРТНЕРА -->
+
+    <div class="card">
+
+        <h2 id="formTitle">Добавить партнёра</h2>
+
+        <input type="hidden" id="partnerId">
+
+        <div class="form-grid">
+
+            <input
+                id="partnerName"
+                placeholder="Название партнёра"
+            >
+
+            <select id="partnerCategory">
+                <option value="restaurant">Ресторан</option>
+                <option value="cafe">Кафе</option>
+                <option value="sport">Спорт</option>
+                <option value="beauty">Beauty</option>
+                <option value="shopping">Магазины</option>
+                <option value="services">Услуги</option>
+                <option value="other">Другое</option>
+            </select>
+
+            <input
+                id="partnerDiscount"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="Привилегия, %"
+            >
+
+            <input
+                id="partnerPhoto"
+                placeholder="Ссылка на фото"
+            >
+
+            <textarea
+                class="full"
+                id="partnerDescription"
+                placeholder="Описание партнёра"
+            ></textarea>
+
+            <textarea
+                class="full"
+                id="partnerConditions"
+                placeholder="Условия привилегии"
+            ></textarea>
+
+        </div>
+
+        <br>
+
+        <div class="actions">
+
+            <button
+                class="primary"
+                onclick="savePartner()"
+            >
+                Сохранить партнёра
+            </button>
+
+            <button
+                class="secondary"
+                onclick="resetForm()"
+            >
+                Очистить
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- СПИСОК ПАРТНЁРОВ -->
+
+    <div class="card">
+
+        <h2>Партнёры</h2>
+
+        <div id="partnersList">
+            <div class="empty">
+                Загрузка...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const tg = window.Telegram?.WebApp;
+
+if(tg){
+    tg.ready();
+    tg.expand();
+}
+
+
+const API_URL = "https://bizde-bot.onrender.com";
+
+
+function showMessage(text, type = "success"){
+
+    const box = document.getElementById("message");
+
+    box.textContent = text;
+
+    box.className = "message " + type;
+
+    box.style.display = "block";
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 3500);
+}
+
+
+async function api(url, options = {}){
+
+    try{
+
+        const response = await fetch(
+            API_URL + url,
+            {
+                ...options,
+                headers:{
+                    "Content-Type":"application/json",
+                    ...(options.headers || {})
+                }
+            }
+        );
+
+        return await response.json();
+
+    }catch(error){
+
+        console.error(error);
+
+        return {
+            success:false,
+            error:"Ошибка соединения с сервером"
+        };
+    }
+}
+
+
+function getInitData(){
+
+    return tg?.initData || "";
+
+}
+
+
+async function loadPartners(){
+
+    const list = document.getElementById("partnersList");
+
+    list.innerHTML = `
+        <div class="empty">
+            Загрузка...
+        </div>
+    `;
+
+
+    const data = await api(
+        "/api/admin/partners?init_data=" +
+        encodeURIComponent(getInitData())
+    );
+
+
+    if(!data.success){
+
+        list.innerHTML = `
+            <div class="empty">
+                ${escapeHTML(data.error || "Нет доступа")}
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if(!data.partners || data.partners.length === 0){
+
+        list.innerHTML = `
+            <div class="empty">
+                Партнёров пока нет
+            </div>
+        `;
+
+        return;
+    }
+
+
+    list.innerHTML = data.partners.map(partner => {
+
+        const statusClass =
+            partner.active ? "active" : "inactive";
+
+        const statusText =
+            partner.active ? "Активен" : "Отключён";
+
+
+        return `
+
+            <div class="partner">
+
+                <div class="partner-top">
+
+                    <div>
+
+                        <div class="partner-name">
+                            ${escapeHTML(partner.name)}
+                        </div>
+
+                        <div class="partner-category">
+                            ${escapeHTML(partner.category || "Другое")}
+                        </div>
+
+                    </div>
+
+                    <div class="discount">
+                        ${partner.discount_percent || 0}%
+                    </div>
+
+                </div>
+
+
+                <div class="status ${statusClass}">
+                    ${statusText}
+                </div>
+
+
+                <div class="partner-description">
+                    ${escapeHTML(partner.description || "Нет описания")}
+                </div>
+
+
+                <div class="partner-conditions">
+                    <b>Условия:</b><br>
+                    ${escapeHTML(partner.conditions || "Не указаны")}
+                </div>
+
+
+                <div class="actions">
+
+                    <button
+                        class="primary"
+                        onclick='editPartner(${JSON.stringify(partner)})'
+                    >
+                        ✏️ Изменить
+                    </button>
+
+
+                    <button
+                        class="secondary"
+                        onclick="togglePartner(${partner.id})"
+                    >
+                        ${partner.active ? "⏸ Отключить" : "▶️ Включить"}
+                    </button>
+
+
+                    <button
+                        class="danger"
+                        onclick="deletePartner(${partner.id})"
+                    >
+                        🗑 Удалить
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }).join("");
+
+}
+
+
+async function savePartner(){
+
+    const id =
+        document.getElementById("partnerId").value;
+
+    const name =
+        document.getElementById("partnerName").value.trim();
+
+    const category =
+        document.getElementById("partnerCategory").value;
+
+    const discount =
+        document.getElementById("partnerDiscount").value;
+
+    const description =
+        document.getElementById("partnerDescription").value.trim();
+
+    const conditions =
+        document.getElementById("partnerConditions").value.trim();
+
+    const photo =
+        document.getElementById("partnerPhoto").value.trim();
+
+
+    if(!name){
+
+        showMessage(
+            "Введите название партнёра",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if(!discount){
+
+        showMessage(
+            "Введите процент привилегии",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const payload = {
+
+        init_data:getInitData(),
+
+        name:name,
+
+        category:category,
+
+        description:description,
+
+        discount_percent:Number(discount),
+
+        conditions:conditions,
+
+        photo_url:photo
+
+    };
+
+
+    let data;
+
+
+    if(id){
+
+        payload.id = Number(id);
+
+        data = await api(
+            "/api/admin/partners/update",
+            {
+                method:"POST",
+                body:JSON.stringify(payload)
+            }
+        );
+
+    }else{
+
+        data = await api(
+            "/api/admin/partners/create",
+            {
+                method:"POST",
+                body:JSON.stringify(payload)
+            }
+        );
+
+    }
+
+
+    if(!data.success){
+
+        showMessage(
+            data.error || "Ошибка сохранения",
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage(
+        id
+            ? "Партнёр обновлён"
+            : "Партнёр добавлен"
+    );
+
+
+    resetForm();
+
+    loadPartners();
+
+}
+
+
+function editPartner(partner){
+
+    document.getElementById("partnerId").value =
+        partner.id;
+
+    document.getElementById("partnerName").value =
+        partner.name || "";
+
+    document.getElementById("partnerCategory").value =
+        partner.category || "other";
+
+    document.getElementById("partnerDiscount").value =
+        partner.discount_percent || 0;
+
+    document.getElementById("partnerDescription").value =
+        partner.description || "";
+
+    document.getElementById("partnerConditions").value =
+        partner.conditions || "";
+
+    document.getElementById("partnerPhoto").value =
+        partner.photo_url || "";
+
+
+    document.getElementById("formTitle").textContent =
+        "Изменить партнёра";
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+function resetForm(){
+
+    document.getElementById("partnerId").value = "";
+
+    document.getElementById("partnerName").value = "";
+
+    document.getElementById("partnerCategory").value =
+        "restaurant";
+
+    document.getElementById("partnerDiscount").value = "";
+
+    document.getElementById("partnerDescription").value = "";
+
+    document.getElementById("partnerConditions").value = "";
+
+    document.getElementById("partnerPhoto").value = "";
+
+    document.getElementById("formTitle").textContent =
+        "Добавить партнёра";
+
+}
+
+
+async function togglePartner(id){
+
+    const data = await api(
+        "/api/admin/partners/toggle",
+        {
+            method:"POST",
+            body:JSON.stringify({
+
+                init_data:getInitData(),
+
+                id:id
+
+            })
+        }
+    );
+
+
+    if(!data.success){
+
+        showMessage(
+            data.error || "Ошибка",
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage("Статус партнёра изменён");
+
+    loadPartners();
+
+}
+
+
+async function deletePartner(id){
+
+    const confirmed =
+        confirm(
+            "Удалить этого партнёра?"
+        );
+
+
+    if(!confirmed) return;
+
+
+    const data = await api(
+        "/api/admin/partners/delete",
+        {
+            method:"POST",
+            body:JSON.stringify({
+
+                init_data:getInitData(),
+
+                id:id
+
+            })
+        }
+    );
+
+
+    if(!data.success){
+
+        showMessage(
+            data.error || "Ошибка удаления",
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage("Партнёр удалён");
+
+    loadPartners();
+
+}
+
+
+function escapeHTML(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+loadPartners();
+
+</script>
+
+</body>
+</html>
