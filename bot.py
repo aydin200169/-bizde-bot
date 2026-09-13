@@ -121,6 +121,8 @@ def init_db():
             ("users", "language", "TEXT DEFAULT 'ru'"),
             ("users", "phone", "TEXT DEFAULT ''"),
             ("users", "username", "TEXT DEFAULT ''"),
+            ("partners", "photo_url", "TEXT DEFAULT ''"),
+            ("partners", "active", "BOOLEAN DEFAULT TRUE"),
         ]
 
         for table, column, definition in migrations:
@@ -196,7 +198,10 @@ def init_db():
 # =========================================================
 
 def is_owner(telegram_id):
-    return int(telegram_id) == OWNER_ID
+    try:
+        return int(telegram_id) == OWNER_ID
+    except Exception:
+        return False
 
 
 def is_admin(telegram_id):
@@ -509,6 +514,158 @@ def get_partners(category=None):
         conn.close()
 
 
+def get_all_partners():
+    conn = get_db()
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            SELECT *
+            FROM partners
+            ORDER BY id DESC
+        """)
+
+        return cur.fetchall()
+
+    finally:
+        conn.close()
+
+
+def create_partner(
+    name,
+    category,
+    description,
+    discount_percent,
+    conditions,
+    photo_url=""
+):
+    conn = get_db()
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            INSERT INTO partners
+            (
+                name,
+                category,
+                description,
+                discount_percent,
+                conditions,
+                photo_url,
+                active
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, TRUE)
+            RETURNING *
+        """, (
+            name,
+            category,
+            description,
+            discount_percent,
+            conditions,
+            photo_url
+        ))
+
+        partner = cur.fetchone()
+
+        conn.commit()
+
+        return partner
+
+    finally:
+        conn.close()
+
+
+def update_partner(
+    partner_id,
+    name,
+    category,
+    description,
+    discount_percent,
+    conditions,
+    photo_url=""
+):
+    conn = get_db()
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            UPDATE partners
+            SET
+                name = %s,
+                category = %s,
+                description = %s,
+                discount_percent = %s,
+                conditions = %s,
+                photo_url = %s
+            WHERE id = %s
+            RETURNING *
+        """, (
+            name,
+            category,
+            description,
+            discount_percent,
+            conditions,
+            photo_url,
+            partner_id
+        ))
+
+        partner = cur.fetchone()
+
+        conn.commit()
+
+        return partner
+
+    finally:
+        conn.close()
+
+
+def toggle_partner(partner_id):
+    conn = get_db()
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            UPDATE partners
+            SET active = NOT active
+            WHERE id = %s
+            RETURNING *
+        """, (partner_id,))
+
+        partner = cur.fetchone()
+
+        conn.commit()
+
+        return partner
+
+    finally:
+        conn.close()
+
+
+def delete_partner(partner_id):
+    conn = get_db()
+
+    try:
+        cur = conn.cursor()
+
+        cur.execute("""
+            DELETE FROM partners
+            WHERE id = %s
+        """, (partner_id,))
+
+        deleted = cur.rowcount > 0
+
+        conn.commit()
+
+        return deleted
+
+    finally:
+        conn.close()
+
+
 # =========================================================
 # HISTORY
 # =========================================================
@@ -544,6 +701,9 @@ def get_history(telegram_id):
 # =========================================================
 
 def update_language(telegram_id, language):
+    if language not in ("ru", "kk", "en"):
+        language = "ru"
+
     conn = get_db()
 
     try:
@@ -611,7 +771,7 @@ def set_subscription(telegram_id, active):
 
 
 # =========================================================
-# TRANSACTION
+# TRANSACTIONS
 # =========================================================
 
 def create_transaction(
@@ -816,7 +976,7 @@ def partner_use_offer(
 
 
 # =========================================================
-# HTTP
+# HTTP HELPERS
 # =========================================================
 
 def json_response(handler, data, status=200):
@@ -854,6 +1014,7 @@ def json_response(handler, data, status=200):
     )
 
     handler.end_headers()
+
     handler.wfile.write(body)
 
 
@@ -911,10 +1072,19 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+
         try:
             parsed = urlparse(self.path)
+
             path = parsed.path
-            params = parse_qs(parsed.query)
+
+            params = parse_qs(
+                parsed.query
+            )
+
+            # -------------------------------------------------
+            # HEALTH CHECK
+            # -------------------------------------------------
 
             if path == "/":
                 json_response(
@@ -926,20 +1096,55 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            # -------------------------------------------------
+            # USER
+            # -------------------------------------------------
+
             if path == "/api/user":
+
+                init_data = params.get(
+                    "init_data",
+                    [""]
+                )[0]
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if tg_user:
+
+                    user = get_user(
+                        tg_user["id"]
+                    )
+
+                    json_response(
+                        self,
+                        {
+                            "success": True,
+                            "user":
+                                dict(user)
+                                if user
+                                else None
+                        }
+                    )
+                    return
+
+                # Compatibility with old frontend
                 telegram_id = params.get(
                     "telegram_id",
                     [None]
                 )[0]
 
                 if not telegram_id:
+
                     json_response(
                         self,
                         {
+                            "success": False,
                             "error":
-                                "telegram_id required"
+                                "init_data required"
                         },
-                        400
+                        401
                     )
                     return
 
@@ -950,29 +1155,45 @@ class RequestHandler(BaseHTTPRequestHandler):
                 json_response(
                     self,
                     {
+                        "success": True,
                         "user":
-                            dict(user) if user else None
+                            dict(user)
+                            if user
+                            else None
                     }
                 )
                 return
 
+            # -------------------------------------------------
+            # PUBLIC PARTNERS
+            # -------------------------------------------------
+
             if path == "/api/partners":
+
                 category = params.get(
                     "category",
                     [None]
                 )[0]
 
-                partners = get_partners(category)
+                partners = get_partners(
+                    category
+                )
 
                 json_response(
                     self,
                     {
+                        "success": True,
                         "partners": partners
                     }
                 )
                 return
 
-            if path == "/api/history":
+            # -------------------------------------------------
+            # ADMIN PARTNERS
+            # -------------------------------------------------
+
+            if path == "/api/admin/partners":
+
                 init_data = params.get(
                     "init_data",
                     [""]
@@ -983,9 +1204,65 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
                 if not tg_user:
+
                     json_response(
                         self,
                         {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
+                if not is_admin(
+                    tg_user["id"]
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Нет доступа к админ-панели"
+                        },
+                        403
+                    )
+                    return
+
+                partners = get_all_partners()
+
+                json_response(
+                    self,
+                    {
+                        "success": True,
+                        "partners": partners
+                    }
+                )
+                return
+
+            # -------------------------------------------------
+            # HISTORY
+            # -------------------------------------------------
+
+            if path == "/api/history":
+
+                init_data = params.get(
+                    "init_data",
+                    [""]
+                )[0]
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
                             "error":
                                 "Invalid init_data"
                         },
@@ -1000,6 +1277,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 json_response(
                     self,
                     {
+                        "success": True,
                         "history": history
                     }
                 )
@@ -1008,31 +1286,46 @@ class RequestHandler(BaseHTTPRequestHandler):
             json_response(
                 self,
                 {
+                    "success": False,
                     "error": "Not found"
                 },
                 404
             )
 
         except Exception as e:
-            print("GET ERROR:", e)
+
+            print(
+                "GET ERROR:",
+                e
+            )
 
             json_response(
                 self,
                 {
+                    "success": False,
                     "error": str(e)
                 },
                 500
             )
 
     def do_POST(self):
+
         try:
+
             path = urlparse(
                 self.path
             ).path
 
-            data = read_json(self)
+            data = read_json(
+                self
+            )
 
-            if path == "/api/auth":
+            # =================================================
+            # ADMIN CREATE PARTNER
+            # =================================================
+
+            if path == "/api/admin/partners/create":
+
                 init_data = data.get(
                     "init_data",
                     ""
@@ -1043,13 +1336,486 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
                 if not tg_user:
+
                     json_response(
                         self,
                         {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
+                if not is_admin(
+                    tg_user["id"]
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Нет доступа"
+                        },
+                        403
+                    )
+                    return
+
+                name = str(
+                    data.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+                category = str(
+                    data.get(
+                        "category",
+                        ""
+                    )
+                ).strip()
+
+                description = str(
+                    data.get(
+                        "description",
+                        ""
+                    )
+                ).strip()
+
+                conditions = str(
+                    data.get(
+                        "conditions",
+                        ""
+                    )
+                ).strip()
+
+                photo_url = str(
+                    data.get(
+                        "photo_url",
+                        ""
+                    )
+                ).strip()
+
+                discount = float(
+                    data.get(
+                        "discount_percent",
+                        0
+                    )
+                )
+
+                if not name:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Введите название партнёра"
+                        },
+                        400
+                    )
+                    return
+
+                if discount < 0 or discount > 100:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Привилегия должна быть от 0 до 100%"
+                        },
+                        400
+                    )
+                    return
+
+                partner = create_partner(
+                    name,
+                    category,
+                    description,
+                    discount,
+                    conditions,
+                    photo_url
+                )
+
+                json_response(
+                    self,
+                    {
+                        "success": True,
+                        "partner": partner
+                    }
+                )
+                return
+
+            # =================================================
+            # ADMIN UPDATE PARTNER
+            # =================================================
+
+            if path == "/api/admin/partners/update":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
+                if not is_admin(
+                    tg_user["id"]
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Нет доступа"
+                        },
+                        403
+                    )
+                    return
+
+                partner_id = int(
+                    data["id"]
+                )
+
+                name = str(
+                    data.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+                category = str(
+                    data.get(
+                        "category",
+                        ""
+                    )
+                ).strip()
+
+                description = str(
+                    data.get(
+                        "description",
+                        ""
+                    )
+                ).strip()
+
+                conditions = str(
+                    data.get(
+                        "conditions",
+                        ""
+                    )
+                ).strip()
+
+                photo_url = str(
+                    data.get(
+                        "photo_url",
+                        ""
+                    )
+                ).strip()
+
+                discount = float(
+                    data.get(
+                        "discount_percent",
+                        0
+                    )
+                )
+
+                if not name:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Введите название партнёра"
+                        },
+                        400
+                    )
+                    return
+
+                if discount < 0 or discount > 100:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Привилегия должна быть от 0 до 100%"
+                        },
+                        400
+                    )
+                    return
+
+                partner = update_partner(
+                    partner_id,
+                    name,
+                    category,
+                    description,
+                    discount,
+                    conditions,
+                    photo_url
+                )
+
+                if not partner:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Партнёр не найден"
+                        },
+                        404
+                    )
+                    return
+
+                json_response(
+                    self,
+                    {
+                        "success": True,
+                        "partner": partner
+                    }
+                )
+                return
+
+            # =================================================
+            # ADMIN TOGGLE PARTNER
+            # =================================================
+
+            if path == "/api/admin/partners/toggle":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
+                if not is_admin(
+                    tg_user["id"]
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Нет доступа"
+                        },
+                        403
+                    )
+                    return
+
+                partner_id = int(
+                    data["id"]
+                )
+
+                partner = toggle_partner(
+                    partner_id
+                )
+
+                if not partner:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Партнёр не найден"
+                        },
+                        404
+                    )
+                    return
+
+                json_response(
+                    self,
+                    {
+                        "success": True,
+                        "partner": partner
+                    }
+                )
+                return
+
+            # =================================================
+            # ADMIN DELETE PARTNER
+            # =================================================
+
+            if path == "/api/admin/partners/delete":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
+                if not is_admin(
+                    tg_user["id"]
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Нет доступа"
+                        },
+                        403
+                    )
+                    return
+
+                partner_id = int(
+                    data["id"]
+                )
+
+                deleted = delete_partner(
+                    partner_id
+                )
+
+                if not deleted:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Партнёр не найден"
+                        },
+                        404
+                    )
+                    return
+
+                json_response(
+                    self,
+                    {
+                        "success": True
+                    }
+                )
+                return
+
+            # =================================================
+            # AUTH
+            # =================================================
+
+            if path == "/api/auth":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
                             "error":
                                 "Invalid Telegram init data"
                         },
                         401
+                    )
+                    return
+
+                existing = get_user(
+                    tg_user["id"]
+                )
+
+                phone = str(
+                    data.get(
+                        "phone",
+                        ""
+                    )
+                ).strip()
+
+                terms_accepted = bool(
+                    data.get(
+                        "terms_accepted",
+                        False
+                    )
+                )
+
+                if not existing and (
+                    not phone or
+                    not terms_accepted
+                ):
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "needs_registration": True,
+                            "telegram_user": {
+                                "id": tg_user["id"],
+                                "first_name":
+                                    tg_user.get(
+                                        "first_name",
+                                        ""
+                                    ),
+                                "last_name":
+                                    tg_user.get(
+                                        "last_name",
+                                        ""
+                                    ),
+                                "username":
+                                    tg_user.get(
+                                        "username",
+                                        ""
+                                    )
+                            }
+                        }
                     )
                     return
 
@@ -1066,20 +1832,12 @@ class RequestHandler(BaseHTTPRequestHandler):
                         "username",
                         ""
                     ),
-                    phone=data.get(
-                        "phone",
-                        ""
-                    ),
+                    phone=phone,
                     language=data.get(
                         "language",
                         "ru"
                     ),
-                    terms_accepted=bool(
-                        data.get(
-                            "terms_accepted",
-                            False
-                        )
-                    )
+                    terms_accepted=terms_accepted
                 )
 
                 json_response(
@@ -1091,7 +1849,12 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            # =================================================
+            # LANGUAGE
+            # =================================================
+
             if path == "/api/language":
+
                 init_data = data.get(
                     "init_data",
                     ""
@@ -1102,9 +1865,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
                 if not tg_user:
+
                     json_response(
                         self,
                         {
+                            "success": False,
                             "error":
                                 "Invalid init data"
                         },
@@ -1112,12 +1877,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                     )
                     return
 
+                language = data.get(
+                    "language",
+                    "ru"
+                )
+
                 update_language(
                     tg_user["id"],
-                    data.get(
-                        "language",
-                        "ru"
-                    )
+                    language
                 )
 
                 json_response(
@@ -1128,7 +1895,34 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            # =================================================
+            # VERIFY MEMBER
+            # =================================================
+
             if path == "/api/verify-member":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
                 member_code = str(
                     data.get(
                         "member_code",
@@ -1137,9 +1931,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                 ).strip().upper()
 
                 if not member_code:
+
                     json_response(
                         self,
                         {
+                            "success": False,
                             "error":
                                 "Введите код участника"
                         },
@@ -1152,6 +1948,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
                 if not result:
+
                     json_response(
                         self,
                         {
@@ -1167,12 +1964,18 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self,
                     {
                         "success": True,
-                        "member": result
+                        "member": result,
+                        "user": result
                     }
                 )
                 return
 
+            # =================================================
+            # USE OFFER
+            # =================================================
+
             if path == "/api/use-offer":
+
                 init_data = data.get(
                     "init_data",
                     ""
@@ -1183,9 +1986,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
 
                 if not tg_user:
+
                     json_response(
                         self,
                         {
+                            "success": False,
                             "error":
                                 "Invalid init data"
                         },
@@ -1212,7 +2017,34 @@ class RequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            # =================================================
+            # PARTNER USE OFFER
+            # =================================================
+
             if path == "/api/partner-use-offer":
+
+                init_data = data.get(
+                    "init_data",
+                    ""
+                )
+
+                tg_user = validate_telegram_init_data(
+                    init_data
+                )
+
+                if not tg_user:
+
+                    json_response(
+                        self,
+                        {
+                            "success": False,
+                            "error":
+                                "Неверные данные Telegram"
+                        },
+                        401
+                    )
+                    return
+
                 result = partner_use_offer(
                     member_code=str(
                         data.get(
@@ -1232,20 +2064,42 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self,
                     {
                         "success": True,
-                        "result": result
+                        "result": result,
+
+                        # Compatibility
+                        "partner_name":
+                            result["partner_name"],
+                        "receipt_amount":
+                            result["receipt_amount"],
+                        "discount_percent":
+                            result["discount_percent"],
+                        "savings":
+                            result["savings"],
+                        "total_savings":
+                            result["total_savings"],
+                        "partner": {
+                            "name":
+                                result["partner_name"]
+                        }
                     }
                 )
                 return
 
+            # =================================================
+            # NOT FOUND
+            # =================================================
+
             json_response(
                 self,
                 {
+                    "success": False,
                     "error": "Not found"
                 },
                 404
             )
 
         except ValueError as e:
+
             json_response(
                 self,
                 {
@@ -1256,7 +2110,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             )
 
         except Exception as e:
-            print("POST ERROR:", e)
+
+            print(
+                "POST ERROR:",
+                e
+            )
 
             json_response(
                 self,
@@ -1273,6 +2131,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 # =========================================================
 
 async def start(update, context):
+
     keyboard = [
         [
             InlineKeyboardButton(
@@ -1310,11 +2169,13 @@ async def start(update, context):
 
 
 async def button_handler(update, context):
+
     query = update.callback_query
 
     await query.answer()
 
     if query.data == "categories":
+
         keyboard = [
             [
                 InlineKeyboardButton(
@@ -1358,6 +2219,7 @@ async def button_handler(update, context):
         )
 
     elif query.data == "partners":
+
         keyboard = [
             [
                 InlineKeyboardButton(
@@ -1377,15 +2239,22 @@ async def button_handler(update, context):
         )
 
     elif query.data == "subscription":
+
         telegram_id = query.from_user.id
-        user = get_user(telegram_id)
+
+        user = get_user(
+            telegram_id
+        )
 
         if not user:
+
             text = (
                 "Ты ещё не зарегистрирован.\n"
                 "Открой BIZDE и пройди регистрацию."
             )
+
         else:
+
             status = (
                 "Активна ✅"
                 if user["subscription_active"]
@@ -1418,13 +2287,15 @@ async def button_handler(update, context):
 
 
 # =========================================================
-# ADMIN
+# ADMIN COMMAND
 # =========================================================
 
 async def admin_command(update, context):
+
     telegram_id = update.effective_user.id
 
     if not is_admin(telegram_id):
+
         await update.message.reply_text(
             "⛔ Нет доступа."
         )
@@ -1448,17 +2319,26 @@ async def admin_command(update, context):
 
     await update.message.reply_text(
         "🔐 Панель администратора BIZDE.KZ\n\n"
-        "Здесь ты можешь управлять партнёрами.",
+        "Управление партнёрами:",
         reply_markup=InlineKeyboardMarkup(
             keyboard
         )
     )
 
 
-async def add_admin_command(update, context):
+# =========================================================
+# ADD ADMIN
+# =========================================================
+
+async def add_admin_command(
+    update,
+    context
+):
+
     telegram_id = update.effective_user.id
 
     if not is_owner(telegram_id):
+
         await update.message.reply_text(
             "⛔ Только главный владелец может "
             "добавлять администраторов."
@@ -1466,19 +2346,21 @@ async def add_admin_command(update, context):
         return
 
     if not context.args:
+
         await update.message.reply_text(
             "Используй:\n\n"
-            "/addadmin TELEGRAM_ID\n\n"
-            "Например:\n"
-            "/addadmin 123456789"
+            "/addadmin TELEGRAM_ID"
         )
         return
 
     try:
+
         new_admin_id = int(
             context.args[0]
         )
+
     except ValueError:
+
         await update.message.reply_text(
             "❌ Telegram ID должен состоять "
             "только из цифр."
@@ -1486,6 +2368,7 @@ async def add_admin_command(update, context):
         return
 
     if new_admin_id == OWNER_ID:
+
         await update.message.reply_text(
             "Это уже главный владелец 👑"
         )
@@ -1497,22 +2380,33 @@ async def add_admin_command(update, context):
     )
 
     if added:
+
         await update.message.reply_text(
             "✅ Администратор добавлен.\n\n"
-            f"Telegram ID: {new_admin_id}\n\n"
-            "Теперь он может использовать /admin."
+            f"Telegram ID: {new_admin_id}"
         )
+
     else:
+
         await update.message.reply_text(
             "ℹ️ Этот пользователь уже "
             "является администратором."
         )
 
 
-async def remove_admin_command(update, context):
+# =========================================================
+# REMOVE ADMIN
+# =========================================================
+
+async def remove_admin_command(
+    update,
+    context
+):
+
     telegram_id = update.effective_user.id
 
     if not is_owner(telegram_id):
+
         await update.message.reply_text(
             "⛔ Только главный владелец может "
             "удалять администраторов."
@@ -1520,6 +2414,7 @@ async def remove_admin_command(update, context):
         return
 
     if not context.args:
+
         await update.message.reply_text(
             "Используй:\n\n"
             "/removeadmin TELEGRAM_ID"
@@ -1527,10 +2422,13 @@ async def remove_admin_command(update, context):
         return
 
     try:
+
         admin_id = int(
             context.args[0]
         )
+
     except ValueError:
+
         await update.message.reply_text(
             "❌ Telegram ID должен состоять "
             "только из цифр."
@@ -1538,27 +2436,42 @@ async def remove_admin_command(update, context):
         return
 
     if admin_id == OWNER_ID:
+
         await update.message.reply_text(
             "❌ Главного владельца удалить нельзя."
         )
         return
 
-    removed = remove_admin(admin_id)
+    removed = remove_admin(
+        admin_id
+    )
 
     if removed:
+
         await update.message.reply_text(
             "✅ Администратор удалён."
         )
+
     else:
+
         await update.message.reply_text(
             "ℹ️ Такой администратор не найден."
         )
 
 
-async def admins_command(update, context):
+# =========================================================
+# ADMINS
+# =========================================================
+
+async def admins_command(
+    update,
+    context
+):
+
     telegram_id = update.effective_user.id
 
     if not is_admin(telegram_id):
+
         await update.message.reply_text(
             "⛔ Нет доступа."
         )
@@ -1566,19 +2479,25 @@ async def admins_command(update, context):
 
     admins = get_admins()
 
-    text = "👥 Администраторы BIZDE.KZ\n\n"
+    text = (
+        "👥 Администраторы BIZDE.KZ\n\n"
+    )
 
     for index, admin in enumerate(
         admins,
         start=1
     ):
+
         admin_id = int(
             admin["telegram_id"]
         )
 
         if admin_id == OWNER_ID:
+
             role = "👑 Главный владелец"
+
         else:
+
             role = "🛡 Администратор"
 
         text += (
@@ -1586,23 +2505,31 @@ async def admins_command(update, context):
             f"ID: {admin_id}\n\n"
         )
 
-    await update.message.reply_text(text)
+    await update.message.reply_text(
+        text
+    )
 
 
 # =========================================================
-# SUBSCRIPTION COMMANDS
+# ACTIVATE
 # =========================================================
 
-async def activate(update, context):
+async def activate(
+    update,
+    context
+):
+
     telegram_id = update.effective_user.id
 
     if not is_admin(telegram_id):
+
         await update.message.reply_text(
             "⛔ Нет доступа."
         )
         return
 
     if not context.args:
+
         await update.message.reply_text(
             "Используй:\n"
             "/activate TELEGRAM_ID"
@@ -1610,10 +2537,13 @@ async def activate(update, context):
         return
 
     try:
+
         user_id = int(
             context.args[0]
         )
+
     except ValueError:
+
         await update.message.reply_text(
             "❌ Telegram ID должен состоять "
             "только из цифр."
@@ -1630,16 +2560,26 @@ async def activate(update, context):
     )
 
 
-async def deactivate(update, context):
+# =========================================================
+# DEACTIVATE
+# =========================================================
+
+async def deactivate(
+    update,
+    context
+):
+
     telegram_id = update.effective_user.id
 
     if not is_admin(telegram_id):
+
         await update.message.reply_text(
             "⛔ Нет доступа."
         )
         return
 
     if not context.args:
+
         await update.message.reply_text(
             "Используй:\n"
             "/deactivate TELEGRAM_ID"
@@ -1647,10 +2587,13 @@ async def deactivate(update, context):
         return
 
     try:
+
         user_id = int(
             context.args[0]
         )
+
     except ValueError:
+
         await update.message.reply_text(
             "❌ Telegram ID должен состоять "
             "только из цифр."
@@ -1668,10 +2611,11 @@ async def deactivate(update, context):
 
 
 # =========================================================
-# SERVER
+# HTTP SERVER
 # =========================================================
 
 def run_http_server():
+
     server = HTTPServer(
         ("0.0.0.0", PORT),
         RequestHandler
@@ -1689,9 +2633,17 @@ def run_http_server():
 # =========================================================
 
 def main():
+
     if not TOKEN:
+
         raise RuntimeError(
             "BOT_TOKEN is not set"
+        )
+
+    if not DATABASE_URL:
+
+        raise RuntimeError(
+            "DATABASE_URL is not set"
         )
 
     init_db()
@@ -1763,12 +2715,18 @@ def main():
         )
     )
 
-    print("BIZDE bot started")
+    print(
+        "BIZDE.KZ bot started successfully"
+    )
 
     application.run_polling(
         drop_pending_updates=True
     )
 
+
+# =========================================================
+# START
+# =========================================================
 
 if __name__ == "__main__":
     main()
