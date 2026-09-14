@@ -26,19 +26,14 @@
     --bg:#f4f5f2;
     --surface:#ffffff;
     --surface2:#eef1ed;
-
     --dark:#071f1d;
     --dark2:#0d3531;
-
     --green:#07534d;
     --green2:#08736a;
-
     --gold:#c9a24a;
     --gold2:#e1c56d;
-
     --text:#14201e;
     --muted:#7b8582;
-
     --line:#e5e9e5;
 }
 
@@ -1478,10 +1473,6 @@ ru:{
 
     scan:"Открыть кабинет партнёра",
 
-    enterCode:"",
-
-    verify:"",
-
     verified:"Участник подтверждён",
 
     notFound:"Участник не найден",
@@ -1609,10 +1600,6 @@ kk:{
 
     scan:"Серіктес кабинетін ашу",
 
-    enterCode:"",
-
-    verify:"",
-
     verified:"Қатысушы расталды",
 
     notFound:"Қатысушы табылмады",
@@ -1737,6 +1724,7 @@ async function changeLanguage(){
     await apiFetch(
         "/api/language",
         {
+
             method:"POST",
 
             headers:{
@@ -2798,6 +2786,9 @@ async function showQR(
 
     clearQrTimer();
 
+    const t =
+        translations[currentLanguage];
+
     document.getElementById(
         "modalTitle"
     ).textContent =
@@ -2814,18 +2805,16 @@ async function showQR(
             color:var(--muted);
             font-size:12px;
         ">
-
-            ${
-                translations[
-                    currentLanguage
-                ].creatingQr
-            }
-
+            ${escapeHTML(t.creatingQr)}
         </div>
 
         <div
             class="qr-wrap"
-            style="min-height:248px;align-items:center;">
+            style="
+                min-height:248px;
+                align-items:center;
+            "
+        >
 
             <div
                 id="qrCode"
@@ -2833,7 +2822,9 @@ async function showQR(
                     display:flex;
                     justify-content:center;
                     align-items:center;
-                ">
+                    min-height:220px;
+                "
+            >
 
                 <div style="
                     color:var(--muted);
@@ -2872,17 +2863,18 @@ async function showQR(
 
         <div class="qr-warning">
 
-            ${
-                translations[
-                    currentLanguage
-                ].qrInfo
-            }
+            ${escapeHTML(t.qrInfo)}
 
         </div>
 
     `;
 
     showModal();
+
+
+    /* =========================
+       CREATE PROTECTED QR
+    ========================= */
 
     const data =
         await apiFetch(
@@ -2903,18 +2895,33 @@ async function showQR(
 
                     partner_id:
                         partnerId
-                            ? Number(partnerId)
-                            : null
+                        ? Number(partnerId)
+                        : null
 
                 })
 
             }
         );
 
+
+    /* =========================
+       CHECK BACKEND RESPONSE
+    ========================= */
+
     if(
+        !data ||
         !(data.success || data.ok) ||
-        !data.token
+        !data.qr ||
+        !data.qr.token
     ){
+
+        const errorText =
+            data?.error ||
+            (
+                currentLanguage === "ru"
+                ? "Не удалось создать QR-код."
+                : "QR кодын жасау мүмкін болмады."
+            );
 
         document.getElementById(
             "modalContent"
@@ -2922,20 +2929,35 @@ async function showQR(
 
             <div class="result error">
 
-                ${
-                    escapeHTML(
-                        data.error ||
-                        "Не удалось создать QR-код."
-                    )
-                }
+                ${escapeHTML(errorText)}
 
             </div>
 
             <button
                 class="modal-button"
-                onclick="hideModal()">
+                onclick="
+                    showQR(
+                        '${escapeJS(name)}',
+                        '${escapeJS(discount)}',
+                        ${partnerId ? Number(partnerId) : "null"}
+                    )
+                "
+            >
 
-                ${translations[currentLanguage].done}
+                ${
+                    currentLanguage === "ru"
+                    ? "Попробовать снова"
+                    : "Қайта көру"
+                }
+
+            </button>
+
+            <button
+                class="secondary-button"
+                onclick="hideModal()"
+            >
+
+                ${escapeHTML(t.done)}
 
             </button>
 
@@ -2945,8 +2967,21 @@ async function showQR(
 
     }
 
+
+    /* =========================
+       GET PROTECTED TOKEN
+    ========================= */
+
+    const qrToken =
+        data.qr.token;
+
     currentQrToken =
-        data.token;
+        qrToken;
+
+
+    /* =========================
+       QR CONTAINER
+    ========================= */
 
     const qr =
         document.getElementById(
@@ -2959,36 +2994,58 @@ async function showQR(
 
     qr.innerHTML = "";
 
+
+    /* =========================
+       QR LIBRARY CHECK
+    ========================= */
+
     if(!window.QRCode){
 
         qr.innerHTML = `
+
             <div style="
                 color:#8a4444;
                 padding:20px;
                 text-align:center;
             ">
-                QR-библиотека не загрузилась.
+
+                ${
+                    currentLanguage === "ru"
+                    ? "QR-библиотека не загрузилась."
+                    : "QR кітапханасы жүктелмеді."
+                }
+
             </div>
+
         `;
 
         return;
 
     }
 
+
+    /* =========================
+       GENERATE QR
+    ========================= */
+
     new QRCode(
         qr,
         {
 
             text:
-                data.token,
+                qrToken,
 
-            width:220,
+            width:
+                220,
 
-            height:220,
+            height:
+                220,
 
-            colorDark:"#071f1d",
+            colorDark:
+                "#071f1d",
 
-            colorLight:"#ffffff",
+            colorLight:
+                "#ffffff",
 
             correctLevel:
                 QRCode.CorrectLevel.H
@@ -2996,8 +3053,31 @@ async function showQR(
         }
     );
 
+
+    /* =========================
+       TIMER
+    ========================= */
+
+    let expiresAt =
+        data.qr.expires_at;
+
+    if(!expiresAt){
+
+        const expiresIn =
+            Number(
+                data.qr.expires_in || 60
+            );
+
+        expiresAt =
+            new Date(
+                Date.now() +
+                expiresIn * 1000
+            ).toISOString();
+
+    }
+
     startQrTimer(
-        data.expires_at
+        expiresAt
     );
 
 }
@@ -3070,17 +3150,30 @@ function startQrTimer(
 
                     <div style="
                         text-align:center;
-                        padding:35px 20px;
+                        padding:25px 20px;
                         color:#8a4444;
                         font-weight:900;
                     ">
 
-                        QR-код истёк
+                        ${
+                            translations[
+                                currentLanguage
+                            ].qrExpired
+                        }
 
                     </div>
 
                 `;
 
+            }
+
+            const button =
+                document.getElementById(
+                    "qrNewButton"
+                );
+
+            if(button){
+                button.classList.remove("hidden");
             }
 
             return;
@@ -3518,17 +3611,6 @@ function openPartnerCabinet(){
 /* =========================
    LEGACY VERIFY
 ========================= */
-
-/*
-   Старый сканер намеренно не используется
-   для проведения операции.
-
-   Теперь пользователь показывает временный
-   QR-токен, а партнёр проверяет его через
-   partner.html.
-
-   Это важно для безопасности.
-*/
 
 async function verifyMember(code){
 
