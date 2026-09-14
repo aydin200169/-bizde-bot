@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
 
 <title>BIZDE.KZ — Admin</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -177,7 +184,9 @@ button{
     gap:12px;
 }
 
-input,select,textarea{
+input,
+select,
+textarea{
     width:100%;
     background:#0b0d10;
     color:#fff;
@@ -313,6 +322,7 @@ textarea:focus{
 }
 
 @media(max-width:600px){
+
     body{
         padding:15px;
     }
@@ -324,8 +334,11 @@ textarea:focus{
     .partner-top{
         align-items:flex-start;
     }
+
 }
+
 </style>
+
 </head>
 
 <body>
@@ -333,52 +346,110 @@ textarea:focus{
 <div class="container">
 
     <div class="header">
-        <div class="logo">BIZDE.KZ</div>
-        <div class="badge">ADMIN PANEL</div>
+
+        <div class="logo">
+            BIZDE.KZ
+        </div>
+
+        <div class="badge">
+            ADMIN PANEL
+        </div>
+
     </div>
 
-    <h1>Панель управления</h1>
+    <h1>
+        Панель управления
+    </h1>
+
     <div class="subtitle">
         Управление партнёрами и участниками BIZDE.KZ
     </div>
 
+
     <div class="tabs">
-        <button class="tab active" onclick="showTab('dashboard',this)">
+
+        <button
+            class="tab active"
+            onclick="showTab('dashboard',this)"
+        >
             📊 Обзор
         </button>
 
-        <button class="tab" onclick="showTab('partners',this)">
+        <button
+            class="tab"
+            onclick="showTab('partners',this)"
+        >
             🏪 Партнёры
         </button>
 
-        <button class="tab" onclick="showTab('users',this)">
+        <button
+            class="tab"
+            onclick="showTab('users',this)"
+        >
             👥 Пользователи
         </button>
+
     </div>
 
 
     <!-- DASHBOARD -->
 
-    <div id="dashboard" class="section active">
+    <div
+        id="dashboard"
+        class="section active"
+    >
 
         <div class="stat">
 
             <div class="stat-card">
-                <div class="stat-number" id="statPartners">—</div>
-                <div class="stat-label">Партнёров</div>
+
+                <div
+                    class="stat-number"
+                    id="statPartners"
+                >
+                    —
+                </div>
+
+                <div class="stat-label">
+                    Партнёров
+                </div>
+
             </div>
 
-            <div class="stat-card">
-                <div class="stat-number" id="statActive">—</div>
-                <div class="stat-label">Активных</div>
-            </div>
 
             <div class="stat-card">
-                <div class="stat-number" id="statUsers">—</div>
-                <div class="stat-label">Участников</div>
+
+                <div
+                    class="stat-number"
+                    id="statActive"
+                >
+                    —
+                </div>
+
+                <div class="stat-label">
+                    Активных
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div
+                    class="stat-number"
+                    id="statUsers"
+                >
+                    —
+                </div>
+
+                <div class="stat-label">
+                    Участников
+                </div>
+
             </div>
 
         </div>
+
 
         <div class="card">
 
@@ -415,9 +486,15 @@ textarea:focus{
 
     <!-- PARTNERS -->
 
-    <div id="partners" class="section">
+    <div
+        id="partners"
+        class="section"
+    >
 
-        <div class="actions" style="margin-bottom:15px">
+        <div
+            class="actions"
+            style="margin-bottom:15px"
+        >
 
             <button
                 class="primary"
@@ -436,9 +513,11 @@ textarea:focus{
         </div>
 
         <div id="partnersList">
+
             <div class="loading">
                 Загрузка партнёров...
             </div>
+
         </div>
 
     </div>
@@ -446,9 +525,15 @@ textarea:focus{
 
     <!-- USERS -->
 
-    <div id="users" class="section">
+    <div
+        id="users"
+        class="section"
+    >
 
-        <div class="actions" style="margin-bottom:15px">
+        <div
+            class="actions"
+            style="margin-bottom:15px"
+        >
 
             <button
                 class="secondary"
@@ -460,9 +545,11 @@ textarea:focus{
         </div>
 
         <div id="usersList">
+
             <div class="loading">
                 Загрузка пользователей...
             </div>
+
         </div>
 
     </div>
@@ -472,7 +559,10 @@ textarea:focus{
 
 <!-- PARTNER MODAL -->
 
-<div class="modal" id="partnerModal">
+<div
+    class="modal"
+    id="partnerModal"
+>
 
     <div class="modal-box">
 
@@ -483,9 +573,13 @@ textarea:focus{
             ✕
         </button>
 
-        <div class="modal-title" id="modalTitle">
+        <div
+            class="modal-title"
+            id="modalTitle"
+        >
             Добавить партнёра
         </div>
+
 
         <div class="form">
 
@@ -493,6 +587,7 @@ textarea:focus{
                 id="partnerName"
                 placeholder="Название партнёра"
             >
+
 
             <select id="partnerCategory">
 
@@ -526,6 +621,7 @@ textarea:focus{
 
             </select>
 
+
             <input
                 id="partnerDiscount"
                 type="number"
@@ -534,20 +630,24 @@ textarea:focus{
                 placeholder="Размер привилегии, %"
             >
 
+
             <input
                 id="partnerPhoto"
                 placeholder="Ссылка на фото"
             >
+
 
             <textarea
                 id="partnerDescription"
                 placeholder="Описание партнёра"
             ></textarea>
 
+
             <textarea
                 id="partnerConditions"
                 placeholder="Условия привилегии"
             ></textarea>
+
 
             <div class="form-buttons">
 
@@ -574,20 +674,27 @@ textarea:focus{
 </div>
 
 
-<div class="toast" id="toast"></div>
+<div
+    class="toast"
+    id="toast"
+></div>
 
 
 <script>
 
-const tg = window.Telegram.WebApp;
+/* ==========================================
+   CONFIG
+========================================== */
 
-tg.ready();
-tg.expand();
+const tg =
+    window.Telegram?.WebApp;
 
+const API_URL =
+    "https://bizde-bot.onrender.com";
 
-const API_URL = "https://bizde-bot.onrender.com";
 
 let partners = [];
+
 let users = [];
 
 let editingPartnerId = null;
@@ -597,59 +704,163 @@ let editingPartnerId = null;
    TELEGRAM AUTH
 ========================================== */
 
-function getInitData(){
+async function initTelegram(){
 
-    return tg.initData || "";
+    if(!tg){
+
+        showToast(
+            "Откройте админку через Telegram"
+        );
+
+        return false;
+    }
+
+
+    tg.ready();
+
+    tg.expand();
+
+
+    for(
+        let i = 0;
+        i < 30;
+        i++
+    ){
+
+        if(
+            tg.initData &&
+            tg.initDataUnsafe &&
+            tg.initDataUnsafe.user
+        ){
+
+            console.log(
+                "Telegram ID:",
+                tg.initDataUnsafe.user.id
+            );
+
+            return true;
+
+        }
+
+
+        await new Promise(
+            resolve =>
+            setTimeout(
+                resolve,
+                100
+            )
+        );
+
+    }
+
+
+    showToast(
+        "Telegram не передал данные авторизации"
+    );
+
+    return false;
 
 }
 
 
 /* ==========================================
-   API
+   INIT DATA
+========================================== */
+
+function getInitData(){
+
+    return tg?.initData || "";
+
+}
+
+
+/* ==========================================
+   API GET
 ========================================== */
 
 async function apiGet(path){
 
-    const separator =
-        path.includes("?")
-        ? "&"
-        : "?";
+    const initData =
+        getInitData();
 
-    const url =
-        API_URL +
-        path +
-        separator +
-        "init_data=" +
-        encodeURIComponent(
-            getInitData()
+
+    if(!initData){
+
+        throw new Error(
+            "Не авторизовано. Откройте админку через Telegram."
         );
 
-    const response =
-        await fetch(url);
+    }
 
-    const data =
-        await response.json();
+
+    const response =
+        await fetch(
+            API_URL + path,
+            {
+                method:"GET",
+
+                headers:{
+                    "X-Telegram-Init-Data":
+                        initData
+                }
+            }
+        );
+
+
+    let data = {};
+
+
+    try{
+
+        data =
+            await response.json();
+
+    }catch(e){
+
+        throw new Error(
+            "Ошибка ответа сервера"
+        );
+
+    }
+
 
     if(!response.ok){
 
         throw new Error(
             data.error ||
+            data.message ||
             "Ошибка сервера"
         );
 
     }
 
+
     return data;
+
 }
 
 
+/* ==========================================
+   API POST
+========================================== */
+
 async function apiPost(
     path,
-    body
+    body={}
 ){
 
-    body.init_data =
+    const initData =
         getInitData();
+
+
+    if(!initData){
+
+        throw new Error(
+            "Не авторизовано. Откройте админку через Telegram."
+        );
+
+    }
+
 
     const response =
         await fetch(
@@ -659,27 +870,48 @@ async function apiPost(
 
                 headers:{
                     "Content-Type":
-                    "application/json"
+                        "application/json",
+
+                    "X-Telegram-Init-Data":
+                        initData
                 },
 
                 body:
-                JSON.stringify(body)
+                    JSON.stringify(body)
             }
         );
 
-    const data =
-        await response.json();
+
+    let data = {};
+
+
+    try{
+
+        data =
+            await response.json();
+
+    }catch(e){
+
+        throw new Error(
+            "Ошибка ответа сервера"
+        );
+
+    }
+
 
     if(!response.ok){
 
         throw new Error(
             data.error ||
+            data.message ||
             "Ошибка сервера"
         );
 
     }
 
+
     return data;
+
 }
 
 
@@ -701,6 +933,7 @@ function showTab(
             )
         );
 
+
     document
         .querySelectorAll(".tab")
         .forEach(
@@ -710,20 +943,30 @@ function showTab(
             )
         );
 
+
     document
         .getElementById(id)
         .classList.add("active");
 
+
     if(button){
+
         button.classList.add("active");
+
     }
+
 
     if(id === "partners"){
+
         loadPartners();
+
     }
 
+
     if(id === "users"){
+
         loadUsers();
+
     }
 
 }
@@ -734,25 +977,40 @@ function showTabById(id){
     const buttons =
         document.querySelectorAll(".tab");
 
+
     let target = null;
+
 
     buttons.forEach(
         button => {
 
-            if(
+            const text =
                 button.textContent
-                .toLowerCase()
-                .includes(
-                    id === "partners"
-                    ? "партнёры"
-                    : "пользователи"
-                )
+                .toLowerCase();
+
+
+            if(
+                id === "partners" &&
+                text.includes("партнёры")
             ){
+
                 target = button;
+
+            }
+
+
+            if(
+                id === "users" &&
+                text.includes("пользователи")
+            ){
+
+                target = button;
+
             }
 
         }
     );
+
 
     showTab(
         id,
@@ -763,7 +1021,7 @@ function showTabById(id){
 
 
 /* ==========================================
-   PARTNERS
+   LOAD PARTNERS
 ========================================== */
 
 async function loadPartners(){
@@ -773,8 +1031,10 @@ async function loadPartners(){
             "partnersList"
         );
 
+
     list.innerHTML =
         '<div class="loading">Загрузка...</div>';
+
 
     try{
 
@@ -783,8 +1043,10 @@ async function loadPartners(){
                 "/api/admin/partners"
             );
 
+
         partners =
             data.partners || [];
+
 
         renderPartners();
 
@@ -792,10 +1054,16 @@ async function loadPartners(){
 
     }catch(error){
 
+        console.error(error);
+
+
         list.innerHTML =
             `<div class="empty">
-                ❌ ${escapeHtml(error.message)}
+                ❌ ${escapeHtml(
+                    error.message
+                )}
             </div>`;
+
 
         showToast(
             error.message
@@ -806,12 +1074,17 @@ async function loadPartners(){
 }
 
 
+/* ==========================================
+   RENDER PARTNERS
+========================================== */
+
 function renderPartners(){
 
     const list =
         document.getElementById(
             "partnersList"
         );
+
 
     if(!partners.length){
 
@@ -821,6 +1094,7 @@ function renderPartners(){
         return;
 
     }
+
 
     list.innerHTML =
         partners
@@ -832,6 +1106,7 @@ function renderPartners(){
                         partner.active
                     );
 
+
                 return `
 
                 <div class="card">
@@ -841,26 +1116,36 @@ function renderPartners(){
                         <div>
 
                             <div class="partner-name">
+
                                 ${escapeHtml(
                                     partner.name
                                 )}
+
                             </div>
 
                             <div class="partner-category">
+
                                 ${escapeHtml(
-                                    partner.category || "Другое"
+                                    partner.category ||
+                                    "Другое"
                                 )}
+
                             </div>
 
                         </div>
 
+
                         <div class="discount">
+
                             ${Number(
-                                partner.discount_percent || 0
+                                partner.discount_percent ||
+                                0
                             )}%
+
                         </div>
 
                     </div>
+
 
                     <div class="status ${
                         active
@@ -876,6 +1161,7 @@ function renderPartners(){
 
                     </div>
 
+
                     ${
                         partner.description
                         ?
@@ -888,14 +1174,18 @@ function renderPartners(){
                         ""
                     }
 
+
                     <div class="actions">
 
                         <button
                             class="secondary"
-                            onclick="editPartner(${partner.id})"
+                            onclick="editPartner(
+                                ${partner.id}
+                            )"
                         >
                             ✏️ Изменить
                         </button>
+
 
                         <button
                             class="${
@@ -908,12 +1198,15 @@ function renderPartners(){
                                 ${!active}
                             )"
                         >
+
                             ${
                                 active
                                 ? "⏸ Отключить"
                                 : "▶️ Включить"
                             }
+
                         </button>
+
 
                         <button
                             class="danger"
@@ -945,38 +1238,49 @@ function openCreatePartner(){
 
     editingPartnerId = null;
 
+
     document.getElementById(
         "modalTitle"
     ).textContent =
         "Добавить партнёра";
 
+
     document.getElementById(
         "partnerName"
     ).value = "";
 
+
     document.getElementById(
         "partnerCategory"
-    ).value = "restaurant";
+    ).value =
+        "restaurant";
+
 
     document.getElementById(
         "partnerDiscount"
     ).value = "";
 
+
     document.getElementById(
         "partnerPhoto"
     ).value = "";
+
 
     document.getElementById(
         "partnerDescription"
     ).value = "";
 
+
     document.getElementById(
         "partnerConditions"
     ).value = "";
 
+
     document.getElementById(
         "partnerModal"
-    ).classList.add("show");
+    ).classList.add(
+        "show"
+    );
 
 }
 
@@ -990,54 +1294,69 @@ function editPartner(id){
     const partner =
         partners.find(
             item =>
-            Number(item.id) === Number(id)
+            Number(item.id) ===
+            Number(id)
         );
 
+
     if(!partner){
+
         return;
+
     }
+
 
     editingPartnerId =
         partner.id;
+
 
     document.getElementById(
         "modalTitle"
     ).textContent =
         "Изменить партнёра";
 
+
     document.getElementById(
         "partnerName"
     ).value =
         partner.name || "";
+
 
     document.getElementById(
         "partnerCategory"
     ).value =
         partner.category || "other";
 
+
     document.getElementById(
         "partnerDiscount"
     ).value =
         partner.discount_percent || 0;
+
 
     document.getElementById(
         "partnerPhoto"
     ).value =
         partner.photo_url || "";
 
+
     document.getElementById(
         "partnerDescription"
     ).value =
         partner.description || "";
+
 
     document.getElementById(
         "partnerConditions"
     ).value =
         partner.conditions || "";
 
+
     document.getElementById(
         "partnerModal"
-    ).classList.add("show");
+    ).classList.add(
+        "show"
+    );
 
 }
 
@@ -1094,6 +1413,7 @@ async function savePartner(){
         );
 
         return;
+
     }
 
 
@@ -1103,10 +1423,11 @@ async function savePartner(){
     ){
 
         showToast(
-            "Скидка должна быть от 0 до 100%"
+            "Привилегия должна быть от 0 до 100%"
         );
 
         return;
+
     }
 
 
@@ -1117,10 +1438,12 @@ async function savePartner(){
             data.id =
                 editingPartnerId;
 
+
             await apiPost(
                 "/api/admin/partners/update",
                 data
             );
+
 
             showToast(
                 "Партнёр обновлён ✅"
@@ -1133,11 +1456,13 @@ async function savePartner(){
                 data
             );
 
+
             showToast(
                 "Партнёр добавлен ✅"
             );
 
         }
+
 
         closeModal();
 
@@ -1155,7 +1480,7 @@ async function savePartner(){
 
 
 /* ==========================================
-   TOGGLE
+   TOGGLE PARTNER
 ========================================== */
 
 async function togglePartner(
@@ -1173,11 +1498,13 @@ async function togglePartner(
             }
         );
 
+
         showToast(
             active
             ? "Партнёр включён ✅"
             : "Партнёр отключён"
         );
+
 
         await loadPartners();
 
@@ -1193,7 +1520,7 @@ async function togglePartner(
 
 
 /* ==========================================
-   DELETE
+   DELETE PARTNER
 ========================================== */
 
 async function deletePartner(id){
@@ -1201,21 +1528,30 @@ async function deletePartner(id){
     const partner =
         partners.find(
             item =>
-            Number(item.id) === Number(id)
+            Number(item.id) ===
+            Number(id)
         );
 
+
     if(!partner){
+
         return;
+
     }
+
 
     const confirmed =
         confirm(
             `Отключить партнёра "${partner.name}"?`
         );
 
+
     if(!confirmed){
+
         return;
+
     }
+
 
     try{
 
@@ -1226,9 +1562,11 @@ async function deletePartner(id){
             }
         );
 
+
         showToast(
             "Партнёр отключён"
         );
+
 
         await loadPartners();
 
@@ -1244,7 +1582,7 @@ async function deletePartner(id){
 
 
 /* ==========================================
-   USERS
+   LOAD USERS
 ========================================== */
 
 async function loadUsers(){
@@ -1254,8 +1592,10 @@ async function loadUsers(){
             "usersList"
         );
 
+
     list.innerHTML =
         '<div class="loading">Загрузка...</div>';
+
 
     try{
 
@@ -1264,8 +1604,10 @@ async function loadUsers(){
                 "/api/admin/users"
             );
 
+
         users =
             data.users || [];
+
 
         renderUsers();
 
@@ -1273,10 +1615,16 @@ async function loadUsers(){
 
     }catch(error){
 
+        console.error(error);
+
+
         list.innerHTML =
             `<div class="empty">
-                ❌ ${escapeHtml(error.message)}
+                ❌ ${escapeHtml(
+                    error.message
+                )}
             </div>`;
+
 
         showToast(
             error.message
@@ -1287,12 +1635,17 @@ async function loadUsers(){
 }
 
 
+/* ==========================================
+   RENDER USERS
+========================================== */
+
 function renderUsers(){
 
     const list =
         document.getElementById(
             "usersList"
         );
+
 
     if(!users.length){
 
@@ -1314,15 +1667,20 @@ function renderUsers(){
                         user.subscription_active
                     );
 
+
                 return `
 
                 <div class="card">
 
                     <div class="user-name">
+
                         ${escapeHtml(
-                            user.name || "Без имени"
+                            user.name ||
+                            "Без имени"
                         )}
+
                     </div>
+
 
                     <div class="user-info">
 
@@ -1336,47 +1694,59 @@ function renderUsers(){
                         <br>
 
                         Username:
+
                         ${
                             user.username
-                            ? "@" +
-                              escapeHtml(
-                                  user.username
-                              )
-                            : "—"
+                            ?
+                            "@" +
+                            escapeHtml(
+                                user.username
+                            )
+                            :
+                            "—"
                         }
 
                         <br>
 
                         Телефон:
+
                         ${
                             user.phone
-                            ? escapeHtml(
+                            ?
+                            escapeHtml(
                                 user.phone
                             )
-                            : "—"
+                            :
+                            "—"
                         }
 
                         <br>
 
                         Код:
+
                         ${
                             user.member_code
-                            ? escapeHtml(
+                            ?
+                            escapeHtml(
                                 user.member_code
                             )
-                            : "—"
+                            :
+                            "—"
                         }
 
                         <br>
 
                         Всего сэкономлено:
+
                         ${
                             Number(
-                                user.total_savings || 0
+                                user.total_savings ||
+                                0
                             ).toFixed(2)
                         } ₸
 
                     </div>
+
 
                     <div class="status ${
                         active
@@ -1391,6 +1761,7 @@ function renderUsers(){
                         }
 
                     </div>
+
 
                     <div class="actions">
 
@@ -1446,11 +1817,13 @@ async function changeSubscription(
             }
         );
 
+
         showToast(
             active
             ? "Подписка активирована ✅"
             : "Подписка отключена"
         );
+
 
         await loadUsers();
 
@@ -1474,23 +1847,28 @@ function updateStats(){
     const activePartners =
         partners.filter(
             partner =>
-            Boolean(partner.active)
+            Boolean(
+                partner.active
+            )
         ).length;
+
 
     document.getElementById(
         "statPartners"
     ).textContent =
-        partners.length || "0";
+        partners.length;
+
 
     document.getElementById(
         "statActive"
     ).textContent =
         activePartners;
 
+
     document.getElementById(
         "statUsers"
     ).textContent =
-        users.length || "0";
+        users.length;
 
 }
 
@@ -1501,11 +1879,13 @@ function updateStats(){
 
 function closeModal(){
 
-    document.getElementById(
-        "partnerModal"
-    ).classList.remove(
-        "show"
-    );
+    document
+        .getElementById(
+            "partnerModal"
+        )
+        .classList.remove(
+            "show"
+        );
 
 }
 
@@ -1521,18 +1901,23 @@ function showToast(message){
             "toast"
         );
 
+
     toast.textContent =
         message;
+
 
     toast.classList.add(
         "show"
     );
 
+
     setTimeout(
         () => {
+
             toast.classList.remove(
                 "show"
             );
+
         },
         2500
     );
@@ -1541,17 +1926,32 @@ function showToast(message){
 
 
 /* ==========================================
-   SECURITY / HTML
+   ESCAPE HTML
 ========================================== */
 
 function escapeHtml(value){
 
     return String(value)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
 
@@ -1562,14 +1962,16 @@ function escapeHtml(value){
 
 async function startAdmin(){
 
-    if(!getInitData()){
+    const authorized =
+        await initTelegram();
 
-        showToast(
-            "Открой админку через Telegram"
-        );
+
+    if(!authorized){
 
         return;
+
     }
+
 
     try{
 
@@ -1579,7 +1981,18 @@ async function startAdmin(){
 
         updateStats();
 
+
+        console.log(
+            "BIZDE.KZ ADMIN AUTH OK"
+        );
+
     }catch(error){
+
+        console.error(
+            "ADMIN ERROR:",
+            error
+        );
+
 
         showToast(
             error.message
@@ -1595,4 +2008,5 @@ startAdmin();
 </script>
 
 </body>
+
 </html>
