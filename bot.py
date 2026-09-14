@@ -8,7 +8,7 @@ import urllib.parse
 
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -37,6 +37,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 OWNER_ID = 1882252883
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
+PARTNER_PAGE = WEB_APP_URL.rstrip("/") + "/partner.html"
+ADMIN_PAGE = WEB_APP_URL.rstrip("/") + "/admin.html"
+
 ALLOWED_ORIGIN = "https://aydin200169.github.io"
 
 PORT = int(os.environ.get("PORT", "10000"))
@@ -50,16 +53,12 @@ QR_LIFETIME_SECONDS = 60
 
 def db():
     if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL is not configured")
+        raise RuntimeError("DATABASE_URL не настроен")
 
-    return psycopg2.connect(
-        DATABASE_URL,
-        sslmode="require"
-    )
+    return psycopg2.connect(DATABASE_URL)
 
 
 def init_db():
-
     with db() as conn:
         with conn.cursor() as cur:
 
@@ -67,9 +66,9 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
                     telegram_id BIGINT UNIQUE NOT NULL,
-                    name TEXT,
-                    username TEXT,
-                    phone TEXT,
+                    name TEXT DEFAULT '',
+                    username TEXT DEFAULT '',
+                    phone TEXT DEFAULT '',
                     language TEXT DEFAULT 'ru',
                     member_code TEXT UNIQUE,
                     subscription_active BOOLEAN DEFAULT FALSE,
@@ -84,27 +83,14 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS partners (
                     id SERIAL PRIMARY KEY,
                     name TEXT NOT NULL,
-                    category TEXT,
-                    description TEXT,
+                    category TEXT DEFAULT '',
+                    description TEXT DEFAULT '',
                     discount_percent NUMERIC(5,2) DEFAULT 0,
-                    conditions TEXT,
-                    photo_url TEXT,
+                    conditions TEXT DEFAULT '',
+                    photo_url TEXT DEFAULT '',
                     active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """)
-
-            # Добавляем telegram_id, если старой таблице его не хватает
-            cur.execute("""
-                ALTER TABLE partners
-                ADD COLUMN IF NOT EXISTS telegram_id BIGINT
-            """)
-
-            cur.execute("""
-                CREATE UNIQUE INDEX IF NOT EXISTS
-                partners_telegram_id_unique
-                ON partners(telegram_id)
-                WHERE telegram_id IS NOT NULL
             """)
 
             cur.execute("""
@@ -112,8 +98,8 @@ def init_db():
                     id SERIAL PRIMARY KEY,
                     telegram_id BIGINT NOT NULL,
                     partner_id INTEGER,
-                    partner_name TEXT,
-                    receipt_amount NUMERIC(12,2) NOT NULL,
+                    partner_name TEXT DEFAULT '',
+                    receipt_amount NUMERIC(12,2) DEFAULT 0,
                     discount_percent NUMERIC(5,2) DEFAULT 0,
                     savings NUMERIC(12,2) DEFAULT 0,
                     created_at TIMESTAMP DEFAULT NOW()
@@ -143,91 +129,111 @@ def init_db():
                 )
             """)
 
-            # OWNER автоматически является админом
             cur.execute("""
-                INSERT INTO admins (
-                    telegram_id,
-                    added_by
-                )
+                ALTER TABLE partners
+                ADD COLUMN IF NOT EXISTS telegram_id BIGINT
+            """)
+
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS partners_telegram_id_unique
+                ON partners(telegram_id)
+                WHERE telegram_id IS NOT NULL
+            """)
+
+            cur.execute("""
+                INSERT INTO admins (telegram_id, added_by)
                 VALUES (%s, %s)
                 ON CONFLICT (telegram_id) DO NOTHING
             """, (OWNER_ID, OWNER_ID))
 
-            # =================================================
-            # DEMO PARTNERS
-            # =================================================
+        conn.commit()
 
-            cur.execute("""
-                SELECT COUNT(*)
-                FROM partners
-            """)
+    seed_partners()
 
+
+def seed_partners():
+    with db() as conn:
+        with conn.cursor() as cur:
+
+            cur.execute("SELECT COUNT(*) FROM partners")
             count = cur.fetchone()[0]
 
             if count == 0:
 
-                demo_partners = [
+                partners = [
                     (
                         "Partner 1",
                         "restaurant",
-                        "Привилегии BIZDE.KZ",
+                        "Демонстрационный партнёр BIZDE.KZ",
                         20,
-                        "Скидка для участников BIZDE.KZ",
+                        "Скидка действует для участников BIZDE.KZ.",
+                        ""
                     ),
                     (
                         "VERO Café",
                         "cafe",
-                        "Кофе, десерты и приятная атмосфера",
+                        "Кофе, десерты и уютная атмосфера.",
                         20,
-                        "Скидка действует для участников клуба",
+                        "Скидка для активных участников клуба.",
+                        ""
                     ),
                     (
                         "FITROOM",
                         "sport",
-                        "Спорт и тренировки",
+                        "Спорт и тренировки.",
                         15,
-                        "Специальные условия для участников BIZDE.KZ",
+                        "Условия уточняются у партнёра.",
+                        ""
                     ),
                     (
                         "Beauty Room",
                         "beauty",
-                        "Красота и уход",
+                        "Услуги красоты.",
                         15,
-                        "Привилегии клуба BIZDE.KZ",
-                    ),
+                        "Предъявите активное членство BIZDE.KZ.",
+                        ""
+                    )
                 ]
 
-                for partner in demo_partners:
+                for partner in partners:
 
                     cur.execute("""
-                        INSERT INTO partners (
+                        INSERT INTO partners
+                        (
                             name,
                             category,
                             description,
                             discount_percent,
-                            conditions
+                            conditions,
+                            photo_url
                         )
-                        VALUES (%s, %s, %s, %s, %s)
+                        VALUES (%s,%s,%s,%s,%s,%s)
                     """, partner)
 
         conn.commit()
 
 
 # =========================================================
-# HELPERS
+# USERS
 # =========================================================
 
 def generate_member_code():
 
     while True:
 
-        code = "BZ-" + secrets.token_hex(4).upper()
+        code = "BZ-" + "".join(
+            secrets.choice(
+                "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            )
+            for _ in range(8)
+        )
 
         with db() as conn:
+
             with conn.cursor() as cur:
 
                 cur.execute(
-                    "SELECT 1 FROM users WHERE member_code = %s",
+                    "SELECT 1 FROM users WHERE member_code=%s",
                     (code,)
                 )
 
@@ -238,12 +244,15 @@ def generate_member_code():
 def get_user(telegram_id):
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM users
-                WHERE telegram_id = %s
+                WHERE telegram_id=%s
             """, (telegram_id,))
 
             return cur.fetchone()
@@ -252,12 +261,15 @@ def get_user(telegram_id):
 def get_user_by_member_code(code):
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM users
-                WHERE member_code = %s
+                WHERE member_code=%s
             """, (code,))
 
             return cur.fetchone()
@@ -265,38 +277,38 @@ def get_user_by_member_code(code):
 
 def upsert_user(
     telegram_id,
-    name=None,
-    username=None,
+    name="",
+    username="",
     phone=None,
-    language=None,
     terms_accepted=None
 ):
 
     existing = get_user(telegram_id)
 
     if not existing:
+
         member_code = generate_member_code()
 
         with db() as conn:
+
             with conn.cursor() as cur:
 
                 cur.execute("""
-                    INSERT INTO users (
+                    INSERT INTO users
+                    (
                         telegram_id,
                         name,
                         username,
                         phone,
-                        language,
                         member_code,
                         terms_accepted
                     )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s)
+                    VALUES (%s,%s,%s,%s,%s,%s)
                 """, (
                     telegram_id,
-                    name,
-                    username,
-                    phone,
-                    language or "ru",
+                    name or "",
+                    username or "",
+                    phone or "",
                     member_code,
                     bool(terms_accepted)
                     if terms_accepted is not None
@@ -305,60 +317,54 @@ def upsert_user(
 
             conn.commit()
 
-    else:
+        return get_user(telegram_id)
 
-        fields = []
-        values = []
+    fields = []
+    values = []
 
-        if name is not None:
-            fields.append("name = %s")
-            values.append(name)
+    if name:
+        fields.append("name=%s")
+        values.append(name)
 
-        if username is not None:
-            fields.append("username = %s")
-            values.append(username)
+    if username is not None:
+        fields.append("username=%s")
+        values.append(username or "")
 
-        if phone is not None:
-            fields.append("phone = %s")
-            values.append(phone)
+    if phone is not None:
+        fields.append("phone=%s")
+        values.append(phone)
 
-        if language is not None:
-            fields.append("language = %s")
-            values.append(language)
+    if terms_accepted is not None:
+        fields.append("terms_accepted=%s")
+        values.append(bool(terms_accepted))
 
-        if terms_accepted is not None:
-            fields.append("terms_accepted = %s")
-            values.append(terms_accepted)
+    fields.append("updated_at=NOW()")
 
-        fields.append("updated_at = NOW()")
+    values.append(telegram_id)
 
-        if fields:
+    with db() as conn:
 
-            values.append(telegram_id)
+        with conn.cursor() as cur:
 
-            with db() as conn:
-                with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                UPDATE users
+                SET {", ".join(fields)}
+                WHERE telegram_id=%s
+                """,
+                tuple(values)
+            )
 
-                    cur.execute(
-                        f"""
-                        UPDATE users
-                        SET {", ".join(fields)}
-                        WHERE telegram_id = %s
-                        """,
-                        values
-                    )
-
-                conn.commit()
+        conn.commit()
 
     return get_user(telegram_id)
 
 
 # =========================================================
-# ADMINS
+# ADMIN
 # =========================================================
 
 def is_owner(telegram_id):
-
     return int(telegram_id) == OWNER_ID
 
 
@@ -368,13 +374,13 @@ def is_admin(telegram_id):
         return True
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
-            cur.execute("""
-                SELECT 1
-                FROM admins
-                WHERE telegram_id = %s
-            """, (telegram_id,))
+            cur.execute(
+                "SELECT 1 FROM admins WHERE telegram_id=%s",
+                (telegram_id,)
+            )
 
             return cur.fetchone() is not None
 
@@ -382,10 +388,12 @@ def is_admin(telegram_id):
 def add_admin(telegram_id, added_by):
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
             cur.execute("""
-                INSERT INTO admins (
+                INSERT INTO admins
+                (
                     telegram_id,
                     added_by
                 )
@@ -406,24 +414,28 @@ def remove_admin(telegram_id):
         return False
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
-            cur.execute("""
-                DELETE FROM admins
-                WHERE telegram_id = %s
-            """, (telegram_id,))
+            cur.execute(
+                "DELETE FROM admins WHERE telegram_id=%s",
+                (telegram_id,)
+            )
 
-            deleted = cur.rowcount > 0
+            result = cur.rowcount > 0
 
         conn.commit()
 
-    return deleted
+    return result
 
 
 def get_admins():
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
@@ -441,12 +453,15 @@ def get_admins():
 def get_partners():
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM partners
-                WHERE active = TRUE
+                WHERE active=TRUE
                 ORDER BY id DESC
             """)
 
@@ -456,7 +471,10 @@ def get_partners():
 def get_all_partners_admin():
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
@@ -470,12 +488,15 @@ def get_all_partners_admin():
 def get_partner_by_id(partner_id):
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM partners
-                WHERE id = %s
+                WHERE id=%s
             """, (partner_id,))
 
             return cur.fetchone()
@@ -484,168 +505,20 @@ def get_partner_by_id(partner_id):
 def get_partner_by_telegram_id(telegram_id):
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM partners
-                WHERE telegram_id = %s
+                WHERE telegram_id=%s
+                AND active=TRUE
                 LIMIT 1
             """, (telegram_id,))
 
             return cur.fetchone()
-
-
-def create_partner(data):
-
-    with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-
-            cur.execute("""
-                INSERT INTO partners (
-                    name,
-                    category,
-                    description,
-                    discount_percent,
-                    conditions,
-                    photo_url,
-                    active
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s)
-                RETURNING *
-            """, (
-                data.get("name", "Partner"),
-                data.get("category", ""),
-                data.get("description", ""),
-                float(data.get("discount_percent", 0) or 0),
-                data.get("conditions", ""),
-                data.get("photo_url", ""),
-                bool(data.get("active", True))
-            ))
-
-            result = cur.fetchone()
-
-        conn.commit()
-
-    return result
-
-
-def update_partner(partner_id, data):
-
-    allowed = [
-        "name",
-        "category",
-        "description",
-        "discount_percent",
-        "conditions",
-        "photo_url",
-        "active",
-    ]
-
-    fields = []
-    values = []
-
-    for key in allowed:
-
-        if key in data:
-
-            fields.append(f"{key} = %s")
-
-            value = data[key]
-
-            if key == "discount_percent":
-                value = float(value or 0)
-
-            if key == "active":
-                value = bool(value)
-
-            values.append(value)
-
-    if not fields:
-        return get_partner_by_id(partner_id)
-
-    values.append(partner_id)
-
-    with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-
-            cur.execute(
-                f"""
-                UPDATE partners
-                SET {", ".join(fields)}
-                WHERE id = %s
-                RETURNING *
-                """,
-                values
-            )
-
-            result = cur.fetchone()
-
-        conn.commit()
-
-    return result
-
-
-def toggle_partner(partner_id, active):
-
-    return update_partner(
-        partner_id,
-        {"active": active}
-    )
-
-
-def delete_partner(partner_id):
-
-    with db() as conn:
-        with conn.cursor() as cur:
-
-            cur.execute("""
-                DELETE FROM partners
-                WHERE id = %s
-            """, (partner_id,))
-
-            deleted = cur.rowcount > 0
-
-        conn.commit()
-
-    return deleted
-
-
-def assign_partner(partner_id, telegram_id):
-
-    with db() as conn:
-        with conn.cursor() as cur:
-
-            cur.execute("""
-                UPDATE partners
-                SET telegram_id = NULL
-                WHERE telegram_id = %s
-            """, (telegram_id,))
-
-            cur.execute("""
-                UPDATE partners
-                SET telegram_id = %s
-                WHERE id = %s
-            """, (
-                telegram_id,
-                partner_id
-            ))
-
-        conn.commit()
-
-
-def unassign_partner(partner_id):
-
-    with db() as conn:
-        with conn.cursor() as cur:
-
-            cur.execute("""
-                UPDATE partners
-                SET telegram_id = NULL
-                WHERE id = %s
-            """, (partner_id,))
-
-        conn.commit()
 
 
 def get_role(telegram_id):
@@ -656,22 +529,185 @@ def get_role(telegram_id):
     if is_admin(telegram_id):
         return "admin"
 
-    partner = get_partner_by_telegram_id(telegram_id)
-
-    if partner:
+    if get_partner_by_telegram_id(telegram_id):
         return "partner"
 
     return "user"
 
 
+def create_partner(
+    name,
+    category="",
+    description="",
+    discount_percent=0,
+    conditions="",
+    photo_url=""
+):
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                INSERT INTO partners
+                (
+                    name,
+                    category,
+                    description,
+                    discount_percent,
+                    conditions,
+                    photo_url
+                )
+                VALUES (%s,%s,%s,%s,%s,%s)
+                RETURNING *
+            """, (
+                name,
+                category,
+                description,
+                discount_percent,
+                conditions,
+                photo_url
+            ))
+
+            result = cur.fetchone()
+
+        conn.commit()
+
+    return result
+
+
+def update_partner(
+    partner_id,
+    name=None,
+    category=None,
+    description=None,
+    discount_percent=None,
+    conditions=None,
+    photo_url=None,
+    active=None
+):
+
+    fields = []
+    values = []
+
+    data = {
+        "name": name,
+        "category": category,
+        "description": description,
+        "discount_percent": discount_percent,
+        "conditions": conditions,
+        "photo_url": photo_url,
+        "active": active
+    }
+
+    for field, value in data.items():
+
+        if value is not None:
+
+            fields.append(f"{field}=%s")
+            values.append(value)
+
+    if not fields:
+        return get_partner_by_id(partner_id)
+
+    values.append(partner_id)
+
+    with db() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute(
+                f"""
+                UPDATE partners
+                SET {", ".join(fields)}
+                WHERE id=%s
+                """,
+                tuple(values)
+            )
+
+        conn.commit()
+
+    return get_partner_by_id(partner_id)
+
+
+def delete_partner(partner_id):
+
+    with db() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute(
+                "DELETE FROM partners WHERE id=%s",
+                (partner_id,)
+            )
+
+            result = cur.rowcount > 0
+
+        conn.commit()
+
+    return result
+
+
+def assign_partner(partner_id, telegram_id):
+
+    with db() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                UPDATE partners
+                SET telegram_id=NULL
+                WHERE telegram_id=%s
+            """, (telegram_id,))
+
+            cur.execute("""
+                UPDATE partners
+                SET telegram_id=%s
+                WHERE id=%s
+            """, (
+                telegram_id,
+                partner_id
+            ))
+
+            result = cur.rowcount > 0
+
+        conn.commit()
+
+    return result
+
+
+def unassign_partner(partner_id):
+
+    with db() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                UPDATE partners
+                SET telegram_id=NULL
+                WHERE id=%s
+            """, (partner_id,))
+
+            result = cur.rowcount > 0
+
+        conn.commit()
+
+    return result
+
+
 # =========================================================
-# USERS ADMIN
+# USERS / SUBSCRIPTION
 # =========================================================
 
 def get_all_users_admin():
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
@@ -685,13 +721,14 @@ def get_all_users_admin():
 def update_language(telegram_id, language):
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
             cur.execute("""
                 UPDATE users
-                SET language = %s,
-                    updated_at = NOW()
-                WHERE telegram_id = %s
+                SET language=%s,
+                    updated_at=NOW()
+                WHERE telegram_id=%s
             """, (
                 language,
                 telegram_id
@@ -699,17 +736,20 @@ def update_language(telegram_id, language):
 
         conn.commit()
 
+    return get_user(telegram_id)
+
 
 def set_subscription(telegram_id, active):
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
             cur.execute("""
                 UPDATE users
-                SET subscription_active = %s,
-                    updated_at = NOW()
-                WHERE telegram_id = %s
+                SET subscription_active=%s,
+                    updated_at=NOW()
+                WHERE telegram_id=%s
             """, (
                 bool(active),
                 telegram_id
@@ -727,13 +767,17 @@ def set_subscription(telegram_id, active):
 def get_history(telegram_id):
 
     with db() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
                 SELECT *
                 FROM transactions
-                WHERE telegram_id = %s
+                WHERE telegram_id=%s
                 ORDER BY created_at DESC
+                LIMIT 100
             """, (telegram_id,))
 
             return cur.fetchall()
@@ -745,22 +789,18 @@ def create_transaction(
     partner_name,
     receipt_amount,
     discount_percent,
-    used_by_partner=None
+    savings
 ):
 
-    receipt_amount = float(receipt_amount)
-    discount_percent = float(discount_percent)
-
-    savings = round(
-        receipt_amount * discount_percent / 100,
-        2
-    )
-
     with db() as conn:
-        with conn.cursor() as cur:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
 
             cur.execute("""
-                INSERT INTO transactions (
+                INSERT INTO transactions
+                (
                     telegram_id,
                     partner_id,
                     partner_name,
@@ -769,6 +809,7 @@ def create_transaction(
                     savings
                 )
                 VALUES (%s,%s,%s,%s,%s,%s)
+                RETURNING *
             """, (
                 telegram_id,
                 partner_id,
@@ -778,12 +819,14 @@ def create_transaction(
                 savings
             ))
 
+            result = cur.fetchone()
+
             cur.execute("""
                 UPDATE users
                 SET total_savings =
-                    COALESCE(total_savings, 0) + %s,
-                    updated_at = NOW()
-                WHERE telegram_id = %s
+                    COALESCE(total_savings,0)+%s,
+                    updated_at=NOW()
+                WHERE telegram_id=%s
             """, (
                 savings,
                 telegram_id
@@ -791,19 +834,20 @@ def create_transaction(
 
         conn.commit()
 
-    return savings
+    return result
 
 
 # =========================================================
 # QR
 # =========================================================
 
-def create_qr_token(user_telegram_id, partner_id=None):
+def create_qr_token(
+    user_telegram_id,
+    partner_id=None
+):
 
     token = secrets.token_urlsafe(32)
 
-    # В БД оставляем обычный UTC datetime.
-    # В frontend возвращаем Unix timestamp в миллисекундах.
     now = datetime.utcnow()
 
     expires_at = now + timedelta(
@@ -811,10 +855,12 @@ def create_qr_token(user_telegram_id, partner_id=None):
     )
 
     with db() as conn:
+
         with conn.cursor() as cur:
 
             cur.execute("""
-                INSERT INTO qr_tokens (
+                INSERT INTO qr_tokens
+                (
                     token,
                     user_telegram_id,
                     partner_id,
@@ -846,15 +892,13 @@ def create_qr_token(user_telegram_id, partner_id=None):
     }
 
 
-def verify_qr_token(token, partner_id=None):
-
-    if not token:
-        return {
-            "success": False,
-            "error": "QR token отсутствует"
-        }
+def verify_qr_token(
+    token,
+    partner_telegram_id=None
+):
 
     with db() as conn:
+
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -867,58 +911,61 @@ def verify_qr_token(token, partner_id=None):
                     u.phone,
                     u.member_code,
                     u.subscription_active,
-                    p.name AS partner_name,
-                    p.discount_percent,
-                    p.conditions
+                    u.total_savings
                 FROM qr_tokens q
-                LEFT JOIN users u
-                    ON u.telegram_id = q.user_telegram_id
-                LEFT JOIN partners p
-                    ON p.id = q.partner_id
-                WHERE q.token = %s
+                JOIN users u
+                ON u.telegram_id=q.user_telegram_id
+                WHERE q.token=%s
+                LIMIT 1
             """, (token,))
 
-            qr = cur.fetchone()
+            row = cur.fetchone()
 
-    if not qr:
+    if not row:
         return {
-            "success": False,
+            "valid": False,
             "error": "QR-код не найден"
         }
 
-    if qr["used"]:
+    if row["used"]:
         return {
-            "success": False,
+            "valid": False,
             "error": "QR-код уже использован"
         }
 
-    expires_at = qr["expires_at"]
+    if row["expires_at"] < datetime.utcnow():
+        return {
+            "valid": False,
+            "error": "QR-код истёк"
+        }
 
-    if isinstance(expires_at, datetime):
+    if partner_telegram_id is not None:
 
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(
-                tzinfo=timezone.utc
-            )
+        partner = get_partner_by_telegram_id(
+            partner_telegram_id
+        )
 
-        if datetime.now(timezone.utc) >= expires_at:
+        if not partner:
 
             return {
-                "success": False,
-                "error": "QR-код истёк"
+                "valid": False,
+                "error": "Доступ только для партнёра"
             }
 
-    if partner_id is not None:
-        if qr["partner_id"] is not None:
-            if int(qr["partner_id"]) != int(partner_id):
+        if row["partner_id"] is not None:
+
+            if int(row["partner_id"]) != int(
+                partner["id"]
+            ):
+
                 return {
-                    "success": False,
+                    "valid": False,
                     "error": "QR-код предназначен для другого партнёра"
                 }
 
     return {
-        "success": True,
-        "qr": dict(qr)
+        "valid": True,
+        "qr": row
     }
 
 
@@ -928,86 +975,86 @@ def confirm_qr_transaction(
     receipt_amount
 ):
 
+    result = verify_qr_token(
+        token,
+        partner_telegram_id
+    )
+
+    if not result["valid"]:
+        return result
+
+    qr = result["qr"]
+
+    if not qr["subscription_active"]:
+
+        return {
+            "valid": False,
+            "error": "Подписка пользователя неактивна"
+        }
+
+    partner = get_partner_by_telegram_id(
+        partner_telegram_id
+    )
+
+    try:
+        amount = float(receipt_amount)
+    except (TypeError, ValueError):
+
+        return {
+            "valid": False,
+            "error": "Некорректная сумма чека"
+        }
+
+    if amount <= 0:
+
+        return {
+            "valid": False,
+            "error": "Сумма должна быть больше 0"
+        }
+
+    discount = float(
+        partner["discount_percent"] or 0
+    )
+
+    savings = round(
+        amount * discount / 100,
+        2
+    )
+
     with db() as conn:
 
-        with conn.cursor(
-            cursor_factory=RealDictCursor
-        ) as cur:
+        with conn.cursor() as cur:
 
             cur.execute("""
-                SELECT
-                    q.*,
-                    u.subscription_active,
-                    p.name AS partner_name,
-                    p.discount_percent,
-                    p.conditions
-                FROM qr_tokens q
-                LEFT JOIN users u
-                    ON u.telegram_id = q.user_telegram_id
-                LEFT JOIN partners p
-                    ON p.id = q.partner_id
-                WHERE q.token = %s
+                SELECT used, expires_at
+                FROM qr_tokens
+                WHERE token=%s
                 FOR UPDATE
             """, (token,))
 
-            qr = cur.fetchone()
+            locked = cur.fetchone()
 
-            if not qr:
+            if not locked:
                 return {
-                    "success": False,
+                    "valid": False,
                     "error": "QR-код не найден"
                 }
 
-            if qr["used"]:
+            if locked[0]:
                 return {
-                    "success": False,
+                    "valid": False,
                     "error": "QR-код уже использован"
                 }
 
-            expires_at = qr["expires_at"]
-
-            if isinstance(expires_at, datetime):
-
-                if expires_at.tzinfo is None:
-                    expires_at = expires_at.replace(
-                        tzinfo=timezone.utc
-                    )
-
-                if datetime.now(timezone.utc) >= expires_at:
-                    return {
-                        "success": False,
-                        "error": "QR-код истёк"
-                    }
-
-            partner = get_partner_by_telegram_id(
-                partner_telegram_id
-            )
-
-            if not partner:
+            if locked[1] < datetime.utcnow():
                 return {
-                    "success": False,
-                    "error": "Партнёр не найден"
+                    "valid": False,
+                    "error": "QR-код истёк"
                 }
-
-            if not qr["subscription_active"]:
-                return {
-                    "success": False,
-                    "error": "Подписка клиента не активна"
-                }
-
-            discount = float(
-                partner["discount_percent"] or 0
-            )
-
-            amount = float(receipt_amount)
-
-            savings = round(
-                amount * discount / 100,
-                2
-            )
 
             cur.execute("""
-                INSERT INTO transactions (
+                INSERT INTO transactions
+                (
                     telegram_id,
                     partner_id,
                     partner_name,
@@ -1028,9 +1075,9 @@ def confirm_qr_transaction(
             cur.execute("""
                 UPDATE users
                 SET total_savings =
-                    COALESCE(total_savings, 0) + %s,
-                    updated_at = NOW()
-                WHERE telegram_id = %s
+                    COALESCE(total_savings,0)+%s,
+                    updated_at=NOW()
+                WHERE telegram_id=%s
             """, (
                 savings,
                 qr["user_telegram_id"]
@@ -1038,10 +1085,10 @@ def confirm_qr_transaction(
 
             cur.execute("""
                 UPDATE qr_tokens
-                SET used = TRUE,
-                    used_at = NOW(),
-                    used_by_partner = %s
-                WHERE token = %s
+                SET used=TRUE,
+                    used_at=NOW(),
+                    used_by_partner=%s
+                WHERE token=%s
             """, (
                 partner_telegram_id,
                 token
@@ -1050,186 +1097,227 @@ def confirm_qr_transaction(
         conn.commit()
 
     return {
+        "valid": True,
         "success": True,
         "receipt_amount": amount,
         "discount_percent": discount,
-        "savings": savings
-    }
-
-
-# =========================================================
-# LEGACY PARTNER OPERATION
-# =========================================================
-
-def partner_use_offer(
-    user_telegram_id,
-    partner_id,
-    receipt_amount
-):
-
-    partner = get_partner_by_id(partner_id)
-
-    if not partner:
-        return {
-            "success": False,
-            "error": "Партнёр не найден"
-        }
-
-    user = get_user(user_telegram_id)
-
-    if not user:
-        return {
-            "success": False,
-            "error": "Пользователь не найден"
-        }
-
-    if not user["subscription_active"]:
-        return {
-            "success": False,
-            "error": "Подписка не активна"
-        }
-
-    savings = create_transaction(
-        user_telegram_id,
-        partner_id,
-        partner["name"],
-        receipt_amount,
-        partner["discount_percent"]
-    )
-
-    return {
-        "success": True,
         "savings": savings,
-        "discount_percent": float(
-            partner["discount_percent"]
-        )
+        "partner": partner["name"],
+        "user": {
+            "telegram_id": qr["user_telegram_id"],
+            "name": qr["name"],
+            "member_code": qr["member_code"]
+        }
     }
 
 
 # =========================================================
-# MEMBER VERIFICATION
+# MEMBER
 # =========================================================
 
 def verify_member(member_code):
 
-    user = get_user_by_member_code(member_code)
+    user = get_user_by_member_code(
+        member_code
+    )
 
     if not user:
+
         return {
-            "success": False,
+            "valid": False,
             "error": "Участник не найден"
         }
 
     return {
-        "success": True,
-        "user": dict(user)
+        "valid": True,
+        "user": user
     }
 
 
 # =========================================================
-# TELEGRAM WEB APP AUTH
+# TELEGRAM INIT DATA
 # =========================================================
 
 def validate_init_data(init_data):
 
     if not init_data:
-        return None
+        raise ValueError(
+            "Telegram initData отсутствует"
+        )
 
-    try:
+    if not TOKEN:
+        raise ValueError(
+            "BOT_TOKEN не настроен"
+        )
 
-        parsed = urllib.parse.parse_qs(
+    data = dict(
+        urllib.parse.parse_qsl(
             init_data,
             keep_blank_values=True
         )
+    )
 
-        received_hash = parsed.get(
-            "hash",
-            [None]
-        )[0]
+    received_hash = data.pop(
+        "hash",
+        None
+    )
 
-        if not received_hash:
-            return None
-
-        data_pairs = []
-
-        for key in parsed:
-
-            if key == "hash":
-                continue
-
-            value = parsed[key][0]
-
-            data_pairs.append(
-                f"{key}={value}"
-            )
-
-        data_check_string = "\n".join(
-            sorted(data_pairs)
+    if not received_hash:
+        raise ValueError(
+            "В initData отсутствует hash"
         )
 
-        secret_key = hmac.new(
-            b"WebAppData",
-            TOKEN.encode(),
-            hashlib.sha256
-        ).digest()
+    data_check_string = "\n".join(
+        f"{key}={data[key]}"
+        for key in sorted(data.keys())
+    )
 
-        calculated_hash = hmac.new(
-            secret_key,
-            data_check_string.encode(),
-            hashlib.sha256
-        ).hexdigest()
+    secret_key = hmac.new(
+        b"WebAppData",
+        TOKEN.encode(),
+        hashlib.sha256
+    ).digest()
 
-        if not hmac.compare_digest(
-            calculated_hash,
-            received_hash
-        ):
-            return None
+    calculated_hash = hmac.new(
+        secret_key,
+        data_check_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
 
-        auth_date = parsed.get(
-            "auth_date",
-            [None]
-        )[0]
+    if not hmac.compare_digest(
+        calculated_hash,
+        received_hash
+    ):
+        raise ValueError(
+            "Неверный Telegram initData"
+        )
 
-        if auth_date:
+    if "auth_date" in data:
 
-            if (
-                datetime.now(timezone.utc).timestamp()
-                - int(auth_date)
-                > 86400
-            ):
-                return None
+        try:
+            auth_date = int(
+                data["auth_date"]
+            )
+        except ValueError:
+            raise ValueError(
+                "Некорректный auth_date"
+            )
 
-        user_data = parsed.get(
-            "user",
-            [None]
-        )[0]
+        current = int(
+            datetime.now(
+                timezone.utc
+            ).timestamp()
+        )
 
-        if not user_data:
-            return None
+        if current - auth_date > 86400:
 
-        return json.loads(user_data)
+            raise ValueError(
+                "Telegram initData устарел"
+            )
+
+    if "user" not in data:
+
+        raise ValueError(
+            "Telegram user отсутствует"
+        )
+
+    try:
+
+        return json.loads(
+            data["user"]
+        )
 
     except Exception:
-        return None
+
+        raise ValueError(
+            "Некорректный Telegram user"
+        )
 
 
-def get_request_user(headers, body=None):
+def get_request_user(
+    headers,
+    body=None
+):
 
-    init_data = headers.get(
-        "X-Telegram-Init-Data"
+    init_data = (
+        headers.get(
+            "X-Telegram-Init-Data"
+        )
+        or headers.get(
+            "X-Telegram-Web-App-Init-Data"
+        )
     )
 
     if not init_data and body:
-        init_data = body.get("initData")
+
+        init_data = body.get(
+            "initData"
+        )
 
     return validate_init_data(
         init_data
     )
 
 
+def authenticate(
+    handler,
+    body=None
+):
+
+    try:
+
+        tg_user = get_request_user(
+            handler.headers,
+            body
+        )
+
+        return (
+            tg_user,
+            int(tg_user["id"])
+        )
+
+    except Exception as e:
+
+        print(
+            "AUTH ERROR:",
+            repr(e)
+        )
+
+        return None, None
+
+
 # =========================================================
-# JSON RESPONSE
+# JSON
 # =========================================================
+
+def json_safe(value):
+
+    if isinstance(
+        value,
+        datetime
+    ):
+        return value.isoformat()
+
+    if isinstance(
+        value,
+        list
+    ):
+        return [
+            json_safe(x)
+            for x in value
+        ]
+
+    if isinstance(
+        value,
+        dict
+    ):
+        return {
+            str(k): json_safe(v)
+            for k, v in value.items()
+        }
+
+    return value
+
 
 def json_response(
     handler,
@@ -1238,9 +1326,8 @@ def json_response(
 ):
 
     payload = json.dumps(
-        data,
-        ensure_ascii=False,
-        default=str
+        json_safe(data),
+        ensure_ascii=False
     ).encode("utf-8")
 
     handler.send_response(status)
@@ -1257,7 +1344,7 @@ def json_response(
 
     handler.send_header(
         "Access-Control-Allow-Headers",
-        "Content-Type, X-Telegram-Init-Data"
+        "Content-Type, X-Telegram-Init-Data, X-Telegram-Web-App-Init-Data"
     )
 
     handler.send_header(
@@ -1266,23 +1353,80 @@ def json_response(
     )
 
     handler.send_header(
-        "Content-Length",
-        str(len(payload))
+        "Access-Control-Allow-Credentials",
+        "true"
     )
 
     handler.end_headers()
 
-    handler.wfile.write(payload)
+    handler.wfile.write(
+        payload
+    )
+
+
+def read_json(handler):
+
+    try:
+
+        length = int(
+            handler.headers.get(
+                "Content-Length",
+                "0"
+            )
+        )
+
+        if length <= 0:
+            return {}
+
+        raw = handler.rfile.read(
+            length
+        )
+
+        return json.loads(
+            raw.decode("utf-8")
+        )
+
+    except Exception:
+
+        return {}
+
+
+def error_response(
+    handler,
+    message,
+    status=400
+):
+
+    return json_response(
+        handler,
+        {
+            "success": False,
+            "error": message
+        },
+        status
+    )
 
 
 # =========================================================
-# HTTP SERVER
+# HTTP HANDLER
 # =========================================================
 
-class RequestHandler(BaseHTTPRequestHandler):
+class RequestHandler(
+    BaseHTTPRequestHandler
+):
 
-    def log_message(self, format, *args):
-        return
+    def log_message(
+        self,
+        format,
+        *args
+    ):
+        print(
+            "%s - %s"
+            % (
+                self.address_string(),
+                format % args
+            )
+        )
 
     def do_OPTIONS(self):
 
@@ -1295,7 +1439,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         self.send_header(
             "Access-Control-Allow-Headers",
-            "Content-Type, X-Telegram-Init-Data"
+            "Content-Type, X-Telegram-Init-Data, X-Telegram-Web-App-Init-Data"
         )
 
         self.send_header(
@@ -1305,1045 +1449,1245 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         self.end_headers()
 
-    def read_json(self):
+    def do_GET(self):
+
+        try:
+            handle_get(self)
+        except Exception as e:
+
+            print(
+                "GET ERROR:",
+                repr(e)
+            )
+
+            error_response(
+                self,
+                "Ошибка сервера",
+                500
+            )
+
+    def do_POST(self):
+
+        try:
+            handle_post(self)
+        except Exception as e:
+
+            print(
+                "POST ERROR:",
+                repr(e)
+            )
+
+            error_response(
+                self,
+                "Ошибка сервера",
+                500
+            )
+
+
+# =========================================================
+# GET
+# =========================================================
+
+def handle_get(handler):
+
+    path = urlparse(
+        handler.path
+    ).path
+
+    # Render health check
+    if path == "/":
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "service": "BIZDE.KZ",
+                "status": "online"
+            }
+        )
+
+    # PUBLIC PARTNERS
+    if path == "/api/partners":
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "partners": get_partners()
+            }
+        )
+
+    # USER
+    if path == "/api/user":
+
+        tg_user, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Откройте BIZDE через Telegram",
+                401
+            )
+
+        user = get_user(
+            telegram_id
+        )
+
+        if not user:
+
+            name = tg_user.get(
+                "first_name",
+                ""
+            )
+
+            if tg_user.get(
+                "last_name"
+            ):
+                name += (
+                    " "
+                    + tg_user["last_name"]
+                )
+
+            user = upsert_user(
+                telegram_id,
+                name.strip(),
+                tg_user.get(
+                    "username",
+                    ""
+                )
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "user": user,
+                "role": get_role(
+                    telegram_id
+                )
+            }
+        )
+
+    # ROLE
+    if path == "/api/role":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "role": get_role(
+                    telegram_id
+                ),
+                "partner":
+                    get_partner_by_telegram_id(
+                        telegram_id
+                    )
+            }
+        )
+
+    # HISTORY
+    if path == "/api/history":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "history":
+                    get_history(
+                        telegram_id
+                    )
+            }
+        )
+
+    # PARTNER ME
+    if path == "/api/partner/me":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        partner = get_partner_by_telegram_id(
+            telegram_id
+        )
+
+        if not partner:
+
+            return error_response(
+                handler,
+                "Этот Telegram-аккаунт не назначен партнёром",
+                403
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "role": "partner",
+                "partner": partner
+            }
+        )
+
+    # ADMIN PARTNERS
+    if path == "/api/admin/partners":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "partners":
+                    get_all_partners_admin()
+            }
+        )
+
+    # ADMIN USERS
+    if path == "/api/admin/users":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "users":
+                    get_all_users_admin()
+            }
+        )
+
+    # ADMINS
+    if path == "/api/admin/admins":
+
+        _, telegram_id = authenticate(
+            handler
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "admins": get_admins()
+            }
+        )
+
+    return error_response(
+        handler,
+        "Not found",
+        404
+    )
+
+
+# =========================================================
+# POST
+# =========================================================
+
+def handle_post(handler):
+
+    path = urlparse(
+        handler.path
+    ).path
+
+    body = read_json(
+        handler
+    )
+
+    # -----------------------------------------------------
+    # AUTH
+    # -----------------------------------------------------
+
+    if path == "/api/auth":
+
+        tg_user, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Откройте BIZDE через Telegram",
+                401
+            )
+
+        name = tg_user.get(
+            "first_name",
+            ""
+        )
+
+        if tg_user.get(
+            "last_name"
+        ):
+
+            name += (
+                " "
+                + tg_user["last_name"]
+            )
+
+        user = upsert_user(
+            telegram_id,
+            name.strip(),
+            tg_user.get(
+                "username",
+                ""
+            )
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "user": user,
+                "role": get_role(
+                    telegram_id
+                )
+            }
+        )
+
+    # -----------------------------------------------------
+    # REGISTRATION
+    # -----------------------------------------------------
+
+    if path == "/api/register":
+
+        tg_user, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Откройте BIZDE через Telegram",
+                401
+            )
+
+        name = str(
+            body.get(
+                "name",
+                ""
+            )
+        ).strip()
+
+        phone = str(
+            body.get(
+                "phone",
+                ""
+            )
+        ).strip()
+
+        terms = bool(
+            body.get(
+                "terms_accepted",
+                False
+            )
+        )
+
+        if not name:
+
+            return error_response(
+                handler,
+                "Введите имя"
+            )
+
+        if not phone:
+
+            return error_response(
+                handler,
+                "Введите номер телефона"
+            )
+
+        if not terms:
+
+            return error_response(
+                handler,
+                "Необходимо принять условия"
+            )
+
+        user = upsert_user(
+            telegram_id,
+            name,
+            tg_user.get(
+                "username",
+                ""
+            ),
+            phone,
+            True
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "registered": True,
+                "user": user,
+                "role": get_role(
+                    telegram_id
+                )
+            }
+        )
+
+    # -----------------------------------------------------
+    # LANGUAGE
+    # -----------------------------------------------------
+
+    if path == "/api/language":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        language = str(
+            body.get(
+                "language",
+                "ru"
+            )
+        ).lower()
+
+        if language not in (
+            "ru",
+            "kk",
+            "en"
+        ):
+            language = "ru"
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "user":
+                    update_language(
+                        telegram_id,
+                        language
+                    )
+            }
+        )
+
+    # -----------------------------------------------------
+    # QR CREATE
+    # -----------------------------------------------------
+
+    if path == "/api/qr/create":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        partner_id = body.get(
+            "partner_id"
+        )
+
+        if partner_id is not None:
+
+            try:
+                partner_id = int(
+                    partner_id
+                )
+            except (TypeError, ValueError):
+
+                return error_response(
+                    handler,
+                    "Некорректный partner_id"
+                )
+
+        qr = create_qr_token(
+            telegram_id,
+            partner_id
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "qr": qr
+            }
+        )
+
+    # -----------------------------------------------------
+    # QR VERIFY
+    # -----------------------------------------------------
+
+    if path == "/api/qr/verify":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        partner = get_partner_by_telegram_id(
+            telegram_id
+        )
+
+        if not partner:
+
+            return error_response(
+                handler,
+                "Доступ только для партнёра",
+                403
+            )
+
+        token = str(
+            body.get(
+                "token",
+                ""
+            )
+        ).strip()
+
+        result = verify_qr_token(
+            token,
+            telegram_id
+        )
+
+        if not result["valid"]:
+
+            return error_response(
+                handler,
+                result["error"]
+            )
+
+        qr = result["qr"]
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "valid": True,
+                "user": {
+                    "telegram_id":
+                        qr["user_telegram_id"],
+                    "name":
+                        qr["name"],
+                    "username":
+                        qr["username"],
+                    "phone":
+                        qr["phone"],
+                    "member_code":
+                        qr["member_code"],
+                    "subscription_active":
+                        qr["subscription_active"],
+                    "total_savings":
+                        qr["total_savings"]
+                },
+                "partner": partner
+            }
+        )
+
+    # -----------------------------------------------------
+    # QR CONFIRM
+    # -----------------------------------------------------
+
+    if path == "/api/qr/confirm":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not get_partner_by_telegram_id(
+            telegram_id
+        ):
+
+            return error_response(
+                handler,
+                "Доступ только для партнёра",
+                403
+            )
+
+        result = confirm_qr_transaction(
+            str(
+                body.get(
+                    "token",
+                    ""
+                )
+            ).strip(),
+            telegram_id,
+            body.get(
+                "receipt_amount"
+            )
+        )
+
+        if not result["valid"]:
+
+            return error_response(
+                handler,
+                result["error"]
+            )
+
+        return json_response(
+            handler,
+            result
+        )
+
+    # -----------------------------------------------------
+    # VERIFY MEMBER
+    # -----------------------------------------------------
+
+    if path == "/api/verify-member":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not get_partner_by_telegram_id(
+            telegram_id
+        ):
+
+            return error_response(
+                handler,
+                "Доступ только для партнёра",
+                403
+            )
+
+        result = verify_member(
+            str(
+                body.get(
+                    "member_code",
+                    ""
+                )
+            ).strip()
+        )
+
+        return json_response(
+            handler,
+            result,
+            200 if result["valid"] else 404
+        )
+
+    # =====================================================
+    # ADMIN
+    # =====================================================
+
+    # CREATE PARTNER
+    if path == "/api/admin/partners/create":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        name = str(
+            body.get(
+                "name",
+                ""
+            )
+        ).strip()
+
+        if not name:
+
+            return error_response(
+                handler,
+                "Название партнёра обязательно"
+            )
 
         try:
 
-            length = int(
-                self.headers.get(
-                    "Content-Length",
+            discount = float(
+                body.get(
+                    "discount_percent",
                     0
                 )
             )
 
-            raw = self.rfile.read(length)
+        except (TypeError, ValueError):
 
-            if not raw:
-                return {}
+            discount = 0
 
-            return json.loads(
-                raw.decode("utf-8")
-            )
-
-        except Exception:
-            return {}
-
-    def do_GET():
-
-        pass
-
-
-# =========================================================
-# REPLACE GET METHOD
-# =========================================================
-
-def http_get(self):
-
-    try:
-
-        parsed = urlparse(self.path)
-
-        path = parsed.path
-
-        query = parse_qs(
-            parsed.query
-        )
-
-        # -----------------------------------------------
-        # HEALTH CHECK
-        # -----------------------------------------------
-
-        if path == "/":
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "service": "BIZDE.KZ API",
-                    "status": "online"
-                }
-            )
-
-        # -----------------------------------------------
-        # USER
-        # -----------------------------------------------
-
-        if path == "/api/user":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
+        partner = create_partner(
+            name,
+            str(
+                body.get(
+                    "category",
+                    ""
                 )
-
-            telegram_id = int(
-                user_data["id"]
-            )
-
-            user = get_user(
-                telegram_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "user": dict(user)
-                    if user else None
-                }
-            )
-
-        # -----------------------------------------------
-        # ROLE
-        # -----------------------------------------------
-
-        if path == "/api/role":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
+            ),
+            str(
+                body.get(
+                    "description",
+                    ""
                 )
-
-            telegram_id = int(
-                user_data["id"]
-            )
-
-            role = get_role(
-                telegram_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "role": role
-                }
-            )
-
-        # -----------------------------------------------
-        # PARTNERS
-        # -----------------------------------------------
-
-        if path == "/api/partners":
-
-            partners = get_partners()
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partners": [
-                        dict(x)
-                        for x in partners
-                    ]
-                }
-            )
-
-        # -----------------------------------------------
-        # HISTORY
-        # -----------------------------------------------
-
-        if path == "/api/history":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
+            ),
+            discount,
+            str(
+                body.get(
+                    "conditions",
+                    ""
                 )
-
-            history = get_history(
-                int(user_data["id"])
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "history": [
-                        dict(x)
-                        for x in history
-                    ]
-                }
-            )
-
-        # -----------------------------------------------
-        # PARTNER ME
-        # -----------------------------------------------
-
-        if path == "/api/partner/me":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
+            ),
+            str(
+                body.get(
+                    "photo_url",
+                    ""
                 )
-
-            telegram_id = int(
-                user_data["id"]
             )
-
-            partner = get_partner_by_telegram_id(
-                telegram_id
-            )
-
-            if not partner:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Партнёрский аккаунт не найден"
-                    },
-                    403
-                )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partner": dict(partner)
-                }
-            )
-
-        # -----------------------------------------------
-        # ADMIN PARTNERS
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            if not is_admin(
-                int(user_data["id"])
-            ):
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Forbidden"
-                    },
-                    403
-                )
-
-            partners = get_all_partners_admin()
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partners": [
-                        dict(x)
-                        for x in partners
-                    ]
-                }
-            )
-
-        # -----------------------------------------------
-        # ADMIN USERS
-        # -----------------------------------------------
-
-        if path == "/api/admin/users":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            if not is_admin(
-                int(user_data["id"])
-            ):
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Forbidden"
-                    },
-                    403
-                )
-
-            users = get_all_users_admin()
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "users": [
-                        dict(x)
-                        for x in users
-                    ]
-                }
-            )
-
-        # -----------------------------------------------
-        # ADMIN ADMINS
-        # -----------------------------------------------
-
-        if path == "/api/admin/admins":
-
-            user_data = get_request_user(
-                self.headers
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            if not is_admin(
-                int(user_data["id"])
-            ):
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Forbidden"
-                    },
-                    403
-                )
-
-            admins = get_admins()
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "admins": [
-                        dict(x)
-                        for x in admins
-                    ]
-                }
-            )
-
-        return json_response(
-            self,
-            {
-                "success": False,
-                "error": "Not found"
-            },
-            404
-        )
-
-    except Exception as e:
-
-        print(
-            "GET ERROR:",
-            repr(e)
         )
 
         return json_response(
-            self,
+            handler,
             {
-                "success": False,
-                "error": str(e)
-            },
-            500
+                "success": True,
+                "partner": partner
+            }
         )
 
-
-RequestHandler.do_GET = http_get
-
-
-# =========================================================
-# HTTP POST
-# =========================================================
-
-def http_post(self):
-
-    try:
-
-        parsed = urlparse(
-            self.path
-        )
-
-        path = parsed.path
-
-        body = self.read_json()
-
-        # -----------------------------------------------
-        # AUTH
-        # -----------------------------------------------
-
-        if path == "/api/auth":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Telegram authentication failed"
-                    },
-                    401
-                )
-
-            telegram_id = int(
-                user_data["id"]
-            )
-
-            user = upsert_user(
-                telegram_id=telegram_id,
-                name=(
-                    user_data.get("first_name", "")
-                    + " "
-                    + user_data.get("last_name", "")
-                ).strip(),
-                username=user_data.get("username")
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "user": dict(user),
-                    "role": get_role(telegram_id)
-                }
-            )
-
-        # -----------------------------------------------
-        # LANGUAGE
-        # -----------------------------------------------
-
-        if path == "/api/language":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            language = body.get(
-                "language",
-                "ru"
-            )
-
-            update_language(
-                int(user_data["id"]),
-                language
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True
-                }
-            )
-
-        # -----------------------------------------------
-        # CREATE QR
-        # -----------------------------------------------
-
-        if path == "/api/qr/create":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            telegram_id = int(
-                user_data["id"]
-            )
-
-            user = get_user(
-                telegram_id
-            )
-
-            if not user:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Пользователь не найден"
-                    },
-                    404
-                )
-
-            partner_id = body.get(
-                "partner_id"
-            )
-
-            if partner_id:
-                try:
-                    partner_id = int(
-                        partner_id
-                    )
-                except Exception:
-                    partner_id = None
-
-            qr = create_qr_token(
-                telegram_id,
-                partner_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "qr": qr
-                }
-            )
-
-        # -----------------------------------------------
-        # VERIFY QR
-        # -----------------------------------------------
-
-        if path == "/api/qr/verify":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            partner = get_partner_by_telegram_id(
-                int(user_data["id"])
-            )
-
-            if not partner:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Партнёр не найден"
-                    },
-                    403
-                )
-
-            result = verify_qr_token(
-                body.get("token"),
-                partner["id"]
-            )
-
-            return json_response(
-                self,
-                result
-            )
-
-        # -----------------------------------------------
-        # CONFIRM QR
-        # -----------------------------------------------
-
-        if path == "/api/qr/confirm":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            partner_id = int(
-                user_data["id"]
-            )
-
-            result = confirm_qr_transaction(
-                body.get("token"),
-                partner_id,
-                body.get("receipt_amount", 0)
-            )
-
-            return json_response(
-                self,
-                result
-            )
-
-        # -----------------------------------------------
-        # VERIFY MEMBER
-        # -----------------------------------------------
-
-        if path == "/api/verify-member":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            result = verify_member(
-                body.get("member_code")
-            )
-
-            return json_response(
-                self,
-                result
-            )
-
-        # -----------------------------------------------
-        # USE OFFER
-        # -----------------------------------------------
-
-        if path == "/api/use-offer":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            result = partner_use_offer(
-                int(user_data["id"]),
-                int(body.get("partner_id")),
-                float(body.get("receipt_amount", 0))
-            )
-
-            return json_response(
-                self,
-                result
-            )
-
-        # -----------------------------------------------
-        # PARTNER USE OFFER
-        # -----------------------------------------------
-
-        if path == "/api/partner-use-offer":
-
-            user_data = get_request_user(
-                self.headers,
-                body
-            )
-
-            if not user_data:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Unauthorized"
-                    },
-                    401
-                )
-
-            partner = get_partner_by_telegram_id(
-                int(user_data["id"])
-            )
-
-            if not partner:
-
-                return json_response(
-                    self,
-                    {
-                        "success": False,
-                        "error": "Партнёр не найден"
-                    },
-                    403
-                )
-
-            result = partner_use_offer(
-                int(body.get("telegram_id")),
-                partner["id"],
-                float(body.get("receipt_amount", 0))
-            )
-
-            return json_response(
-                self,
-                result
-            )
-
-        # =================================================
-        # ADMIN AUTH CHECK
-        # =================================================
-
-        user_data = get_request_user(
-            self.headers,
+    # UPDATE PARTNER
+    if path == "/api/admin/partners/update":
+
+        _, telegram_id = authenticate(
+            handler,
             body
         )
 
-        if not user_data:
-
-            return json_response(
-                self,
-                {
-                    "success": False,
-                    "error": "Unauthorized"
-                },
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
                 401
             )
 
-        admin_id = int(
-            user_data["id"]
-        )
-
-        if not is_admin(admin_id):
-
-            return json_response(
-                self,
-                {
-                    "success": False,
-                    "error": "Forbidden"
-                },
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
                 403
             )
 
-        # -----------------------------------------------
-        # CREATE PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/create":
-
-            partner = create_partner(
-                body
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partner": dict(partner)
-                }
-            )
-
-        # -----------------------------------------------
-        # UPDATE PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/update":
+        try:
 
             partner_id = int(
-                body.get("id")
+                body.get(
+                    "id"
+                )
             )
 
-            partner = update_partner(
-                partner_id,
-                body
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный ID"
             )
 
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partner": dict(partner)
-                    if partner else None
-                }
-            )
-
-        # -----------------------------------------------
-        # DELETE PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/delete":
-
-            partner_id = int(
-                body.get("id")
-            )
-
-            deleted = delete_partner(
-                partner_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": deleted
-                }
-            )
-
-        # -----------------------------------------------
-        # TOGGLE PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/toggle":
-
-            partner_id = int(
-                body.get("id")
-            )
-
-            active = bool(
-                body.get("active")
-            )
-
-            partner = toggle_partner(
-                partner_id,
-                active
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "partner": dict(partner)
-                }
-            )
-
-        # -----------------------------------------------
-        # ASSIGN PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/assign":
-
-            partner_id = int(
-                body.get("partner_id")
-            )
-
-            telegram_id = int(
-                body.get("telegram_id")
-            )
-
-            assign_partner(
-                partner_id,
-                telegram_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True
-                }
-            )
-
-        # -----------------------------------------------
-        # UNASSIGN PARTNER
-        # -----------------------------------------------
-
-        if path == "/api/admin/partners/unassign":
-
-            partner_id = int(
-                body.get("partner_id")
-            )
-
-            unassign_partner(
-                partner_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True
-                }
-            )
-
-        # -----------------------------------------------
-        # ACTIVATE SUBSCRIPTION
-        # -----------------------------------------------
-
-        if path == "/api/admin/subscription":
-
-            telegram_id = int(
-                body.get("telegram_id")
-            )
-
-            active = bool(
-                body.get("active")
-            )
-
-            user = set_subscription(
-                telegram_id,
-                active
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True,
-                    "user": dict(user)
-                    if user else None
-                }
-            )
-
-        # -----------------------------------------------
-        # ADD ADMIN
-        # -----------------------------------------------
-
-        if path == "/api/admin/add":
-
-            telegram_id = int(
-                body.get("telegram_id")
-            )
-
-            add_admin(
-                telegram_id,
-                admin_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": True
-                }
-            )
-
-        # -----------------------------------------------
-        # REMOVE ADMIN
-        # -----------------------------------------------
-
-        if path == "/api/admin/remove":
-
-            telegram_id = int(
-                body.get("telegram_id")
-            )
-
-            removed = remove_admin(
-                telegram_id
-            )
-
-            return json_response(
-                self,
-                {
-                    "success": removed
-                }
-            )
-
-        return json_response(
-            self,
-            {
-                "success": False,
-                "error": "Not found"
-            },
-            404
+        discount = body.get(
+            "discount_percent"
         )
 
-    except Exception as e:
+        if discount is not None:
 
-        print(
-            "POST ERROR:",
-            repr(e)
+            try:
+                discount = float(
+                    discount
+                )
+            except (TypeError, ValueError):
+
+                return error_response(
+                    handler,
+                    "Некорректная скидка"
+                )
+
+        partner = update_partner(
+            partner_id,
+            body.get("name"),
+            body.get("category"),
+            body.get("description"),
+            discount,
+            body.get("conditions"),
+            body.get("photo_url"),
+            body.get("active")
         )
 
         return json_response(
-            self,
+            handler,
             {
-                "success": False,
-                "error": str(e)
-            },
-            500
+                "success": True,
+                "partner": partner
+            }
         )
 
+    # DELETE PARTNER
+    if path == "/api/admin/partners/delete":
 
-RequestHandler.do_POST = http_post
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            partner_id = int(
+                body.get(
+                    "id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный ID"
+            )
+
+        return json_response(
+            handler,
+            {
+                "success":
+                    delete_partner(
+                        partner_id
+                    )
+            }
+        )
+
+    # ASSIGN PARTNER
+    if path == "/api/admin/partners/assign":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            partner_id = int(
+                body.get(
+                    "partner_id"
+                )
+            )
+
+            target_id = int(
+                body.get(
+                    "telegram_id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректные данные"
+            )
+
+        result = assign_partner(
+            partner_id,
+            target_id
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": result,
+                "partner":
+                    get_partner_by_id(
+                        partner_id
+                    )
+            }
+        )
+
+    # UNASSIGN PARTNER
+    if path == "/api/admin/partners/unassign":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            partner_id = int(
+                body.get(
+                    "partner_id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный ID"
+            )
+
+        return json_response(
+            handler,
+            {
+                "success":
+                    unassign_partner(
+                        partner_id
+                    )
+            }
+        )
+
+    # SUBSCRIPTION
+    if path == "/api/admin/subscription":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            target_id = int(
+                body.get(
+                    "telegram_id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный Telegram ID"
+            )
+
+        user = set_subscription(
+            target_id,
+            bool(
+                body.get(
+                    "active",
+                    False
+                )
+            )
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "user": user
+            }
+        )
+
+    # ADD ADMIN
+    if path == "/api/admin/add":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            target_id = int(
+                body.get(
+                    "telegram_id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный Telegram ID"
+            )
+
+        add_admin(
+            target_id,
+            telegram_id
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "admins": get_admins()
+            }
+        )
+
+    # REMOVE ADMIN
+    if path == "/api/admin/remove":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+            return error_response(
+                handler,
+                "Неавторизовано",
+                401
+            )
+
+        if not is_admin(
+            telegram_id
+        ):
+            return error_response(
+                handler,
+                "Нет доступа",
+                403
+            )
+
+        try:
+
+            target_id = int(
+                body.get(
+                    "telegram_id"
+                )
+            )
+
+        except (TypeError, ValueError):
+
+            return error_response(
+                handler,
+                "Некорректный Telegram ID"
+            )
+
+        if target_id == OWNER_ID:
+
+            return error_response(
+                handler,
+                "Нельзя удалить владельца"
+            )
+
+        return json_response(
+            handler,
+            {
+                "success":
+                    remove_admin(
+                        target_id
+                    ),
+                "admins":
+                    get_admins()
+            }
+        )
+
+    return error_response(
+        handler,
+        "Not found",
+        404
+    )
 
 
 # =========================================================
@@ -2360,27 +2704,33 @@ async def start(
     if not user:
         return
 
-    telegram_id = user.id
+    name = user.first_name or ""
+
+    if user.last_name:
+        name += " " + user.last_name
 
     upsert_user(
-        telegram_id=telegram_id,
-        name=(
-            user.first_name or ""
-        ) + (
-            " " + user.last_name
-            if user.last_name
-            else ""
-        ),
-        username=user.username
+        user.id,
+        name.strip(),
+        user.username or ""
     )
 
     keyboard = [
 
         [
             InlineKeyboardButton(
-                "📱 Открыть BIZDE",
+                "👤 Войти как пользователь",
                 web_app=WebAppInfo(
                     url=WEB_APP_URL
+                )
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "🤝 Войти как партнёр",
+                web_app=WebAppInfo(
+                    url=PARTNER_PAGE
                 )
             )
         ],
@@ -2390,6 +2740,7 @@ async def start(
                 "📂 Категории",
                 callback_data="categories"
             ),
+
             InlineKeyboardButton(
                 "🏪 Партнёры",
                 callback_data="partners"
@@ -2402,54 +2753,66 @@ async def start(
                 callback_data="subscription"
             )
         ]
+
     ]
 
-    # Партнёрский кабинет
-    partner = get_partner_by_telegram_id(
-        telegram_id
-    )
-
-    if partner:
+    if is_admin(user.id):
 
         keyboard.append([
             InlineKeyboardButton(
-                "🤝 Кабинет партнёра",
+                "⚙️ Администратор",
                 web_app=WebAppInfo(
-                    url=WEB_APP_URL.rstrip("/")
-                    + "/partner.html"
+                    url=ADMIN_PAGE
                 )
             )
         ])
-
-    # Админка
-    if is_admin(telegram_id):
-
-        keyboard.append([
-            InlineKeyboardButton(
-                "⚙️ Админ-панель",
-                web_app=WebAppInfo(
-                    url=WEB_APP_URL.rstrip("/")
-                    + "/admin.html"
-                )
-            )
-        ])
-
-    reply_markup = InlineKeyboardMarkup(
-        keyboard
-    )
 
     await update.message.reply_text(
+
         "Добро пожаловать в BIZDE.KZ 🇰🇿\n\n"
-        "Экономь вместе с нашими партнёрами.\n"
-        "Получай привилегии, специальные условия "
-        "и пользуйся преимуществами клуба.",
-        reply_markup=reply_markup
+        "Платформа привилегий для участников клуба.\n"
+        "Экономьте больше. Получайте больше привилегий.",
+
+        reply_markup=InlineKeyboardMarkup(
+            keyboard
+        )
     )
 
 
-# =========================================================
-# /PARTNER
-# =========================================================
+async def admin_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    user = update.effective_user
+
+    if not user:
+        return
+
+    if not is_admin(user.id):
+
+        await update.message.reply_text(
+            "⛔ Доступ к админ-панели закрыт."
+        )
+
+        return
+
+    await update.message.reply_text(
+
+        "⚙️ Административная панель BIZDE.KZ",
+
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "Открыть админ-панель",
+                    web_app=WebAppInfo(
+                        url=ADMIN_PAGE
+                    )
+                )
+            ]
+        ])
+    )
+
 
 async def partner_command(
     update: Update,
@@ -2468,82 +2831,27 @@ async def partner_command(
     if not partner:
 
         await update.message.reply_text(
-            "❌ Ваш Telegram-аккаунт "
-            "не привязан к партнёру."
+            "⛔ Этот Telegram-аккаунт не назначен партнёром."
         )
 
         return
-
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🤝 Открыть кабинет партнёра",
-                web_app=WebAppInfo(
-                    url=WEB_APP_URL.rstrip("/")
-                    + "/partner.html"
-                )
-            )
-        ]
-    ]
 
     await update.message.reply_text(
-        f"🏪 {partner['name']}\n\n"
-        f"Привилегия: "
-        f"{partner['discount_percent']}%\n\n"
-        "Через кабинет вы можете проверять "
-        "QR-коды участников и оформлять "
-        "использование привилегий.",
-        reply_markup=InlineKeyboardMarkup(
-            keyboard
-        )
-    )
 
+        "🤝 Кабинет партнёра BIZDE.KZ",
 
-# =========================================================
-# /ADMIN
-# =========================================================
-
-async def admin_command(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    user = update.effective_user
-
-    if not user:
-        return
-
-    if not is_admin(user.id):
-
-        await update.message.reply_text(
-            "❌ Доступ запрещён."
-        )
-
-        return
-
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "⚙️ Открыть админ-панель",
-                web_app=WebAppInfo(
-                    url=WEB_APP_URL.rstrip("/")
-                    + "/admin.html"
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "Открыть кабинет партнёра",
+                    web_app=WebAppInfo(
+                        url=PARTNER_PAGE
+                    )
                 )
-            )
-        ]
-    ]
-
-    await update.message.reply_text(
-        "⚙️ Админ-панель BIZDE.KZ",
-        reply_markup=InlineKeyboardMarkup(
-            keyboard
-        )
+            ]
+        ])
     )
 
-
-# =========================================================
-# /ADDADMIN
-# =========================================================
 
 async def addadmin_command(
     update: Update,
@@ -2555,7 +2863,7 @@ async def addadmin_command(
     if not user or not is_owner(user.id):
 
         await update.message.reply_text(
-            "❌ Только владелец может добавлять администраторов."
+            "⛔ Только владелец может добавлять администраторов."
         )
 
         return
@@ -2563,37 +2871,34 @@ async def addadmin_command(
     if not context.args:
 
         await update.message.reply_text(
-            "Использование:\n"
-            "/addadmin TELEGRAM_ID"
+            "Использование:\n/addadmin TELEGRAM_ID"
         )
 
         return
 
     try:
 
-        telegram_id = int(
+        target_id = int(
             context.args[0]
         )
 
-        add_admin(
-            telegram_id,
-            user.id
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Администратор добавлен."
+            "Некорректный Telegram ID."
         )
 
-    except Exception as e:
+        return
 
-        await update.message.reply_text(
-            f"❌ Ошибка: {e}"
-        )
+    add_admin(
+        target_id,
+        user.id
+    )
 
+    await update.message.reply_text(
+        f"✅ Администратор {target_id} добавлен."
+    )
 
-# =========================================================
-# /REMOVEADMIN
-# =========================================================
 
 async def removeadmin_command(
     update: Update,
@@ -2605,7 +2910,7 @@ async def removeadmin_command(
     if not user or not is_owner(user.id):
 
         await update.message.reply_text(
-            "❌ Только владелец может удалять администраторов."
+            "⛔ Только владелец может удалять администраторов."
         )
 
         return
@@ -2613,46 +2918,41 @@ async def removeadmin_command(
     if not context.args:
 
         await update.message.reply_text(
-            "Использование:\n"
-            "/removeadmin TELEGRAM_ID"
+            "Использование:\n/removeadmin TELEGRAM_ID"
         )
 
         return
 
     try:
 
-        telegram_id = int(
+        target_id = int(
             context.args[0]
         )
 
-        if telegram_id == OWNER_ID:
-
-            await update.message.reply_text(
-                "❌ Нельзя удалить владельца."
-            )
-
-            return
-
-        removed = remove_admin(
-            telegram_id
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Администратор удалён."
-            if removed
-            else "⚠️ Администратор не найден."
+            "Некорректный Telegram ID."
         )
 
-    except Exception as e:
+        return
+
+    if target_id == OWNER_ID:
 
         await update.message.reply_text(
-            f"❌ Ошибка: {e}"
+            "Нельзя удалить владельца."
         )
 
+        return
 
-# =========================================================
-# /ADMINS
-# =========================================================
+    remove_admin(
+        target_id
+    )
+
+    await update.message.reply_text(
+        f"✅ Администратор {target_id} удалён."
+    )
+
 
 async def admins_command(
     update: Update,
@@ -2664,29 +2964,33 @@ async def admins_command(
     if not user or not is_admin(user.id):
 
         await update.message.reply_text(
-            "❌ Доступ запрещён."
+            "⛔ Доступ закрыт."
         )
 
         return
 
     admins = get_admins()
 
-    text = "👥 Администраторы:\n\n"
+    text = "⚙️ Администраторы:\n\n"
 
     for admin in admins:
 
+        mark = (
+            " 👑"
+            if int(
+                admin["telegram_id"]
+            ) == OWNER_ID
+            else ""
+        )
+
         text += (
-            f"• {admin['telegram_id']}\n"
+            f"• {admin['telegram_id']}{mark}\n"
         )
 
     await update.message.reply_text(
         text
     )
 
-
-# =========================================================
-# /SETPARTNER
-# =========================================================
 
 async def setpartner_command(
     update: Update,
@@ -2698,7 +3002,7 @@ async def setpartner_command(
     if not user or not is_admin(user.id):
 
         await update.message.reply_text(
-            "❌ Доступ запрещён."
+            "⛔ Доступ закрыт."
         )
 
         return
@@ -2722,37 +3026,29 @@ async def setpartner_command(
             context.args[1]
         )
 
-        partner = get_partner_by_id(
-            partner_id
-        )
-
-        if not partner:
-
-            await update.message.reply_text(
-                "❌ Партнёр не найден."
-            )
-
-            return
-
-        assign_partner(
-            partner_id,
-            telegram_id
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Партнёр успешно привязан."
+            "Некорректные ID."
         )
 
-    except Exception as e:
+        return
+
+    if assign_partner(
+        partner_id,
+        telegram_id
+    ):
 
         await update.message.reply_text(
-            f"❌ Ошибка: {e}"
+            "✅ Партнёр назначен."
         )
 
+    else:
 
-# =========================================================
-# /UNSETPARTNER
-# =========================================================
+        await update.message.reply_text(
+            "❌ Не удалось назначить партнёра."
+        )
+
 
 async def unsetpartner_command(
     update: Update,
@@ -2764,7 +3060,7 @@ async def unsetpartner_command(
     if not user or not is_admin(user.id):
 
         await update.message.reply_text(
-            "❌ Доступ запрещён."
+            "⛔ Доступ закрыт."
         )
 
         return
@@ -2784,24 +3080,22 @@ async def unsetpartner_command(
             context.args[0]
         )
 
-        unassign_partner(
-            partner_id
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Партнёр отвязан."
+            "Некорректный ID."
         )
 
-    except Exception as e:
+        return
 
-        await update.message.reply_text(
-            f"❌ Ошибка: {e}"
-        )
+    unassign_partner(
+        partner_id
+    )
 
+    await update.message.reply_text(
+        "✅ Партнёр отключён."
+    )
 
-# =========================================================
-# /ACTIVATE
-# =========================================================
 
 async def activate_command(
     update: Update,
@@ -2813,7 +3107,7 @@ async def activate_command(
     if not user or not is_admin(user.id):
 
         await update.message.reply_text(
-            "❌ Доступ запрещён."
+            "⛔ Доступ закрыт."
         )
 
         return
@@ -2821,37 +3115,34 @@ async def activate_command(
     if not context.args:
 
         await update.message.reply_text(
-            "Использование:\n"
-            "/activate TELEGRAM_ID"
+            "Использование:\n/activate TELEGRAM_ID"
         )
 
         return
 
     try:
 
-        telegram_id = int(
+        target_id = int(
             context.args[0]
         )
 
-        set_subscription(
-            telegram_id,
-            True
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Подписка активирована."
+            "Некорректный Telegram ID."
         )
 
-    except Exception as e:
+        return
 
-        await update.message.reply_text(
-            f"❌ Ошибка: {e}"
-        )
+    set_subscription(
+        target_id,
+        True
+    )
 
+    await update.message.reply_text(
+        f"✅ Подписка {target_id} активирована."
+    )
 
-# =========================================================
-# /DEACTIVATE
-# =========================================================
 
 async def deactivate_command(
     update: Update,
@@ -2863,7 +3154,7 @@ async def deactivate_command(
     if not user or not is_admin(user.id):
 
         await update.message.reply_text(
-            "❌ Доступ запрещён."
+            "⛔ Доступ закрыт."
         )
 
         return
@@ -2871,32 +3162,33 @@ async def deactivate_command(
     if not context.args:
 
         await update.message.reply_text(
-            "Использование:\n"
-            "/deactivate TELEGRAM_ID"
+            "Использование:\n/deactivate TELEGRAM_ID"
         )
 
         return
 
     try:
 
-        telegram_id = int(
+        target_id = int(
             context.args[0]
         )
 
-        set_subscription(
-            telegram_id,
-            False
-        )
+    except ValueError:
 
         await update.message.reply_text(
-            "✅ Подписка деактивирована."
+            "Некорректный Telegram ID."
         )
 
-    except Exception as e:
+        return
 
-        await update.message.reply_text(
-            f"❌ Ошибка: {e}"
-        )
+    set_subscription(
+        target_id,
+        False
+    )
+
+    await update.message.reply_text(
+        f"✅ Подписка {target_id} отключена."
+    )
 
 
 # =========================================================
@@ -2912,18 +3204,34 @@ async def callback_handler(
 
     await query.answer()
 
-    user = query.from_user
-
     if query.data == "categories":
 
+        partners = get_partners()
+
+        categories = sorted(
+            set(
+                p["category"]
+                for p in partners
+                if p["category"]
+            )
+        )
+
+        if categories:
+
+            text = (
+                "📂 Категории BIZDE.KZ:\n\n"
+                + "\n".join(
+                    "• " + category
+                    for category in categories
+                )
+            )
+
+        else:
+
+            text = "Категорий пока нет."
+
         await query.message.reply_text(
-            "📂 Категории\n\n"
-            "🍽 Рестораны\n"
-            "☕ Кафе\n"
-            "🏋️ Спорт\n"
-            "💄 Красота\n"
-            "🛍 Магазины\n"
-            "🎯 Другое"
+            text
         )
 
     elif query.data == "partners":
@@ -2933,19 +3241,18 @@ async def callback_handler(
         if not partners:
 
             await query.message.reply_text(
-                "Пока нет партнёров."
+                "Партнёров пока нет."
             )
 
             return
 
-        text = "🏪 Партнёры BIZDE.KZ\n\n"
+        text = "🏪 Партнёры BIZDE.KZ:\n\n"
 
         for partner in partners:
 
             text += (
-                f"• {partner['name']}\n"
-                f"  Привилегия: "
-                f"{partner['discount_percent']}%\n\n"
+                f"• {partner['name']} — "
+                f"{partner['discount_percent']}%\n"
             )
 
         await query.message.reply_text(
@@ -2954,32 +3261,31 @@ async def callback_handler(
 
     elif query.data == "subscription":
 
-        user_data = get_user(
-            user.id
+        user = get_user(
+            query.from_user.id
         )
 
-        if not user_data:
+        if not user:
 
             await query.message.reply_text(
-                "Пользователь не найден."
+                "Откройте BIZDE через Telegram."
             )
 
             return
 
         status = (
             "🟢 Активна"
-            if user_data["subscription_active"]
-            else
-            "🔴 Не активна"
+            if user["subscription_active"]
+            else "🔴 Неактивна"
         )
 
         await query.message.reply_text(
-            f"🎟 Ваша подписка\n\n"
+
+            "🎟 Моя подписка BIZDE.KZ\n\n"
             f"Статус: {status}\n"
-            f"Код участника: "
-            f"{user_data['member_code']}\n"
-            f"Всего сэкономлено: "
-            f"{user_data['total_savings']} ₸"
+            f"Код участника: {user['member_code']}\n"
+            f"Накоплено: "
+            f"{float(user['total_savings'] or 0):.2f} ₸"
         )
 
 
@@ -2990,12 +3296,15 @@ async def callback_handler(
 def run_http_server():
 
     server = HTTPServer(
-        ("0.0.0.0", PORT),
+        (
+            "0.0.0.0",
+            PORT
+        ),
         RequestHandler
     )
 
     print(
-        f"HTTP server started on port {PORT}"
+        f"BIZDE API запущен на порту {PORT}"
     )
 
     server.serve_forever()
@@ -3010,31 +3319,27 @@ def main():
     if not TOKEN:
 
         raise RuntimeError(
-            "BOT_TOKEN is not configured"
+            "BOT_TOKEN не установлен"
         )
 
     if not DATABASE_URL:
 
         raise RuntimeError(
-            "DATABASE_URL is not configured"
+            "DATABASE_URL не установлен"
         )
 
-    print("Initializing database...")
+    print(
+        "Запуск BIZDE.KZ..."
+    )
 
     init_db()
 
-    print("Database ready.")
-
-    http_thread = threading.Thread(
+    server_thread = threading.Thread(
         target=run_http_server,
         daemon=True
     )
 
-    http_thread.start()
-
-    print(
-        "Starting Telegram bot..."
-    )
+    server_thread.start()
 
     application = (
         Application
@@ -3120,7 +3425,7 @@ def main():
     )
 
     print(
-        "BIZDE.KZ bot is running."
+        "Telegram bot запущен."
     )
 
     application.run_polling(
