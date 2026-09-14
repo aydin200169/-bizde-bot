@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>BIZDE.KZ — Кабинет партнёра</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:#f4f5f2;
+    color:#14201e;
+    min-height:100vh;
+}
+:root{
+    --dark:#071f1d;
+    --green:#07534d;
+    --green2:#08736a;
+    --gold:#c9a24a;
+    --gold2:#e1c56d;
+    --muted:#7b8582;
+    --line:#e5e9e5;
+    --white:#fff;
+}
+.header{
+    background:var(--dark);
+    color:white;
+    padding:24px 18px 27px;
+    border-radius:0 0 28px 28px;
+}
+.logo{
+    font-size:27px;
+    font-weight:900;
+    letter-spacing:-1px;
+}
+.logo span{
+    display:block;
+    color:var(--gold2);
+    font-size:10px;
+    letter-spacing:2px;
+    margin-top:2px;
+}
+.partner-label{
+    margin-top:20px;
+    color:#9eafab;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+}
+.partner-name{
+    margin-top:5px;
+    font-size:21px;
+    font-weight:800;
+}
+.container{
+    padding:18px;
+    max-width:520px;
+    margin:auto;
+}
+.card{
+    background:white;
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:19px;
+    margin-bottom:14px;
+}
+.card h2{
+    font-size:18px;
+    margin-bottom:6px;
+}
+.card p{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
+}
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+.stat{
+    background:#f8f9f7;
+    border-radius:16px;
+    padding:15px;
+}
+.stat small{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    margin-bottom:5px;
+}
+.stat strong{
+    font-size:20px;
+}
+.primary{
+    width:100%;
+    border:0;
+    background:var(--green);
+    color:white;
+    padding:15px;
+    border-radius:15px;
+    font-weight:800;
+    margin-top:13px;
+    cursor:pointer;
+}
+.primary:active{
+    transform:scale(.98);
+}
+.secondary{
+    width:100%;
+    border:0;
+    background:#edf1ee;
+    color:var(--dark);
+    padding:14px;
+    border-radius:14px;
+    font-weight:700;
+    margin-top:9px;
+    cursor:pointer;
+}
+.scanner{
+    overflow:hidden;
+    border-radius:18px;
+    margin-top:15px;
+    display:none;
+}
+#reader{
+    width:100%;
+}
+.user-card{
+    background:var(--dark);
+    color:white;
+    border-radius:20px;
+    padding:19px;
+    margin-top:15px;
+    display:none;
+}
+.user-card small{
+    color:#9eafab;
+}
+.user-card h2{
+    margin:7px 0 15px;
+}
+.row{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid #ffffff18;
+    font-size:13px;
+}
+.row:last-child{
+    border-bottom:0;
+}
+.gold{
+    color:var(--gold2);
+}
+.input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    margin-top:13px;
+    outline:none;
+    font-size:16px;
+}
+.input:focus{
+    border-color:var(--green);
+}
+.result{
+    margin-top:14px;
+    border-radius:17px;
+    padding:15px;
+    background:#eef7f3;
+    color:#07534d;
+    display:none;
+}
+.error{
+    background:#faeeee;
+    color:#9d3e3e;
+}
+.success{
+    background:#e8f6ef;
+    color:#08734e;
+}
+.loader{
+    text-align:center;
+    padding:30px 10px;
+    color:var(--muted);
+}
+.hidden{
+    display:none!important;
+}
+.status{
+    display:inline-block;
+    margin-top:9px;
+    padding:7px 10px;
+    border-radius:10px;
+    font-size:11px;
+    font-weight:800;
+}
+.status.ok{
+    background:#e5f5ee;
+    color:#08734e;
+}
+.status.bad{
+    background:#f7e8e8;
+    color:#a34848;
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <div class="logo">
+        BIZDE.KZ
+        <span>PRIVILEGE CLUB</span>
+    </div>
+    <div class="partner-label">
+        Кабинет партнёра
+    </div>
+    <div id="partnerName" class="partner-name">
+        Загрузка...
+    </div>
+    <div id="partnerStatus"></div>
+</div>
+<div class="container">
+    <div id="loading" class="card">
+        <div class="loader">
+            Проверяем доступ...
+        </div>
+    </div>
+    <div id="cabinet" class="hidden">
+        <div class="card">
+            <h2>Рабочее пространство</h2>
+            <p>
+                Здесь вы можете проверять QR-коды участников
+                BIZDE.KZ и подтверждать использование привилегий.
+            </p>
+            <button class="primary" onclick="startScanner()">
+                📷 Сканировать QR
+            </button>
+            <button
+                id="stopButton"
+                class="secondary hidden"
+                onclick="stopScanner()"
+            >
+                Остановить сканирование
+            </button>
+            <div id="scanner" class="scanner">
+                <div id="reader"></div>
+            </div>
+        </div>
+        <div id="userCard" class="user-card">
+            <small>Участник BIZDE.KZ</small>
+            <h2 id="userName">—</h2>
+            <div class="row">
+                <span>Код участника</span>
+                <b id="userCode">—</b>
+            </div>
+            <div class="row">
+                <span>Статус</span>
+                <b id="userSubscription">—</b>
+            </div>
+            <div class="row">
+                <span>Привилегия</span>
+                <b class="gold" id="userDiscount">—</b>
+            </div>
+            <input
+                id="receiptAmount"
+                class="input"
+                type="number"
+                inputmode="decimal"
+                placeholder="Введите сумму чека"
+            >
+            <button
+                class="primary"
+                onclick="confirmTransaction()"
+            >
+                Подтвердить операцию
+            </button>
+            <button
+                class="secondary"
+                onclick="resetUser()"
+            >
+                Отмена
+            </button>
+            <div id="operationResult" class="result"></div>
+        </div>
+        <div class="card">
+            <h2>Статистика</h2>
+            <div class="stats">
+                <div class="stat">
+                    <small>Партнёр</small>
+                    <strong id="statPartner">—</strong>
+                </div>
+                <div class="stat">
+                    <small>Система</small>
+                    <strong>BIZDE</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const tg = window.Telegram?.WebApp;
+if(tg){
+    tg.ready();
+    tg.expand();
+}
+const API_URL = "https://bizde-bot.onrender.com";
+let partner = null;
+let currentUser = null;
+let currentToken = null;
+let scanner = null;
+let scannerRunning = false;
+async function apiFetch(url,options={}){
+    const response =
+        await fetch(API_URL + url,options);
+    let data = {};
+    try{
+        data = await response.json();
+    }catch(e){}
+    if(!response.ok){
+        throw new Error(
+            data.error || "Ошибка сервера"
+        );
+    }
+    return data;
+}
+function escapeHtml(value){
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+async function checkAccess(){
+    try{
+        const initData =
+            tg?.initData || "";
+        if(!initData){
+            throw new Error(
+                "Откройте кабинет партнёра через Telegram."
+            );
+        }
+        const roleData =
+            await apiFetch(
+                "/api/role?init_data=" +
+                encodeURIComponent(initData)
+            );
+        const role =
+            roleData.role ||
+            roleData.user_role ||
+            "";
+        if(role !== "partner"){
+            throw new Error(
+                "У вас нет доступа к кабинету партнёра."
+            );
+        }
+        const partnerData =
+            await apiFetch(
+                "/api/partner/me?init_data=" +
+                encodeURIComponent(initData)
+            );
+        partner =
+            partnerData.partner ||
+            partnerData;
+        if(!partner || !partner.id){
+            throw new Error(
+                "Партнёр не назначен вашему Telegram аккаунту."
+            );
+        }
+        document.getElementById("partnerName").textContent =
+            partner.name || "Партнёр BIZDE.KZ";
+        document.getElementById("statPartner").textContent =
+            partner.name || "—";
+        document.getElementById("partnerStatus").innerHTML =
+            `<span class="status ok">Доступ разрешён</span>`;
+        document.getElementById("loading")
+            .classList.add("hidden");
+        document.getElementById("cabinet")
+            .classList.remove("hidden");
+    }catch(error){
+        document.getElementById("loading").innerHTML = `
+            <div class="loader">
+                <h2 style="color:#14201e;margin-bottom:8px">
+                    Доступ закрыт
+                </h2>
+                <p>
+                    ${escapeHtml(error.message)}
+                </p>
+            </div>
+        `;
+    }
+}
+async function startScanner(){
+    if(scannerRunning) return;
+    document.getElementById("scanner")
+        .style.display = "block";
+    document.getElementById("stopButton")
+        .classList.remove("hidden");
+    scanner =
+        new Html5Qrcode("reader");
+    try{
+        await scanner.start(
+            {facingMode:"environment"},
+            {
+                fps:10,
+                qrbox:{
+                    width:250,
+                    height:250
+                }
+            },
+            async decodedText => {
+                await onQRCode(decodedText);
+            },
+            () => {}
+        );
+        scannerRunning = true;
+    }catch(error){
+        document.getElementById("scanner")
+            .style.display = "none";
+        document.getElementById("stopButton")
+            .classList.add("hidden");
+        alert(
+            "Не удалось открыть камеру. Проверьте разрешение камеры."
+        );
+    }
+}
+async function stopScanner(){
+    if(!scanner || !scannerRunning){
+        document.getElementById("scanner")
+            .style.display = "none";
+        return;
+    }
+    try{
+        await scanner.stop();
+    }catch(e){}
+    try{
+        scanner.clear();
+    }catch(e){}
+    scannerRunning = false;
+    document.getElementById("scanner")
+        .style.display = "none";
+    document.getElementById("stopButton")
+        .classList.add("hidden");
+}
+async function onQRCode(token){
+    if(!token) return;
+    await stopScanner();
+    currentToken = token;
+    const initData =
+        tg?.initData || "";
+    try{
+        const data =
+            await apiFetch(
+                "/api/qr/verify",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        init_data:initData,
+                        token:token
+                    })
+                }
+            );
+        const user =
+            data.user ||
+            data;
+        const partnerData =
+            data.partner ||
+            partner ||
+            {};
+        currentUser = user;
+        document.getElementById("userCard")
+            .style.display = "block";
+        document.getElementById("userName").textContent =
+            user.name || "Участник";
+        document.getElementById("userCode").textContent =
+            user.member_code || "—";
+        const active =
+            user.subscription_active === true ||
+            user.subscription_active === 1;
+        document.getElementById("userSubscription").textContent =
+            active
+                ? "Активна"
+                : "Не активна";
+        document.getElementById("userDiscount").textContent =
+            partnerData.discount_percent
+                ? "−" + partnerData.discount_percent + "%"
+                : "По условиям партнёра";
+        document.getElementById("operationResult").style.display =
+            "none";
+        document.getElementById("receiptAmount").value = "";
+        document.getElementById("userCard")
+            .scrollIntoView({
+                behavior:"smooth",
+                block:"start"
+            });
+    }catch(error){
+        showOperationResult(
+            error.message ||
+            "QR-код недействителен.",
+            true
+        );
+    }
+}
+async function confirmTransaction(){
+    if(!currentToken){
+        showOperationResult(
+            "Сначала отсканируйте QR-код.",
+            true
+        );
+        return;
+    }
+    const amount =
+        Number(
+            document.getElementById("receiptAmount").value
+        );
+    if(!amount || amount <= 0){
+        showOperationResult(
+            "Введите корректную сумму чека.",
+            true
+        );
+        return;
+    }
+    const initData =
+        tg?.initData || "";
+    try{
+        const data =
+            await apiFetch(
+                "/api/qr/confirm",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        init_data:initData,
+                        token:currentToken,
+                        receipt_amount:amount
+                    })
+                }
+            );
+        const savings =
+            data.savings ??
+            data.saved ??
+            data.discount_amount ??
+            0;
+        showOperationResult(
+            "Операция подтверждена.<br><br>" +
+            "<b>Экономия участника: " +
+            Number(savings).toLocaleString("ru-RU") +
+            " ₸</b>",
+            false
+        );
+        currentToken = null;
+    }catch(error){
+        showOperationResult(
+            error.message ||
+            "Не удалось подтвердить операцию.",
+            true
+        );
+    }
+}
+function showOperationResult(message,isError){
+    const box =
+        document.getElementById("operationResult");
+    box.innerHTML = message;
+    box.className =
+        "result " +
+        (isError ? "error" : "success");
+    box.style.display = "block";
+}
+function resetUser(){
+    currentUser = null;
+    currentToken = null;
+    document.getElementById("userCard")
+        .style.display = "none";
+    document.getElementById("operationResult")
+        .style.display = "none";
+    document.getElementById("receiptAmount")
+        .value = "";
+}
+checkAccess();
+</script>
+</body>
+</html>
