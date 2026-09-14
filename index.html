@@ -51,7 +51,8 @@ body{
 }
 
 button,
-input{
+input,
+select{
     font:inherit;
 }
 
@@ -645,6 +646,8 @@ button{
     border-radius:15px;
     outline:none;
     margin-top:9px;
+    background:white;
+    color:var(--text);
 }
 
 .modal-button{
@@ -679,6 +682,7 @@ button{
     padding:14px;
     background:white;
     border-radius:18px;
+    min-height:20px;
 }
 
 .member-code{
@@ -687,6 +691,22 @@ button{
     font-weight:900;
     letter-spacing:1px;
     color:var(--green);
+}
+
+.qr-timer{
+    text-align:center;
+    margin-top:12px;
+    font-size:13px;
+    font-weight:900;
+    color:var(--green);
+}
+
+.qr-warning{
+    text-align:center;
+    margin-top:7px;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.4;
 }
 
 /* SCANNER */
@@ -748,6 +768,7 @@ button{
 <div id="homePage" class="page active">
 
     <div class="top">
+
         <div class="logo">
             BIZDE.KZ
             <span>PRIVILEGE CLUB</span>
@@ -756,6 +777,7 @@ button{
         <button class="lang-btn" onclick="changeLanguage()">
             <span id="langButton">RU</span>
         </button>
+
     </div>
 
     <div class="hero">
@@ -774,11 +796,17 @@ button{
 
         <div class="hero-buttons">
 
-            <button class="btn-primary" onclick="openCard()" data-i18n="heroPrimary">
+            <button
+                class="btn-primary"
+                onclick="openCard()"
+                data-i18n="heroPrimary">
                 Мои привилегии
             </button>
 
-            <button class="btn-secondary" onclick="showPage('favoritesPage')" data-i18n="heroSecondary">
+            <button
+                class="btn-secondary"
+                onclick="showPage('favoritesPage')"
+                data-i18n="heroSecondary">
                 Партнёры
             </button>
 
@@ -793,6 +821,7 @@ button{
             <div class="status-icon">✦</div>
 
             <div>
+
                 <div class="status-title" data-i18n="subscription">
                     Подписка
                 </div>
@@ -800,6 +829,7 @@ button{
                 <div class="status-sub" id="statusText">
                     Проверяем статус...
                 </div>
+
             </div>
 
         </div>
@@ -813,9 +843,11 @@ button{
     <div class="section">
 
         <div class="section-head">
+
             <div class="section-title" data-i18n="privilegesTitle">
                 Ваши привилегии
             </div>
+
         </div>
 
         <div class="privileges">
@@ -823,25 +855,33 @@ button{
             <div class="privilege">
                 <div class="privilege-icon">♛</div>
                 <strong data-i18n="p1">Особые условия</strong>
-                <span data-i18n="p1s">Эксклюзивные предложения партнёров</span>
+                <span data-i18n="p1s">
+                    Эксклюзивные предложения партнёров
+                </span>
             </div>
 
             <div class="privilege">
                 <div class="privilege-icon">◆</div>
                 <strong data-i18n="p2">Экономия</strong>
-                <span data-i18n="p2s">Получайте выгоду с каждой покупки</span>
+                <span data-i18n="p2s">
+                    Получайте выгоду с каждой покупки
+                </span>
             </div>
 
             <div class="privilege">
                 <div class="privilege-icon">◈</div>
                 <strong data-i18n="p3">Партнёры</strong>
-                <span data-i18n="p3s">Лучшие места города</span>
+                <span data-i18n="p3s">
+                    Лучшие места города
+                </span>
             </div>
 
             <div class="privilege">
                 <div class="privilege-icon">✦</div>
                 <strong data-i18n="p4">Ваш статус</strong>
-                <span data-i18n="p4s">Один клуб — множество преимуществ</span>
+                <span data-i18n="p4s">
+                    Один клуб — множество преимуществ
+                </span>
             </div>
 
         </div>
@@ -849,41 +889,55 @@ button{
     </div>
 
     <div class="search">
+
         <input
             id="searchInput"
             type="text"
             placeholder="Поиск партнёров..."
-            oninput="searchPartners()"
-        >
+            oninput="searchPartners()">
+
     </div>
 
     <div class="section">
 
         <div class="section-head">
+
             <div class="section-title" data-i18n="categoriesTitle">
                 Категории
             </div>
+
         </div>
 
         <div class="categories">
 
-            <button class="category active" onclick="filterCategory('all',this)" data-i18n="all">
+            <button
+                class="category active"
+                onclick="filterCategory('all',this)"
+                data-i18n="all">
                 Все
             </button>
 
-            <button class="category" onclick="filterCategory('restaurant',this)">
+            <button
+                class="category"
+                onclick="filterCategory('restaurant',this)">
                 🍽 Рестораны
             </button>
 
-            <button class="category" onclick="filterCategory('cafe',this)">
+            <button
+                class="category"
+                onclick="filterCategory('cafe',this)">
                 ☕ Кафе
             </button>
 
-            <button class="category" onclick="filterCategory('sport',this)">
+            <button
+                class="category"
+                onclick="filterCategory('sport',this)">
                 🏋️ Спорт
             </button>
 
-            <button class="category" onclick="filterCategory('beauty',this)">
+            <button
+                class="category"
+                onclick="filterCategory('beauty',this)">
                 ✦ Beauty
             </button>
 
@@ -894,13 +948,18 @@ button{
     <div class="section">
 
         <div class="section-head">
+
             <div class="section-title" data-i18n="partnersTitle">
                 Партнёры
             </div>
 
-            <div class="more" onclick="showPage('favoritesPage')" data-i18n="partnersAll">
+            <div
+                class="more"
+                onclick="showPage('favoritesPage')"
+                data-i18n="partnersAll">
                 Все
             </div>
+
         </div>
 
         <div id="homePartners" class="partners"></div>
@@ -915,10 +974,12 @@ button{
 <div id="favoritesPage" class="page">
 
     <div class="top">
+
         <div class="logo">
             BIZDE.KZ
             <span>PRIVILEGE CLUB</span>
         </div>
+
     </div>
 
     <div class="section">
@@ -928,10 +989,16 @@ button{
         </div>
 
         <p style="color:var(--muted);font-size:12px;margin-top:5px;">
-            <span data-i18n="favoritesText">Ваши любимые партнёры</span>
+            <span data-i18n="favoritesText">
+                Ваши любимые партнёры
+            </span>
         </p>
 
-        <div id="favoritePartners" class="partners" style="margin-top:15px;"></div>
+        <div
+            id="favoritePartners"
+            class="partners"
+            style="margin-top:15px;">
+        </div>
 
     </div>
 
@@ -943,10 +1010,12 @@ button{
 <div id="mapPage" class="page">
 
     <div class="top">
+
         <div class="logo">
             BIZDE.KZ
             <span>PRIVILEGE CLUB</span>
         </div>
+
     </div>
 
     <div class="section">
@@ -982,10 +1051,12 @@ button{
 <div id="profilePage" class="page">
 
     <div class="top">
+
         <div class="logo">
             BIZDE.KZ
             <span>PRIVILEGE CLUB</span>
         </div>
+
     </div>
 
     <div class="profile-card">
@@ -1062,7 +1133,6 @@ button{
 
         </div>
 
-
         <div class="profile-row" onclick="openHistory()">
 
             <div class="profile-row-icon">◷</div>
@@ -1082,7 +1152,6 @@ button{
             <div class="arrow">›</div>
 
         </div>
-
 
         <div class="profile-row" onclick="openSavings()">
 
@@ -1104,7 +1173,6 @@ button{
 
         </div>
 
-
         <div class="profile-row" onclick="openSubscription()">
 
             <div class="profile-row-icon">✦</div>
@@ -1125,9 +1193,6 @@ button{
 
         </div>
 
-
-        <!-- PARTNER -->
-
         <div class="profile-row" onclick="openPartnerScanner()">
 
             <div class="profile-row-icon">▣</div>
@@ -1139,7 +1204,7 @@ button{
                 </div>
 
                 <div class="profile-row-sub">
-                    Проверка участника и оформление привилегии
+                    Вход в кабинет партнёра
                 </div>
 
             </div>
@@ -1147,7 +1212,6 @@ button{
             <div class="arrow">›</div>
 
         </div>
-
 
         <div class="profile-row" onclick="changeLanguage()">
 
@@ -1159,7 +1223,9 @@ button{
                     Язык
                 </div>
 
-                <div class="profile-row-sub" id="languageText">
+                <div
+                    class="profile-row-sub"
+                    id="languageText">
                     Русский
                 </div>
 
@@ -1178,24 +1244,56 @@ button{
 
 <div class="bottom">
 
-    <button class="nav active" id="navHome" onclick="showPage('homePage')">
+    <button
+        class="nav active"
+        id="navHome"
+        onclick="showPage('homePage')">
+
         <div class="nav-icon">⌂</div>
-        <div data-i18n="home">Главная</div>
+
+        <div data-i18n="home">
+            Главная
+        </div>
+
     </button>
 
-    <button class="nav" id="navFavorites" onclick="showPage('favoritesPage')">
+    <button
+        class="nav"
+        id="navFavorites"
+        onclick="showPage('favoritesPage')">
+
         <div class="nav-icon">♡</div>
-        <div data-i18n="favorites">Избранное</div>
+
+        <div data-i18n="favorites">
+            Избранное
+        </div>
+
     </button>
 
-    <button class="nav" id="navMap" onclick="showPage('mapPage')">
+    <button
+        class="nav"
+        id="navMap"
+        onclick="showPage('mapPage')">
+
         <div class="nav-icon">⌖</div>
-        <div data-i18n="map">Карта</div>
+
+        <div data-i18n="map">
+            Карта
+        </div>
+
     </button>
 
-    <button class="nav" id="navProfile" onclick="showPage('profilePage')">
+    <button
+        class="nav"
+        id="navProfile"
+        onclick="showPage('profilePage')">
+
         <div class="nav-icon">◉</div>
-        <div data-i18n="profile">Профиль</div>
+
+        <div data-i18n="profile">
+            Профиль
+        </div>
+
     </button>
 
 </div>
@@ -1203,17 +1301,26 @@ button{
 
 <!-- MODAL -->
 
-<div id="modal" class="modal hidden" onclick="closeModal(event)">
+<div
+    id="modal"
+    class="modal hidden"
+    onclick="closeModal(event)">
 
-    <div class="modal-box" onclick="event.stopPropagation()">
+    <div
+        class="modal-box"
+        onclick="event.stopPropagation()">
 
         <div class="modal-head">
 
-            <div class="modal-title" id="modalTitle">
+            <div
+                class="modal-title"
+                id="modalTitle">
                 BIZDE.KZ
             </div>
 
-            <button class="close" onclick="hideModal()">
+            <button
+                class="close"
+                onclick="hideModal()">
                 ×
             </button>
 
@@ -1228,25 +1335,49 @@ button{
 
 <script>
 
+/* =========================
+   CONFIG
+========================= */
+
 const tg = window.Telegram?.WebApp;
 
 const API_URL = "https://bizde-bot.onrender.com";
+
+const PARTNER_PAGE =
+    "https://aydin200169.github.io/-bizde-bot/partner.html";
+
+
+/* =========================
+   STATE
+========================= */
 
 let currentLanguage =
     localStorage.getItem("bizdeLanguage") || "ru";
 
 let bizdeUser =
-    JSON.parse(localStorage.getItem("bizdeUser") || "null");
+    JSON.parse(
+        localStorage.getItem("bizdeUser") || "null"
+    );
 
 let allPartners = [];
 
 let activeCategory = "all";
 
 let favorites =
-    JSON.parse(localStorage.getItem("bizdeFavorites") || "[]");
+    JSON.parse(
+        localStorage.getItem("bizdeFavorites") || "[]"
+    );
+
+let currentQrTimer = null;
+
+let currentQrToken = null;
+
+let scanner = null;
 
 
-/* TELEGRAM */
+/* =========================
+   TELEGRAM
+========================= */
 
 if(tg){
 
@@ -1254,10 +1385,19 @@ if(tg){
 
     tg.expand();
 
+    try{
+
+        tg.setHeaderColor("#f4f5f2");
+        tg.setBackgroundColor("#f4f5f2");
+
+    }catch(e){}
+
 }
 
 
-/* TRANSLATIONS */
+/* =========================
+   TRANSLATIONS
+========================= */
 
 const translations = {
 
@@ -1270,7 +1410,8 @@ ru:{
 
     heroTitle:"Ваши привилегии начинаются здесь.",
 
-    heroText:"Получайте особые условия, бонусы и преимущества у наших партнёров.",
+    heroText:
+        "Получайте особые условия, бонусы и преимущества у наших партнёров.",
 
     heroPrimary:"Мои привилегии",
 
@@ -1324,19 +1465,22 @@ ru:{
 
     inactive:"Не активна",
 
-    activeText:"Вы можете пользоваться всеми привилегиями клуба.",
+    activeText:
+        "Вы можете пользоваться всеми привилегиями клуба.",
 
-    inactiveText:"Подписка пока не активна.",
+    inactiveText:
+        "Подписка пока не активна.",
 
-    partnerCheck:"Проверка участника",
+    partnerCheck:"Для партнёра",
 
-    partnerCheckSub:"Сканируйте QR-код участника BIZDE.KZ",
+    partnerCheckSub:
+        "Для работы с QR-кодами войдите в кабинет партнёра.",
 
-    scan:"Сканировать QR",
+    scan:"Открыть кабинет партнёра",
 
-    enterCode:"Или введите код участника",
+    enterCode:"",
 
-    verify:"Проверить",
+    verify:"",
 
     verified:"Участник подтверждён",
 
@@ -1370,7 +1514,20 @@ ru:{
 
     register:"Продолжить",
 
-    member:"Участник BIZDE.KZ"
+    member:"Участник BIZDE.KZ",
+
+    qrExpired:"QR-код истёк",
+
+    qrRefresh:"Получить новый QR",
+
+    qrSeconds:"сек.",
+
+    qrInfo:
+        "QR-код действует ограниченное время и может быть использован только один раз.",
+
+    creatingQr:"Создаём защищённый QR-код...",
+
+    partnerLogin:"Кабинет партнёра"
 
 },
 
@@ -1381,9 +1538,11 @@ kk:{
 
     heroLabel:"PRIVILEGE CLUB",
 
-    heroTitle:"Артықшылықтарыңыз осы жерден басталады.",
+    heroTitle:
+        "Артықшылықтарыңыз осы жерден басталады.",
 
-    heroText:"Серіктестерімізден арнайы шарттар, бонустар және артықшылықтар алыңыз.",
+    heroText:
+        "Серіктестерімізден арнайы шарттар, бонустар және артықшылықтар алыңыз.",
 
     heroPrimary:"Менің артықшылықтарым",
 
@@ -1437,19 +1596,22 @@ kk:{
 
     inactive:"Белсенді емес",
 
-    activeText:"Сіз клубтың барлық артықшылықтарын пайдалана аласыз.",
+    activeText:
+        "Сіз клубтың барлық артықшылықтарын пайдалана аласыз.",
 
-    inactiveText:"Жазылым әлі белсенді емес.",
+    inactiveText:
+        "Жазылым әлі белсенді емес.",
 
-    partnerCheck:"Қатысушыны тексеру",
+    partnerCheck:"Серіктес үшін",
 
-    partnerCheckSub:"BIZDE.KZ қатысушысының QR кодын сканерлеңіз",
+    partnerCheckSub:
+        "QR кодтармен жұмыс істеу үшін серіктес кабинетіне кіріңіз.",
 
-    scan:"QR сканерлеу",
+    scan:"Серіктес кабинетін ашу",
 
-    enterCode:"Немесе қатысушы кодын енгізіңіз",
+    enterCode:"",
 
-    verify:"Тексеру",
+    verify:"",
 
     verified:"Қатысушы расталды",
 
@@ -1483,48 +1645,83 @@ kk:{
 
     register:"Жалғастыру",
 
-    member:"BIZDE.KZ қатысушысы"
+    member:"BIZDE.KZ қатысушысы",
+
+    qrExpired:"QR кодының мерзімі аяқталды",
+
+    qrRefresh:"Жаңа QR алу",
+
+    qrSeconds:"сек.",
+
+    qrInfo:
+        "QR коды шектеулі уақыт жұмыс істейді және тек бір рет қолданылады.",
+
+    creatingQr:"Қорғалған QR коды жасалуда...",
+
+    partnerLogin:"Серіктес кабинеті"
 
 }
 
 };
 
 
-/* TRANSLATE */
+/* =========================
+   LANGUAGE
+========================= */
 
 function applyLanguage(){
 
-    const t = translations[currentLanguage];
+    const t =
+        translations[currentLanguage];
 
-    document.querySelectorAll("[data-i18n]").forEach(el=>{
+    document
+        .querySelectorAll("[data-i18n]")
+        .forEach(el=>{
 
-        const key = el.dataset.i18n;
+            const key =
+                el.dataset.i18n;
 
-        if(t[key]){
-            el.textContent = t[key];
-        }
+            if(t[key]){
+                el.textContent = t[key];
+            }
 
-    });
+        });
 
-    document.getElementById("langButton").textContent =
-        currentLanguage === "ru" ? "RU" : "KZ";
+    const langButton =
+        document.getElementById("langButton");
 
-    document.getElementById("languageText").textContent =
-        currentLanguage === "ru"
-        ? t.russian
-        : t.kazakh;
+    if(langButton){
+
+        langButton.textContent =
+            currentLanguage === "ru"
+            ? "RU"
+            : "KZ";
+
+    }
+
+    const languageText =
+        document.getElementById("languageText");
+
+    if(languageText){
+
+        languageText.textContent =
+            currentLanguage === "ru"
+            ? t.russian
+            : t.kazakh;
+
+    }
 
     updateStatus();
 
 }
 
 
-/* LANGUAGE */
-
 async function changeLanguage(){
 
     currentLanguage =
-        currentLanguage === "ru" ? "kk" : "ru";
+        currentLanguage === "ru"
+        ? "kk"
+        : "ru";
 
     localStorage.setItem(
         "bizdeLanguage",
@@ -1533,53 +1730,85 @@ async function changeLanguage(){
 
     applyLanguage();
 
-    if(bizdeUser){
-
-        try{
-
-            await fetch(API_URL + "/api/language",{
-
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify({
-
-                    telegram_id:bizdeUser.telegram_id,
-
-                    language:currentLanguage
-
-                })
-
-            });
-
-        }catch(e){}
-
+    if(!bizdeUser){
+        return;
     }
+
+    await apiFetch(
+        "/api/language",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                init_data:
+                    tg?.initData || "",
+
+                telegram_id:
+                    bizdeUser.telegram_id,
+
+                language:
+                    currentLanguage
+
+            })
+
+        }
+    );
 
 }
 
 
-/* API */
+/* =========================
+   API
+========================= */
 
-async function apiFetch(url, options={}){
+async function apiFetch(url,options={}){
 
     try{
 
         const response =
-            await fetch(API_URL + url, options);
+            await fetch(
+                API_URL + url,
+                options
+            );
 
-        return await response.json();
+        let data;
+
+        try{
+            data = await response.json();
+        }catch(e){
+            data = {};
+        }
+
+        if(!response.ok){
+
+            return {
+                success:false,
+                ok:false,
+                error:
+                    data.error ||
+                    "Ошибка сервера"
+            };
+
+        }
+
+        return data;
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "API ERROR:",
+            error
+        );
 
         return {
             success:false,
-            error:"Ошибка соединения"
+            ok:false,
+            error:"Ошибка соединения с сервером."
         };
 
     }
@@ -1587,11 +1816,13 @@ async function apiFetch(url, options={}){
 }
 
 
-/* AUTH */
+/* =========================
+   AUTH
+========================= */
 
 async function authWithBackend(){
 
-    let telegramUser =
+    const telegramUser =
         tg?.initDataUnsafe?.user;
 
     if(!telegramUser){
@@ -1612,41 +1843,49 @@ async function authWithBackend(){
 
     try{
 
-        const response =
-            await fetch(API_URL + "/api/auth",{
-
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify({
-
-                    init_data:tg.initData,
-
-                    telegram_id:telegramUser.id,
-
-                    name:
-                        telegramUser.first_name ||
-                        telegramUser.username ||
-                        "BIZDE Member",
-
-                    username:
-                        telegramUser.username || "",
-
-                    language:currentLanguage
-
-                })
-
-            });
-
         const data =
-            await response.json();
+            await apiFetch(
+                "/api/auth",
+                {
 
-        if((data.ok || data.success) && data.user){
+                    method:"POST",
 
-            bizdeUser = data.user;
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        init_data:
+                            tg?.initData || "",
+
+                        telegram_id:
+                            telegramUser.id,
+
+                        name:
+                            telegramUser.first_name ||
+                            telegramUser.username ||
+                            "BIZDE Member",
+
+                        username:
+                            telegramUser.username || "",
+
+                        language:
+                            currentLanguage
+
+                    })
+
+                }
+            );
+
+        if(
+            (data.ok || data.success) &&
+            data.user
+        ){
+
+            bizdeUser =
+                data.user;
 
             localStorage.setItem(
                 "bizdeUser",
@@ -1680,25 +1919,34 @@ async function authWithBackend(){
 }
 
 
-/* REGISTRATION */
+/* =========================
+   REGISTRATION
+========================= */
 
 function showRegistration(){
 
-    document.getElementById("modalTitle").textContent =
-        translations[currentLanguage].registerTitle;
+    const t =
+        translations[currentLanguage];
 
-    document.getElementById("modalContent").innerHTML = `
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.registerTitle;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <input
             id="regName"
             class="modal-input"
-            placeholder="${translations[currentLanguage].name}"
+            placeholder="${escapeHTML(t.name)}"
         >
 
         <input
             id="regPhone"
             class="modal-input"
-            placeholder="${translations[currentLanguage].phone}"
+            placeholder="${escapeHTML(t.phone)}"
             type="tel"
         >
 
@@ -1710,17 +1958,20 @@ function showRegistration(){
             font-size:12px;
         ">
 
-            <input id="terms" type="checkbox">
+            <input
+                id="terms"
+                type="checkbox">
 
-            ${translations[currentLanguage].accept}
+            ${escapeHTML(t.accept)}
 
         </label>
 
         <button
             class="modal-button"
-            onclick="submitRegistration()"
-        >
-            ${translations[currentLanguage].register}
+            onclick="submitRegistration()">
+
+            ${escapeHTML(t.register)}
+
         </button>
 
     `;
@@ -1733,13 +1984,21 @@ function showRegistration(){
 async function submitRegistration(){
 
     const name =
-        document.getElementById("regName").value.trim();
+        document
+            .getElementById("regName")
+            .value
+            .trim();
 
     const phone =
-        document.getElementById("regPhone").value.trim();
+        document
+            .getElementById("regPhone")
+            .value
+            .trim();
 
     const terms =
-        document.getElementById("terms").checked;
+        document
+            .getElementById("terms")
+            .checked;
 
     if(!name || !phone || !terms){
 
@@ -1758,44 +2017,60 @@ async function submitRegistration(){
 
     if(!telegramUser){
 
-        alert("Откройте приложение через Telegram.");
+        alert(
+            currentLanguage === "ru"
+            ? "Откройте приложение через Telegram."
+            : "Қосымшаны Telegram арқылы ашыңыз."
+        );
 
         return;
 
     }
 
     const data =
-        await apiFetch("/api/auth",{
+        await apiFetch(
+            "/api/auth",
+            {
 
-            method:"POST",
+                method:"POST",
 
-            headers:{
-                "Content-Type":"application/json"
-            },
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
 
-            body:JSON.stringify({
+                body:JSON.stringify({
 
-                init_data:tg?.initData || "",
+                    init_data:
+                        tg?.initData || "",
 
-                telegram_id:telegramUser.id,
+                    telegram_id:
+                        telegramUser.id,
 
-                name:name,
+                    name:name,
 
-                username:telegramUser.username || "",
+                    username:
+                        telegramUser.username || "",
 
-                phone:phone,
+                    phone:phone,
 
-                terms_accepted:true,
+                    terms_accepted:true,
 
-                language:currentLanguage
+                    language:
+                        currentLanguage
 
-            })
+                })
 
-        });
+            }
+        );
 
-    if((data.ok || data.success) && data.user){
+    if(
+        (data.ok || data.success) &&
+        data.user
+    ){
 
-        bizdeUser = data.user;
+        bizdeUser =
+            data.user;
 
         localStorage.setItem(
             "bizdeUser",
@@ -1818,7 +2093,9 @@ async function submitRegistration(){
 }
 
 
-/* UI */
+/* =========================
+   USER UI
+========================= */
 
 function updateUI(){
 
@@ -1830,25 +2107,41 @@ function updateUI(){
         bizdeUser.name ||
         "BIZDE Member";
 
-    document.getElementById("profileName").textContent =
+    document.getElementById(
+        "profileName"
+    ).textContent =
         name;
 
-    document.getElementById("avatar").textContent =
-        name.charAt(0).toUpperCase();
+    document.getElementById(
+        "avatar"
+    ).textContent =
+        name
+            .charAt(0)
+            .toUpperCase();
 
-    document.getElementById("profileMember").textContent =
+    document.getElementById(
+        "profileMember"
+    ).textContent =
         bizdeUser.member_code ||
         translations[currentLanguage].member;
 
-    document.getElementById("profileSavings").textContent =
-        formatMoney(bizdeUser.total_savings || 0);
+    document.getElementById(
+        "profileSavings"
+    ).textContent =
+        formatMoney(
+            bizdeUser.total_savings || 0
+        );
 
-    document.getElementById("profileSubscription").textContent =
+    document.getElementById(
+        "profileSubscription"
+    ).textContent =
         bizdeUser.subscription_active
         ? translations[currentLanguage].active
         : translations[currentLanguage].inactive;
 
-    document.getElementById("profileSubText").textContent =
+    document.getElementById(
+        "profileSubText"
+    ).textContent =
         bizdeUser.subscription_active
         ? translations[currentLanguage].activeText
         : translations[currentLanguage].inactiveText;
@@ -1863,67 +2156,116 @@ function updateStatus(){
     const active =
         !!bizdeUser?.subscription_active;
 
-    document.getElementById("statusText").textContent =
-        active
-        ? translations[currentLanguage].activeText
-        : translations[currentLanguage].inactiveText;
+    const statusText =
+        document.getElementById("statusText");
 
     const badge =
         document.getElementById("statusBadge");
 
-    badge.textContent =
-        active
-        ? translations[currentLanguage].active
-        : translations[currentLanguage].inactive;
+    if(statusText){
 
-    badge.className =
-        active ? "badge" : "badge off";
+        statusText.textContent =
+            active
+            ? translations[currentLanguage].activeText
+            : translations[currentLanguage].inactiveText;
+
+    }
+
+    if(badge){
+
+        badge.textContent =
+            active
+            ? translations[currentLanguage].active
+            : translations[currentLanguage].inactive;
+
+        badge.className =
+            active
+            ? "badge"
+            : "badge off";
+
+    }
 
 }
 
 
-/* MONEY */
+/* =========================
+   MONEY
+========================= */
 
 function formatMoney(value){
 
     return Number(value || 0)
-        .toLocaleString("ru-RU") + " ₸";
+        .toLocaleString("ru-RU") +
+        " ₸";
 
 }
 
 
-/* PAGES */
+/* =========================
+   PAGES
+========================= */
 
 function showPage(pageId){
 
-    document.querySelectorAll(".page")
+    document
+        .querySelectorAll(".page")
         .forEach(page=>{
-            page.classList.remove("active");
+
+            page.classList.remove(
+                "active"
+            );
+
         });
 
-    document.getElementById(pageId)
-        .classList.add("active");
+    const page =
+        document.getElementById(pageId);
 
-    document.querySelectorAll(".nav")
+    if(page){
+
+        page.classList.add("active");
+
+    }
+
+    document
+        .querySelectorAll(".nav")
         .forEach(nav=>{
+
             nav.classList.remove("active");
+
         });
 
     if(pageId === "homePage"){
-        document.getElementById("navHome").classList.add("active");
+
+        document
+            .getElementById("navHome")
+            .classList.add("active");
+
     }
 
     if(pageId === "favoritesPage"){
-        document.getElementById("navFavorites").classList.add("active");
+
+        document
+            .getElementById("navFavorites")
+            .classList.add("active");
+
         renderFavorites();
+
     }
 
     if(pageId === "mapPage"){
-        document.getElementById("navMap").classList.add("active");
+
+        document
+            .getElementById("navMap")
+            .classList.add("active");
+
     }
 
     if(pageId === "profilePage"){
-        document.getElementById("navProfile").classList.add("active");
+
+        document
+            .getElementById("navProfile")
+            .classList.add("active");
+
     }
 
     window.scrollTo({
@@ -1934,16 +2276,24 @@ function showPage(pageId){
 }
 
 
-/* PARTNERS */
+/* =========================
+   PARTNERS
+========================= */
 
 async function loadPartners(){
 
     const data =
-        await apiFetch("/api/partners");
+        await apiFetch(
+            "/api/partners"
+        );
 
-    if(data.success && Array.isArray(data.partners)){
+    if(
+        (data.success || data.ok) &&
+        Array.isArray(data.partners)
+    ){
 
-        allPartners = data.partners;
+        allPartners =
+            data.partners;
 
     }else{
 
@@ -1953,7 +2303,8 @@ async function loadPartners(){
                 id:1,
                 name:"Partner 1",
                 category:"restaurant",
-                description:"Ресторан восточной кухни",
+                description:
+                    "Ресторан восточной кухни",
                 discount_percent:20
             },
 
@@ -1961,7 +2312,8 @@ async function loadPartners(){
                 id:2,
                 name:"VERO Café",
                 category:"cafe",
-                description:"Кофе и десерты",
+                description:
+                    "Кофе и десерты",
                 discount_percent:20
             },
 
@@ -1969,7 +2321,8 @@ async function loadPartners(){
                 id:3,
                 name:"FITROOM",
                 category:"sport",
-                description:"Спорт и тренировки",
+                description:
+                    "Спорт и тренировки",
                 discount_percent:15
             },
 
@@ -1977,7 +2330,8 @@ async function loadPartners(){
                 id:4,
                 name:"Beauty Room",
                 category:"beauty",
-                description:"Красота и уход",
+                description:
+                    "Красота и уход",
                 discount_percent:15
             }
 
@@ -1995,9 +2349,13 @@ function renderPartners(){
     let partners =
         [...allPartners];
 
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
+
     const search =
-        document.getElementById("searchInput")
-            ?.value
+        input?.value
             ?.toLowerCase()
             ?.trim();
 
@@ -2005,7 +2363,11 @@ function renderPartners(){
 
         partners =
             partners.filter(
-                p=>p.category === activeCategory
+                p =>
+                    String(p.category)
+                    .toLowerCase() ===
+                    String(activeCategory)
+                    .toLowerCase()
             );
 
     }
@@ -2013,9 +2375,9 @@ function renderPartners(){
     if(search){
 
         partners =
-            partners.filter(p=>
+            partners.filter(p =>
 
-                String(p.name)
+                String(p.name || "")
                     .toLowerCase()
                     .includes(search)
 
@@ -2030,19 +2392,29 @@ function renderPartners(){
     }
 
     const container =
-        document.getElementById("homePartners");
+        document.getElementById(
+            "homePartners"
+        );
+
+    if(!container){
+        return;
+    }
 
     if(!partners.length){
 
         container.innerHTML =
-            `<div class="empty">Партнёры не найдены.</div>`;
+            `<div class="empty">
+                Партнёры не найдены.
+            </div>`;
 
         return;
 
     }
 
     container.innerHTML =
-        partners.map(partnerCard).join("");
+        partners
+            .map(partnerCard)
+            .join("");
 
 }
 
@@ -2050,22 +2422,25 @@ function renderPartners(){
 function partnerCard(partner){
 
     const isFavorite =
-        favorites.includes(Number(partner.id));
+        favorites.includes(
+            Number(partner.id)
+        );
 
     const letter =
-        String(partner.name || "B")
-            .charAt(0)
-            .toUpperCase();
+        String(
+            partner.name || "B"
+        )
+        .charAt(0)
+        .toUpperCase();
 
     return `
 
         <div
             class="partner"
-            onclick="openPartner(${partner.id})"
-        >
+            onclick="openPartner(${Number(partner.id)})">
 
             <div class="partner-logo">
-                ${letter}
+                ${escapeHTML(letter)}
             </div>
 
             <div class="partner-info">
@@ -2075,20 +2450,34 @@ function partnerCard(partner){
                 </div>
 
                 <div class="partner-desc">
-                    ${escapeHTML(partner.description || "")}
+                    ${escapeHTML(
+                        partner.description || ""
+                    )}
                 </div>
 
                 <div class="partner-discount">
-                    ${partner.discount_percent || 0}% PRIVILEGE
+                    ${Number(
+                        partner.discount_percent || 0
+                    )}% PRIVILEGE
                 </div>
 
             </div>
 
             <button
                 class="favorite"
-                onclick="toggleFavorite(event,${partner.id})"
-            >
-                ${isFavorite ? "♥" : "♡"}
+                onclick="
+                    toggleFavorite(
+                        event,
+                        ${Number(partner.id)}
+                    )
+                ">
+
+                ${
+                    isFavorite
+                    ? "♥"
+                    : "♡"
+                }
+
             </button>
 
         </div>
@@ -2102,17 +2491,23 @@ function openPartner(id){
 
     const partner =
         allPartners.find(
-            p=>Number(p.id) === Number(id)
+            p =>
+                Number(p.id) ===
+                Number(id)
         );
 
     if(!partner){
         return;
     }
 
-    document.getElementById("modalTitle").textContent =
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
         partner.name;
 
-    document.getElementById("modalContent").innerHTML = `
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <div style="
             background:var(--surface2);
@@ -2125,7 +2520,11 @@ function openPartner(id){
                 font-weight:900;
                 color:var(--green);
             ">
-                ${partner.discount_percent || 0}%
+
+                ${Number(
+                    partner.discount_percent || 0
+                )}%
+
             </div>
 
             <div style="
@@ -2137,10 +2536,15 @@ function openPartner(id){
 
         </div>
 
-        <div style="margin-top:15px;line-height:1.5;">
+        <div style="
+            margin-top:15px;
+            line-height:1.5;
+        ">
 
             <strong>
-                ${escapeHTML(partner.description || "")}
+                ${escapeHTML(
+                    partner.description || ""
+                )}
             </strong>
 
             <p style="
@@ -2148,10 +2552,12 @@ function openPartner(id){
                 font-size:13px;
                 margin-top:8px;
             ">
+
                 ${escapeHTML(
                     partner.conditions ||
                     "Привилегия доступна участникам BIZDE.KZ."
                 )}
+
             </p>
 
         </div>
@@ -2162,12 +2568,13 @@ function openPartner(id){
                 hideModal();
                 useOffer(
                     '${escapeJS(partner.name)}',
-                    ${partner.discount_percent || 0},
-                    ${partner.id}
+                    ${Number(partner.discount_percent || 0)},
+                    ${Number(partner.id)}
                 );
-            "
-        >
+            ">
+
             Использовать привилегию
+
         </button>
 
     `;
@@ -2177,18 +2584,35 @@ function openPartner(id){
 }
 
 
-/* CATEGORY */
+/* =========================
+   CATEGORY
+========================= */
 
-function filterCategory(category, button){
+function filterCategory(
+    category,
+    button
+){
 
-    activeCategory = category;
+    activeCategory =
+        category;
 
-    document.querySelectorAll(".category")
+    document
+        .querySelectorAll(".category")
         .forEach(el=>{
-            el.classList.remove("active");
+
+            el.classList.remove(
+                "active"
+            );
+
         });
 
-    button.classList.add("active");
+    if(button){
+
+        button.classList.add(
+            "active"
+        );
+
+    }
 
     renderPartners();
 
@@ -2202,18 +2626,27 @@ function searchPartners(){
 }
 
 
-/* FAVORITES */
+/* =========================
+   FAVORITES
+========================= */
 
-function toggleFavorite(event,id){
+function toggleFavorite(
+    event,
+    id
+){
 
     event.stopPropagation();
 
     id = Number(id);
 
-    if(favorites.includes(id)){
+    if(
+        favorites.includes(id)
+    ){
 
         favorites =
-            favorites.filter(x=>x !== id);
+            favorites.filter(
+                x => x !== id
+            );
 
     }else{
 
@@ -2227,6 +2660,7 @@ function toggleFavorite(event,id){
     );
 
     renderPartners();
+
     renderFavorites();
 
 }
@@ -2235,7 +2669,9 @@ function toggleFavorite(event,id){
 function renderFavorites(){
 
     const container =
-        document.getElementById("favoritePartners");
+        document.getElementById(
+            "favoritePartners"
+        );
 
     if(!container){
         return;
@@ -2243,14 +2679,21 @@ function renderFavorites(){
 
     const list =
         allPartners.filter(
-            p=>favorites.includes(Number(p.id))
+            p =>
+                favorites.includes(
+                    Number(p.id)
+                )
         );
 
     if(!list.length){
 
         container.innerHTML =
             `<div class="empty">
-                ${translations[currentLanguage].noFavorites}
+                ${
+                    translations[
+                        currentLanguage
+                    ].noFavorites
+                }
             </div>`;
 
         return;
@@ -2258,7 +2701,9 @@ function renderFavorites(){
     }
 
     container.innerHTML =
-        list.map(partnerCard).join("");
+        list
+            .map(partnerCard)
+            .join("");
 
 }
 
@@ -2270,9 +2715,15 @@ function restoreFavorites(){
 }
 
 
-/* OFFER */
+/* =========================
+   USE PRIVILEGE
+========================= */
 
-function useOffer(name,discount,partnerId){
+function useOffer(
+    name,
+    discount,
+    partnerId
+){
 
     if(!bizdeUser){
 
@@ -2298,47 +2749,107 @@ function useOffer(name,discount,partnerId){
 
     }
 
-    showQR(name,discount,partnerId);
+    showQR(
+        name,
+        discount,
+        partnerId
+    );
 
 }
 
 
-/* QR */
+/* =========================
+   PROTECTED QR
+========================= */
 
-function showQR(name,discount,partnerId){
+async function showQR(
+    name,
+    discount,
+    partnerId
+){
 
-    const code =
-        bizdeUser?.member_code;
+    if(!bizdeUser){
 
-    if(!code){
-
-        alert("У вас ещё нет карты участника.");
+        showRegistration();
 
         return;
 
     }
 
-    document.getElementById("modalTitle").textContent =
-        "Ваша привилегия";
+    if(!bizdeUser.subscription_active){
 
-    document.getElementById("modalContent").innerHTML = `
+        openSubscription();
+
+        return;
+
+    }
+
+    if(!tg?.initData){
+
+        alert(
+            currentLanguage === "ru"
+            ? "Откройте приложение через Telegram."
+            : "Қосымшаны Telegram арқылы ашыңыз."
+        );
+
+        return;
+
+    }
+
+    clearQrTimer();
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        currentLanguage === "ru"
+        ? "Ваша привилегия"
+        : "Сіздің артықшылығыңыз";
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <div style="
             text-align:center;
             color:var(--muted);
             font-size:12px;
         ">
-            Покажите этот QR-код партнёру
+
+            ${
+                translations[
+                    currentLanguage
+                ].creatingQr
+            }
+
         </div>
 
-        <div class="qr-wrap">
+        <div
+            class="qr-wrap"
+            style="min-height:248px;align-items:center;">
 
-            <div id="qrCode"></div>
+            <div
+                id="qrCode"
+                style="
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                ">
+
+                <div style="
+                    color:var(--muted);
+                    font-size:12px;
+                ">
+                    ...
+                </div>
+
+            </div>
 
         </div>
 
         <div class="member-code">
-            ${escapeHTML(code)}
+            ${escapeHTML(
+                bizdeUser.member_code || ""
+            )}
         </div>
 
         <div style="
@@ -2347,44 +2858,276 @@ function showQR(name,discount,partnerId){
             font-weight:900;
             color:var(--green);
         ">
-            ${escapeHTML(name)} — ${discount}%
+
+            ${escapeHTML(name)}
+            —
+            ${escapeHTML(discount)}%
+
+        </div>
+
+        <div
+            id="qrTimer"
+            class="qr-timer">
+        </div>
+
+        <div class="qr-warning">
+
+            ${
+                translations[
+                    currentLanguage
+                ].qrInfo
+            }
+
         </div>
 
     `;
 
     showModal();
 
-    setTimeout(()=>{
+    const data =
+        await apiFetch(
+            "/api/qr/create",
+            {
 
-        const qr =
-            document.getElementById("qrCode");
+                method:"POST",
 
-        if(qr){
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
 
-            new QRCode(qr,{
+                body:JSON.stringify({
 
-                text:code,
+                    init_data:
+                        tg.initData,
 
-                width:220,
+                    partner_id:
+                        partnerId
+                            ? Number(partnerId)
+                            : null
 
-                height:220,
+                })
 
-                colorDark:"#071f1d",
+            }
+        );
 
-                colorLight:"#ffffff",
+    if(
+        !(data.success || data.ok) ||
+        !data.token
+    ){
 
-                correctLevel:QRCode.CorrectLevel.H
+        document.getElementById(
+            "modalContent"
+        ).innerHTML = `
 
-            });
+            <div class="result error">
+
+                ${
+                    escapeHTML(
+                        data.error ||
+                        "Не удалось создать QR-код."
+                    )
+                }
+
+            </div>
+
+            <button
+                class="modal-button"
+                onclick="hideModal()">
+
+                ${translations[currentLanguage].done}
+
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+    currentQrToken =
+        data.token;
+
+    const qr =
+        document.getElementById(
+            "qrCode"
+        );
+
+    if(!qr){
+        return;
+    }
+
+    qr.innerHTML = "";
+
+    if(!window.QRCode){
+
+        qr.innerHTML = `
+            <div style="
+                color:#8a4444;
+                padding:20px;
+                text-align:center;
+            ">
+                QR-библиотека не загрузилась.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    new QRCode(
+        qr,
+        {
+
+            text:
+                data.token,
+
+            width:220,
+
+            height:220,
+
+            colorDark:"#071f1d",
+
+            colorLight:"#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.H
 
         }
+    );
 
-    },100);
+    startQrTimer(
+        data.expires_at
+    );
 
 }
 
 
-/* CARD */
+/* =========================
+   QR TIMER
+========================= */
+
+function startQrTimer(
+    expiresAt
+){
+
+    clearQrTimer();
+
+    let expires =
+        new Date(
+            expiresAt
+        ).getTime();
+
+    if(
+        !Number.isFinite(expires)
+    ){
+
+        expires =
+            Date.now() + 60000;
+
+    }
+
+    const timer =
+        document.getElementById(
+            "qrTimer"
+        );
+
+    function update(){
+
+        const seconds =
+            Math.max(
+                0,
+                Math.ceil(
+                    (expires - Date.now()) /
+                    1000
+                )
+            );
+
+        if(!timer){
+            return;
+        }
+
+        if(seconds <= 0){
+
+            timer.textContent =
+                translations[
+                    currentLanguage
+                ].qrExpired;
+
+            timer.style.color =
+                "#8a4444";
+
+            clearQrTimer();
+
+            const qr =
+                document.getElementById(
+                    "qrCode"
+                );
+
+            if(qr){
+
+                qr.innerHTML = `
+
+                    <div style="
+                        text-align:center;
+                        padding:35px 20px;
+                        color:#8a4444;
+                        font-weight:900;
+                    ">
+
+                        QR-код истёк
+
+                    </div>
+
+                `;
+
+            }
+
+            return;
+
+        }
+
+        timer.textContent =
+            "QR: " +
+            seconds +
+            " " +
+            translations[
+                currentLanguage
+            ].qrSeconds;
+
+    }
+
+    update();
+
+    currentQrTimer =
+        setInterval(
+            update,
+            500
+        );
+
+}
+
+
+function clearQrTimer(){
+
+    if(currentQrTimer){
+
+        clearInterval(
+            currentQrTimer
+        );
+
+        currentQrTimer = null;
+
+    }
+
+    currentQrToken = null;
+
+}
+
+
+/* =========================
+   CARD
+========================= */
 
 function openCard(){
 
@@ -2396,26 +3139,43 @@ function openCard(){
 
     }
 
+    if(!bizdeUser.subscription_active){
+
+        openSubscription();
+
+        return;
+
+    }
+
     showQR(
         "BIZDE Privilege Card",
-        "Участник",
+        "100",
         null
     );
 
 }
 
 
-/* SUBSCRIPTION */
+/* =========================
+   SUBSCRIPTION
+========================= */
 
 function openSubscription(){
 
     const active =
         !!bizdeUser?.subscription_active;
 
-    document.getElementById("modalTitle").textContent =
-        translations[currentLanguage].subscription;
+    const t =
+        translations[currentLanguage];
 
-    document.getElementById("modalContent").innerHTML = `
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.subscription;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <div style="
             text-align:center;
@@ -2426,19 +3186,31 @@ function openSubscription(){
                 font-size:48px;
                 margin-bottom:10px;
             ">
-                ${active ? "✦" : "○"}
+
+                ${
+                    active
+                    ? "✦"
+                    : "○"
+                }
+
             </div>
 
             <div style="
                 font-size:22px;
                 font-weight:900;
-                color:${active ? "var(--green)" : "var(--text)"};
+                color:${
+                    active
+                    ? "var(--green)"
+                    : "var(--text)"
+                };
             ">
+
                 ${
                     active
-                    ? translations[currentLanguage].active
-                    : translations[currentLanguage].inactive
+                    ? t.active
+                    : t.inactive
                 }
+
             </div>
 
             <p style="
@@ -2447,11 +3219,13 @@ function openSubscription(){
                 line-height:1.5;
                 margin-top:9px;
             ">
+
                 ${
                     active
-                    ? translations[currentLanguage].activeText
-                    : translations[currentLanguage].inactiveText
+                    ? t.activeText
+                    : t.inactiveText
                 }
+
             </p>
 
         </div>
@@ -2463,7 +3237,9 @@ function openSubscription(){
 }
 
 
-/* HISTORY */
+/* =========================
+   HISTORY
+========================= */
 
 async function openHistory(){
 
@@ -2475,10 +3251,16 @@ async function openHistory(){
 
     }
 
-    document.getElementById("modalTitle").textContent =
-        translations[currentLanguage].history;
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        translations[
+            currentLanguage
+        ].history;
 
-    document.getElementById("modalContent").innerHTML =
+    document.getElementById(
+        "modalContent"
+    ).innerHTML =
         `<div class="empty">Загрузка...</div>`;
 
     showModal();
@@ -2486,14 +3268,25 @@ async function openHistory(){
     const data =
         await apiFetch(
             "/api/history?init_data=" +
-            encodeURIComponent(tg?.initData || "")
+            encodeURIComponent(
+                tg?.initData || ""
+            )
         );
 
-    if(!(data.ok || data.success)){
+    if(
+        !(data.ok || data.success)
+    ){
 
-        document.getElementById("modalContent").innerHTML =
+        document.getElementById(
+            "modalContent"
+        ).innerHTML =
             `<div class="empty">
-                Не удалось загрузить историю.
+                ${
+                    escapeHTML(
+                        data.error ||
+                        "Не удалось загрузить историю."
+                    )
+                }
             </div>`;
 
         return;
@@ -2505,7 +3298,9 @@ async function openHistory(){
 
     if(!history.length){
 
-        document.getElementById("modalContent").innerHTML =
+        document.getElementById(
+            "modalContent"
+        ).innerHTML =
             `<div class="empty">
                 История пока пустая.
             </div>`;
@@ -2514,56 +3309,91 @@ async function openHistory(){
 
     }
 
-    document.getElementById("modalContent").innerHTML =
-        history.map(item=>`
+    document.getElementById(
+        "modalContent"
+    ).innerHTML =
 
-            <div style="
-                padding:15px 0;
-                border-bottom:1px solid var(--line);
-            ">
+        history
+            .map(
+                item => `
 
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                ">
+                    <div style="
+                        padding:15px 0;
+                        border-bottom:1px solid var(--line);
+                    ">
 
-                    <strong>
-                        ${escapeHTML(item.partner_name || "Партнёр")}
-                    </strong>
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:10px;
+                        ">
 
-                    <strong style="color:var(--green);">
-                        +${formatMoney(item.savings)}
-                    </strong>
+                            <strong>
+                                ${escapeHTML(
+                                    item.partner_name ||
+                                    "Партнёр"
+                                )}
+                            </strong>
 
-                </div>
+                            <strong style="
+                                color:var(--green);
+                                white-space:nowrap;
+                            ">
 
-                <div style="
-                    color:var(--muted);
-                    font-size:12px;
-                    margin-top:5px;
-                ">
-                    Чек: ${formatMoney(item.receipt_amount)}
-                    · ${item.discount_percent}%
-                </div>
+                                +${formatMoney(
+                                    item.savings
+                                )}
 
-            </div>
+                            </strong>
 
-        `).join("");
+                        </div>
+
+                        <div style="
+                            color:var(--muted);
+                            font-size:12px;
+                            margin-top:5px;
+                        ">
+
+                            Чек:
+                            ${formatMoney(
+                                item.receipt_amount
+                            )}
+
+                            ·
+                            ${Number(
+                                item.discount_percent || 0
+                            )}%
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
 
 }
 
 
-/* SAVINGS */
+/* =========================
+   SAVINGS
+========================= */
 
 function openSavings(){
 
-    document.getElementById("modalTitle").textContent =
-        translations[currentLanguage].savings;
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        translations[
+            currentLanguage
+        ].savings;
 
     const total =
         bizdeUser?.total_savings || 0;
 
-    document.getElementById("modalContent").innerHTML = `
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <div style="
             text-align:center;
@@ -2574,7 +3404,13 @@ function openSavings(){
                 color:var(--muted);
                 font-size:12px;
             ">
-                ${translations[currentLanguage].totalSavings}
+
+                ${
+                    translations[
+                        currentLanguage
+                    ].totalSavings
+                }
+
             </div>
 
             <div style="
@@ -2583,7 +3419,9 @@ function openSavings(){
                 font-weight:900;
                 margin-top:7px;
             ">
+
                 ${formatMoney(total)}
+
             </div>
 
         </div>
@@ -2595,61 +3433,58 @@ function openSavings(){
 }
 
 
-/* PARTNER SCANNER */
-
-let scanner = null;
+/* =========================
+   PARTNER LOGIN
+========================= */
 
 function openPartnerScanner(){
 
-    document.getElementById("modalTitle").textContent =
-        translations[currentLanguage].partnerCheck;
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        translations[
+            currentLanguage
+        ].partnerLogin;
 
-    document.getElementById("modalContent").innerHTML = `
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
 
         <div class="verify-box">
 
             <div class="verify-status">
-                ${translations[currentLanguage].partnerCheck}
+
+                ${
+                    translations[
+                        currentLanguage
+                    ].partnerLogin
+                }
+
             </div>
 
             <div class="verify-sub">
-                ${translations[currentLanguage].partnerCheckSub}
+
+                ${
+                    translations[
+                        currentLanguage
+                    ].partnerCheckSub
+                }
+
             </div>
 
         </div>
 
-        <div id="reader"></div>
-
         <button
             class="modal-button"
-            onclick="startScanner()"
-        >
-            ${translations[currentLanguage].scan}
+            onclick="openPartnerCabinet()">
+
+            ${
+                translations[
+                    currentLanguage
+                ].scan
+            }
+
         </button>
-
-        <div style="
-            text-align:center;
-            color:var(--muted);
-            font-size:12px;
-            margin:15px 0 5px;
-        ">
-            ${translations[currentLanguage].enterCode}
-        </div>
-
-        <input
-            id="memberCodeInput"
-            class="modal-input"
-            placeholder="BIZDE-XXXXXXXX"
-        >
-
-        <button
-            class="secondary-button"
-            onclick="verifyMemberByInput()"
-        >
-            ${translations[currentLanguage].verify}
-        </button>
-
-        <div id="verifyResult"></div>
 
     `;
 
@@ -2658,402 +3493,76 @@ function openPartnerScanner(){
 }
 
 
-async function startScanner(){
+function openPartnerCabinet(){
 
-    if(!window.Html5Qrcode){
-
-        alert("Сканер временно недоступен. Введите код вручную.");
-
-        return;
-
-    }
-
-    if(scanner){
+    if(tg){
 
         try{
-            await scanner.stop();
+
+            tg.openLink(
+                PARTNER_PAGE
+            );
+
+            return;
+
         }catch(e){}
 
     }
 
-    scanner =
-        new Html5Qrcode("reader");
+    window.location.href =
+        PARTNER_PAGE;
 
-    try{
+}
 
-        await scanner.start(
 
-            {
-                facingMode:"environment"
-            },
+/* =========================
+   LEGACY VERIFY
+========================= */
 
-            {
-                fps:10,
-                qrbox:220
-            },
+/*
+   Старый сканер намеренно не используется
+   для проведения операции.
 
-            async decodedText=>{
+   Теперь пользователь показывает временный
+   QR-токен, а партнёр проверяет его через
+   partner.html.
 
-                if(scanner){
+   Это важно для безопасности.
+*/
 
-                    try{
-                        await scanner.stop();
-                    }catch(e){}
+async function verifyMember(code){
 
-                }
-
-                document.getElementById(
-                    "memberCodeInput"
-                ).value = decodedText;
-
-                await verifyMember(decodedText);
-
-            },
-
-            ()=>{}
-
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-        alert(
-            "Не удалось открыть камеру. Введите код участника вручную."
-        );
-
+    if(!code){
+        return;
     }
+
+    return null;
 
 }
 
 
 async function verifyMemberByInput(){
 
-    const code =
-        document.getElementById(
-            "memberCodeInput"
-        ).value.trim();
-
-    if(!code){
-
-        alert("Введите код участника.");
-
-        return;
-
-    }
-
-    await verifyMember(code);
+    return null;
 
 }
 
 
-async function verifyMember(code){
+async function startScanner(){
 
-    const result =
-        document.getElementById("verifyResult");
-
-    result.innerHTML =
-        `<div class="verify-box">Проверяем участника...</div>`;
-
-    const data =
-        await apiFetch("/api/verify-member",{
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                member_code:code
-            })
-
-        });
-
-    if(!data.success){
-
-        result.innerHTML = `
-
-            <div class="result error">
-                ${translations[currentLanguage].notFound}
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-    const user =
-        data.user;
-
-    if(!user.subscription_active){
-
-        result.innerHTML = `
-
-            <div class="result error">
-
-                ${escapeHTML(user.name || "Участник")}
-
-                <br>
-
-                ${translations[currentLanguage].subscriptionInactive}
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-    result.innerHTML = `
-
-        <div class="result">
-
-            ${translations[currentLanguage].verified}
-
-            <br><br>
-
-            👤 ${escapeHTML(user.name || "Участник")}
-
-            <br>
-
-            <span style="font-size:12px;">
-                ${translations[currentLanguage].subscriptionActive}
-            </span>
-
-        </div>
-
-        <div style="margin-top:14px;">
-
-            <div style="
-                font-weight:900;
-                margin-bottom:8px;
-            ">
-                ${translations[currentLanguage].choosePartner}
-            </div>
-
-            <select
-                id="partnerSelect"
-                class="modal-input"
-            >
-
-                <option value="">
-                    Выберите партнёра
-                </option>
-
-                ${allPartners.map(p=>`
-
-                    <option value="${p.id}">
-                        ${escapeHTML(p.name)}
-                        — ${p.discount_percent}%
-                    </option>
-
-                `).join("")}
-
-            </select>
-
-            <input
-                id="receiptAmount"
-                class="modal-input"
-                type="number"
-                min="1"
-                placeholder="${translations[currentLanguage].receiptAmount}"
-            >
-
-            <button
-                class="modal-button"
-                onclick="partnerUseOffer('${escapeJS(code)}')"
-            >
-                ${translations[currentLanguage].calculate}
-            </button>
-
-        </div>
-
-    `;
+    return null;
 
 }
 
 
-/* PARTNER TRANSACTION */
-
-async function partnerUseOffer(memberCode){
-
-    const partnerId =
-        document.getElementById(
-            "partnerSelect"
-        ).value;
-
-    const receipt =
-        document.getElementById(
-            "receiptAmount"
-        ).value;
-
-    if(!partnerId || !receipt){
-
-        alert("Выберите партнёра и укажите сумму чека.");
-
-        return;
-
-    }
-
-    const data =
-        await apiFetch(
-            "/api/partner-use-offer",{
-
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify({
-
-                    member_code:memberCode,
-
-                    partner_id:Number(partnerId),
-
-                    receipt_amount:Number(receipt)
-
-                })
-
-            }
-        );
-
-    if(!data.success){
-
-        alert(
-            data.error ||
-            "Не удалось провести операцию."
-        );
-
-        return;
-
-    }
-
-    document.getElementById("modalContent").innerHTML = `
-
-        <div style="
-            text-align:center;
-            padding:20px 5px;
-        ">
-
-            <div style="
-                font-size:55px;
-                color:var(--green);
-            ">
-                ✓
-            </div>
-
-            <div style="
-                font-size:22px;
-                font-weight:900;
-                margin-top:5px;
-            ">
-                Готово
-            </div>
-
-            <div style="
-                color:var(--muted);
-                margin-top:15px;
-            ">
-                ${escapeHTML(data.partner?.name || "")}
-            </div>
-
-            <div style="
-                margin-top:20px;
-                background:var(--surface2);
-                border-radius:20px;
-                padding:18px;
-            ">
-
-                <div style="font-size:12px;color:var(--muted);">
-                    ${translations[currentLanguage].receiptAmount}
-                </div>
-
-                <div style="
-                    font-size:20px;
-                    font-weight:900;
-                    margin-top:4px;
-                ">
-                    ${formatMoney(data.receipt_amount)}
-                </div>
-
-                <div style="
-                    font-size:12px;
-                    color:var(--muted);
-                    margin-top:13px;
-                ">
-                    ${translations[currentLanguage].saving}
-                </div>
-
-                <div style="
-                    font-size:28px;
-                    font-weight:900;
-                    color:var(--green);
-                    margin-top:3px;
-                ">
-                    ${formatMoney(data.savings)}
-                </div>
-
-                <div style="
-                    font-size:12px;
-                    color:var(--muted);
-                    margin-top:13px;
-                ">
-                    ${translations[currentLanguage].totalSavings}
-                </div>
-
-                <div style="
-                    font-size:19px;
-                    font-weight:900;
-                    margin-top:3px;
-                ">
-                    ${formatMoney(data.total_savings)}
-                </div>
-
-            </div>
-
-            <button
-                class="modal-button"
-                onclick="hideModal()"
-            >
-                ${translations[currentLanguage].done}
-            </button>
-
-        </div>
-
-    `;
-
-    /* Если операция проведена для текущего пользователя,
-       обновляем его локальные данные */
-
-    if(
-        bizdeUser &&
-        bizdeUser.member_code === memberCode
-    ){
-
-        bizdeUser.total_savings =
-            data.total_savings;
-
-        localStorage.setItem(
-            "bizdeUser",
-            JSON.stringify(bizdeUser)
-        );
-
-        updateUI();
-
-    }
-
-}
-
-
-/* MODAL */
+/* =========================
+   MODAL
+========================= */
 
 function showModal(){
 
-    document.getElementById("modal")
+    document
+        .getElementById("modal")
         .classList.remove("hidden");
 
 }
@@ -3061,7 +3570,23 @@ function showModal(){
 
 function hideModal(){
 
-    document.getElementById("modal")
+    clearQrTimer();
+
+    if(scanner){
+
+        try{
+
+            scanner.stop()
+                .catch(()=>{});
+
+        }catch(e){}
+
+        scanner = null;
+
+    }
+
+    document
+        .getElementById("modal")
         .classList.add("hidden");
 
 }
@@ -3069,39 +3594,78 @@ function hideModal(){
 
 function closeModal(event){
 
-    if(event.target.id === "modal"){
+    if(
+        event.target.id === "modal"
+    ){
+
         hideModal();
+
     }
 
 }
 
 
-/* ESCAPE */
+/* =========================
+   ESCAPE
+========================= */
 
 function escapeHTML(value){
 
-    return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
 
 }
 
 
 function escapeJS(value){
 
-    return String(value ?? "")
-        .replace(/\\/g,"\\\\")
-        .replace(/'/g,"\\'")
-        .replace(/\n/g,"\\n")
-        .replace(/\r/g,"\\r");
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    )
+    .replace(
+        /\n/g,
+        "\\n"
+    )
+    .replace(
+        /\r/g,
+        "\\r"
+    );
 
 }
 
 
-/* START */
+/* =========================
+   START
+========================= */
 
 async function startApp(){
 
@@ -3118,7 +3682,9 @@ async function startApp(){
 }
 
 
-/* RUN */
+/* =========================
+   RUN
+========================= */
 
 startApp();
 
