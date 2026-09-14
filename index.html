@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
 <meta charset="UTF-8">
 
@@ -9,15 +10,8 @@
 <title>BIZDE.KZ — Privilege Club</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <style>
 
@@ -46,25 +40,20 @@
     --muted:#7b8582;
 
     --line:#e5e9e5;
-
-    --shadow:0 12px 35px rgba(7,31,29,.08);
-}
-
-html{
-    scroll-behavior:smooth;
 }
 
 body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     background:var(--bg);
     color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     min-height:100vh;
     padding-bottom:100px;
 }
 
 button,
-input{
-    font-family:inherit;
+input,
+select{
+    font:inherit;
 }
 
 button{
@@ -76,20 +65,15 @@ button{
     display:none!important;
 }
 
-/* =========================
-   HEADER
-========================= */
-
-.header{
-    padding:22px 18px 8px;
+.top{
+    padding:22px 18px 10px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    justify-content:space-between;
 }
 
 .logo{
     font-size:27px;
-    line-height:1;
     font-weight:900;
     letter-spacing:-1px;
     color:var(--dark);
@@ -97,119 +81,168 @@ button{
 
 .logo span{
     display:block;
-    margin-top:5px;
+    color:var(--gold);
     font-size:9px;
     letter-spacing:3px;
-    color:var(--gold);
-    font-weight:800;
+    margin-top:-2px;
 }
 
 .lang-btn{
-    width:42px;
-    height:42px;
-    border-radius:14px;
     background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:9px 12px;
     color:var(--dark);
-    font-size:13px;
-    font-weight:800;
-    box-shadow:var(--shadow);
+    font-weight:700;
 }
 
-/* =========================
-   MAIN
-========================= */
-
-.container{
-    width:100%;
-    max-width:680px;
-    margin:0 auto;
-    padding:0 16px;
+.page{
+    display:none;
+    padding:8px 16px 110px;
 }
 
-/* =========================
-   HERO
-========================= */
+.page.active{
+    display:block;
+}
 
 .hero{
-    margin-top:16px;
+    margin-top:10px;
+    padding:25px 21px;
     border-radius:28px;
-    padding:27px 23px;
-    background:
-        radial-gradient(circle at 90% 10%,rgba(225,197,109,.2),transparent 30%),
-        linear-gradient(135deg,var(--dark),var(--dark2));
+    background:linear-gradient(145deg,var(--dark),var(--dark2));
     color:white;
     position:relative;
     overflow:hidden;
-    box-shadow:0 20px 45px rgba(7,31,29,.16);
 }
 
 .hero:after{
     content:"";
     position:absolute;
-    width:170px;
-    height:170px;
-    right:-75px;
-    bottom:-85px;
+    width:150px;
+    height:150px;
     border-radius:50%;
-    border:1px solid rgba(225,197,109,.3);
+    border:1px solid rgba(201,162,74,.25);
+    right:-60px;
+    top:-50px;
 }
 
-.hero-small{
+.hero-label{
     color:var(--gold2);
     font-size:11px;
+    font-weight:800;
     letter-spacing:2px;
     text-transform:uppercase;
-    font-weight:800;
-    margin-bottom:11px;
 }
 
 .hero h1{
+    margin-top:10px;
     font-size:28px;
     line-height:1.08;
     letter-spacing:-1px;
-    max-width:440px;
 }
 
 .hero p{
-    margin-top:12px;
-    color:rgba(255,255,255,.68);
-    font-size:13px;
-    line-height:1.5;
-    max-width:430px;
+    margin-top:10px;
+    color:#c9d2cf;
+    line-height:1.45;
+    font-size:14px;
 }
 
-.hero-btn{
+.hero-buttons{
+    display:flex;
+    gap:9px;
     margin-top:20px;
-    background:var(--gold2);
-    color:var(--dark);
-    border-radius:15px;
-    padding:13px 18px;
-    font-size:13px;
-    font-weight:900;
 }
 
-/* =========================
-   PRIVILEGES
-========================= */
+.btn-primary,
+.btn-secondary{
+    padding:13px 15px;
+    border-radius:15px;
+    font-weight:800;
+    flex:1;
+}
+
+.btn-primary{
+    background:var(--gold);
+    color:var(--dark);
+}
+
+.btn-secondary{
+    background:rgba(255,255,255,.1);
+    color:white;
+    border:1px solid rgba(255,255,255,.15);
+}
+
+.status{
+    margin-top:14px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:17px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.status-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.status-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    background:var(--surface2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.status-title{
+    font-weight:800;
+}
+
+.status-sub{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:3px;
+}
+
+.badge{
+    padding:7px 10px;
+    border-radius:12px;
+    background:#e8f4ed;
+    color:#16704b;
+    font-size:11px;
+    font-weight:800;
+}
+
+.badge.off{
+    background:#f2eeee;
+    color:#8a5555;
+}
 
 .section{
-    margin-top:26px;
+    margin-top:25px;
 }
 
 .section-head{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:13px;
+    margin-bottom:12px;
 }
 
 .section-title{
-    font-size:19px;
+    font-size:20px;
     font-weight:900;
-    letter-spacing:-.4px;
+    letter-spacing:-.5px;
 }
 
-.section-link{
+.more{
     color:var(--green);
     font-size:12px;
     font-weight:800;
@@ -217,83 +250,59 @@ button{
 
 .privileges{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:1fr 1fr;
     gap:10px;
 }
 
-.priv-card{
+.privilege{
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:20px;
-    padding:15px 12px;
-    box-shadow:0 8px 25px rgba(7,31,29,.04);
+    padding:16px;
 }
 
-.priv-icon{
-    width:38px;
-    height:38px;
-    border-radius:13px;
-    background:var(--surface2);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:18px;
-    margin-bottom:11px;
+.privilege-icon{
+    font-size:22px;
+    margin-bottom:10px;
 }
 
-.priv-card b{
-    font-size:13px;
+.privilege strong{
     display:block;
+    font-size:14px;
 }
 
-.priv-card span{
-    display:block;
+.privilege span{
     color:var(--muted);
-    font-size:10px;
-    line-height:1.4;
+    font-size:11px;
+    display:block;
     margin-top:4px;
+    line-height:1.3;
 }
-
-/* =========================
-   SEARCH
-========================= */
 
 .search{
-    margin-top:22px;
+    margin-top:16px;
     position:relative;
 }
 
 .search input{
     width:100%;
-    height:52px;
     border:1px solid var(--line);
-    border-radius:17px;
     background:var(--surface);
-    padding:0 17px 0 45px;
+    padding:15px 16px;
+    border-radius:17px;
     outline:none;
-    font-size:14px;
     color:var(--text);
 }
 
-.search-icon{
-    position:absolute;
-    left:17px;
-    top:50%;
-    transform:translateY(-50%);
-    font-size:17px;
-    color:var(--muted);
+.search input:focus{
+    border-color:var(--green);
 }
-
-/* =========================
-   CATEGORIES
-========================= */
 
 .categories{
     display:flex;
-    gap:9px;
+    gap:8px;
     overflow-x:auto;
-    padding:2px 0 5px;
-    scrollbar-width:none;
+    padding-bottom:3px;
 }
 
 .categories::-webkit-scrollbar{
@@ -301,374 +310,289 @@ button{
 }
 
 .category{
-    flex:0 0 auto;
+    white-space:nowrap;
     background:var(--surface);
     border:1px solid var(--line);
-    color:var(--muted);
-    padding:10px 14px;
     border-radius:14px;
+    padding:10px 13px;
     font-size:12px;
     font-weight:800;
 }
 
 .category.active{
-    background:var(--dark);
+    background:var(--green);
     color:white;
-    border-color:var(--dark);
+    border-color:var(--green);
 }
-
-/* =========================
-   PARTNERS
-========================= */
 
 .partners{
     display:grid;
-    gap:12px;
+    gap:10px;
 }
 
-.partner-card{
+.partner{
     background:var(--surface);
     border:1px solid var(--line);
-    border-radius:22px;
+    border-radius:21px;
     padding:15px;
-    box-shadow:0 8px 28px rgba(7,31,29,.045);
-}
-
-.partner-top{
     display:flex;
-    gap:13px;
     align-items:center;
+    gap:13px;
 }
 
 .partner-logo{
-    width:55px;
-    height:55px;
-    flex:0 0 55px;
-    border-radius:17px;
-    background:linear-gradient(135deg,var(--dark),var(--green2));
-    color:white;
+    width:58px;
+    height:58px;
+    border-radius:18px;
+    background:var(--dark);
+    color:var(--gold2);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:18px;
     font-weight:900;
-    overflow:hidden;
-}
-
-.partner-logo img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
+    font-size:18px;
+    flex-shrink:0;
 }
 
 .partner-info{
-    min-width:0;
     flex:1;
+    min-width:0;
 }
 
-.partner-info h3{
+.partner-name{
     font-size:15px;
     font-weight:900;
 }
 
-.partner-info p{
+.partner-desc{
     color:var(--muted);
-    font-size:11px;
+    font-size:12px;
     margin-top:4px;
 }
 
-.partner-fav{
-    width:38px;
-    height:38px;
-    border-radius:13px;
+.partner-discount{
+    color:var(--green);
+    font-size:13px;
+    font-weight:900;
+    margin-top:6px;
+}
+
+.favorite{
     background:var(--surface2);
+    width:35px;
+    height:35px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-size:17px;
 }
 
-.partner-bottom{
-    margin-top:14px;
-    padding-top:12px;
-    border-top:1px solid var(--line);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.discount{
-    color:var(--green);
-    font-size:14px;
-    font-weight:900;
-}
-
-.use-btn{
-    background:var(--dark);
-    color:white;
-    padding:10px 15px;
-    border-radius:13px;
-    font-size:11px;
-    font-weight:900;
-}
-
-/* =========================
-   MAP
-========================= */
-
-.map-wrap{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:23px;
-    padding:7px;
-    box-shadow:var(--shadow);
-}
-
-#map{
-    width:100%;
-    height:330px;
-    border-radius:18px;
+.map{
+    height:300px;
+    border-radius:25px;
+    background:
+        linear-gradient(35deg,rgba(7,83,77,.08) 1px,transparent 1px),
+        linear-gradient(-35deg,rgba(7,83,77,.08) 1px,transparent 1px),
+        #e8ece7;
+    background-size:35px 35px;
+    position:relative;
     overflow:hidden;
 }
 
-.map-empty{
-    padding:18px;
-    text-align:center;
-    color:var(--muted);
+.map-title{
+    position:absolute;
+    left:15px;
+    top:15px;
+    background:white;
+    border-radius:13px;
+    padding:10px 12px;
+    font-weight:800;
     font-size:12px;
+    z-index:2;
 }
 
-/* =========================
-   PROFILE
-========================= */
+.pin{
+    position:absolute;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:var(--green);
+    border:4px solid white;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    cursor:pointer;
+    z-index:3;
+}
+
+.pin:nth-child(2){left:22%;top:38%}
+.pin:nth-child(3){left:65%;top:27%}
+.pin:nth-child(4){left:48%;top:67%}
+.pin:nth-child(5){left:78%;top:62%}
 
 .profile-card{
-    background:linear-gradient(135deg,var(--dark),var(--dark2));
+    background:linear-gradient(145deg,var(--dark),var(--dark2));
     color:white;
-    border-radius:24px;
-    padding:21px;
+    border-radius:27px;
+    padding:22px;
+    margin-top:10px;
 }
 
-.profile-head{
+.profile-top{
     display:flex;
     align-items:center;
     gap:14px;
 }
 
-.profile-avatar{
-    width:55px;
-    height:55px;
-    border-radius:18px;
-    background:var(--gold2);
+.avatar{
+    width:58px;
+    height:58px;
+    border-radius:19px;
+    background:var(--gold);
     color:var(--dark);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:20px;
+    font-size:22px;
     font-weight:900;
 }
 
 .profile-name{
-    font-size:18px;
+    font-size:19px;
     font-weight:900;
 }
 
-.profile-status{
-    margin-top:5px;
+.profile-member{
+    color:#b9c8c4;
     font-size:11px;
-    color:rgba(255,255,255,.62);
+    margin-top:4px;
 }
 
 .profile-stats{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:18px;
+    gap:9px;
+    margin-top:20px;
 }
 
-.profile-stat{
-    background:rgba(255,255,255,.07);
-    border-radius:16px;
+.stat{
+    background:rgba(255,255,255,.08);
+    border-radius:17px;
     padding:13px;
 }
 
-.profile-stat span{
+.stat small{
     display:block;
-    color:rgba(255,255,255,.55);
+    color:#aebdb9;
     font-size:10px;
 }
 
-.profile-stat b{
+.stat strong{
     display:block;
     margin-top:5px;
-    font-size:16px;
-}
-
-/* =========================
-   SUBSCRIPTION
-========================= */
-
-.subscription{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:22px;
-    padding:18px;
-}
-
-.sub-row{
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-}
-
-.sub-label{
-    font-size:11px;
-    color:var(--muted);
-}
-
-.sub-value{
-    font-size:16px;
-    font-weight:900;
-    margin-top:5px;
-}
-
-.status{
-    padding:8px 11px;
-    border-radius:12px;
-    background:var(--surface2);
-    color:var(--green);
-    font-size:11px;
-    font-weight:900;
-    height:max-content;
-}
-
-.status.off{
-    color:#9a4c3f;
-}
-
-.subscribe-btn{
-    width:100%;
-    margin-top:15px;
-    height:48px;
-    border-radius:15px;
-    background:var(--dark);
     color:white;
-    font-weight:900;
+    font-size:17px;
 }
 
-/* =========================
-   HISTORY
-========================= */
-
-.history{
+.profile-menu{
+    margin-top:15px;
     display:grid;
-    gap:10px;
+    gap:8px;
 }
 
-.history-item{
+.profile-row{
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:18px;
-    padding:14px;
+    padding:16px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    gap:12px;
 }
 
-.history-name{
-    font-size:13px;
-    font-weight:900;
+.profile-row-icon{
+    width:38px;
+    height:38px;
+    border-radius:13px;
+    background:var(--surface2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
-.history-date{
-    margin-top:4px;
-    color:var(--muted);
-    font-size:10px;
+.profile-row-content{
+    flex:1;
 }
 
-.history-save{
-    color:var(--green);
-    font-weight:900;
+.profile-row-title{
+    font-weight:800;
     font-size:14px;
 }
 
-/* =========================
-   BOTTOM NAV
-========================= */
-
-.bottom-nav{
-    position:fixed;
-    z-index:1000;
-    left:50%;
-    bottom:12px;
-    transform:translateX(-50%);
-    width:calc(100% - 24px);
-    max-width:650px;
-    height:68px;
-    background:rgba(255,255,255,.95);
-    backdrop-filter:blur(18px);
-    border:1px solid var(--line);
-    border-radius:22px;
-    box-shadow:0 15px 40px rgba(7,31,29,.13);
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    padding:6px;
+.profile-row-sub{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:3px;
 }
 
-.nav-btn{
-    background:transparent;
-    border-radius:17px;
+.arrow{
+    color:var(--muted);
+}
+
+.bottom{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:83px;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(15px);
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-around;
+    z-index:50;
+    padding-top:8px;
+}
+
+.nav{
+    width:25%;
+    background:none;
     color:var(--muted);
     display:flex;
     flex-direction:column;
-    justify-content:center;
     align-items:center;
-    gap:3px;
+    gap:4px;
     font-size:10px;
-    font-weight:800;
+    font-weight:700;
 }
 
-.nav-btn span{
-    font-size:19px;
+.nav-icon{
+    font-size:20px;
 }
 
-.nav-btn.active{
-    background:var(--dark);
-    color:white;
+.nav.active{
+    color:var(--green);
 }
-
-/* =========================
-   MODAL
-========================= */
 
 .modal{
     position:fixed;
     inset:0;
-    z-index:3000;
-    background:rgba(0,0,0,.48);
+    background:rgba(0,0,0,.45);
+    z-index:100;
     display:flex;
     align-items:flex-end;
-    justify-content:center;
-    padding:12px;
 }
 
 .modal-box{
     width:100%;
-    max-width:650px;
+    background:var(--surface);
+    border-radius:28px 28px 0 0;
+    padding:22px 18px 30px;
     max-height:90vh;
     overflow-y:auto;
-    background:var(--surface);
-    border-radius:28px 28px 20px 20px;
-    padding:22px;
-    animation:slideUp .2s ease;
-}
-
-@keyframes slideUp{
-    from{
-        transform:translateY(30px);
-        opacity:0;
-    }
-    to{
-        transform:translateY(0);
-        opacity:1;
-    }
 }
 
 .modal-head{
@@ -678,173 +602,130 @@ button{
     margin-bottom:18px;
 }
 
-.modal-head h2{
+.modal-title{
     font-size:20px;
+    font-weight:900;
 }
 
-.close-btn{
-    width:38px;
-    height:38px;
-    border-radius:13px;
+.close{
+    width:35px;
+    height:35px;
+    border-radius:12px;
     background:var(--surface2);
     font-size:18px;
 }
 
-.modal-text{
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.55;
+.modal-input{
+    width:100%;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:15px;
+    outline:none;
+    margin-top:9px;
+    background:white;
+    color:var(--text);
 }
 
-.modal-action{
+.modal-button{
     width:100%;
-    height:50px;
-    border-radius:15px;
-    margin-top:18px;
-    background:var(--dark);
+    padding:15px;
+    background:var(--green);
     color:white;
+    border-radius:16px;
+    margin-top:12px;
     font-weight:900;
 }
 
-/* =========================
-   REGISTRATION
-========================= */
-
-.form-group{
-    margin-top:13px;
-}
-
-.form-group label{
-    display:block;
-    font-size:11px;
-    font-weight:800;
-    margin-bottom:7px;
-}
-
-.form-group input{
+.secondary-button{
     width:100%;
-    height:48px;
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:0 14px;
-    outline:none;
-    font-size:14px;
-    background:var(--bg);
+    padding:14px;
+    background:var(--surface2);
+    color:var(--dark);
+    border-radius:16px;
+    margin-top:9px;
+    font-weight:800;
 }
 
-.checkbox{
+.qr-wrap{
     display:flex;
-    gap:9px;
-    align-items:flex-start;
-    margin-top:15px;
+    justify-content:center;
+    margin:15px 0;
+}
+
+#qrCode{
+    padding:14px;
+    background:white;
+    border-radius:18px;
+    min-height:20px;
+}
+
+.member-code{
+    text-align:center;
+    font-size:18px;
+    font-weight:900;
+    letter-spacing:1px;
+    color:var(--green);
+}
+
+.qr-timer{
+    text-align:center;
+    margin-top:12px;
+    font-size:13px;
+    font-weight:900;
+    color:var(--green);
+}
+
+.qr-warning{
+    text-align:center;
+    margin-top:7px;
     color:var(--muted);
     font-size:11px;
     line-height:1.4;
 }
 
-.checkbox input{
-    margin-top:2px;
+#reader{
+    width:100%;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:12px;
 }
 
-/* =========================
-   QR
-========================= */
-
-.qr-box{
-    text-align:center;
+.verify-box{
+    background:var(--surface2);
+    border-radius:18px;
+    padding:16px;
+    margin-top:12px;
 }
 
-#qrcode{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    margin:18px auto;
+.verify-status{
+    font-weight:900;
+    font-size:16px;
 }
 
-#qrcode img{
-    border-radius:8px;
-}
-
-.qr-note{
+.verify-sub{
     color:var(--muted);
-    font-size:11px;
-    line-height:1.5;
-}
-
-/* =========================
-   TOAST
-========================= */
-
-.toast{
-    position:fixed;
-    z-index:5000;
-    left:50%;
-    bottom:92px;
-    transform:translateX(-50%) translateY(20px);
-    width:max-content;
-    max-width:calc(100% - 40px);
-    background:var(--dark);
-    color:white;
-    padding:12px 17px;
-    border-radius:14px;
     font-size:12px;
-    font-weight:700;
-    opacity:0;
-    pointer-events:none;
-    transition:.25s;
+    margin-top:5px;
+}
+
+.result{
+    padding:15px;
+    border-radius:16px;
+    background:#edf7f1;
+    color:#17613f;
+    margin-top:12px;
+    font-weight:800;
+}
+
+.error{
+    background:#f8eeee;
+    color:#8a4444;
+}
+
+.empty{
     text-align:center;
-}
-
-.toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-}
-
-/* =========================
-   LOADING
-========================= */
-
-.loader{
-    width:22px;
-    height:22px;
-    border:3px solid var(--line);
-    border-top-color:var(--green);
-    border-radius:50%;
-    animation:spin .7s linear infinite;
-    margin:25px auto;
-}
-
-@keyframes spin{
-    to{
-        transform:rotate(360deg);
-    }
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:380px){
-
-    .hero h1{
-        font-size:25px;
-    }
-
-    .privileges{
-        grid-template-columns:1fr;
-    }
-
-    .priv-card{
-        display:flex;
-        align-items:center;
-        gap:12px;
-    }
-
-    .priv-icon{
-        margin:0;
-        flex:0 0 38px;
-    }
-
+    padding:35px 15px;
+    color:var(--muted);
 }
 
 </style>
@@ -852,449 +733,551 @@ button{
 
 <body>
 
-<header class="header">
+<div id="homePage" class="page active">
 
-    <div class="logo">
-        BIZDE.KZ
-        <span>PRIVILEGE CLUB</span>
+    <div class="top">
+
+        <div class="logo">
+            BIZDE.KZ
+            <span>PRIVILEGE CLUB</span>
+        </div>
+
+        <button class="lang-btn" onclick="changeLanguage()">
+            <span id="langButton">RU</span>
+        </button>
+
     </div>
 
-    <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">
-        RU
-    </button>
+    <div class="hero">
 
-</header>
+        <div class="hero-label" data-i18n="heroLabel">
+            PRIVILEGE CLUB
+        </div>
 
+        <h1 data-i18n="heroTitle">
+            Ваши привилегии начинаются здесь.
+        </h1>
 
-<main class="container">
+        <p data-i18n="heroText">
+            Получайте особые условия, бонусы и преимущества у наших партнёров.
+        </p>
 
-    <!-- HOME -->
+        <div class="hero-buttons">
 
-    <section id="homePage">
+            <button
+                class="btn-primary"
+                onclick="openCard()"
+                data-i18n="heroPrimary">
+                Мои привилегии
+            </button>
 
-        <div class="hero">
-
-            <div class="hero-small" data-i18n="heroSmall">
-                PRIVILEGE CLUB
-            </div>
-
-            <h1 data-i18n="heroTitle">
-                Ваши привилегии начинаются здесь.
-            </h1>
-
-            <p data-i18n="heroText">
-                Получайте особые условия у наших партнёров и пользуйтесь преимуществами BIZDE.KZ.
-            </p>
-
-            <button class="hero-btn" onclick="openSubscription()">
-                <span data-i18n="heroButton">Моя подписка</span>
+            <button
+                class="btn-secondary"
+                onclick="showPage('favoritesPage')"
+                data-i18n="heroSecondary">
+                Партнёры
             </button>
 
         </div>
 
+    </div>
 
-        <div class="section">
+    <div class="status">
 
-            <div class="section-head">
+        <div class="status-left">
 
-                <div class="section-title" data-i18n="privilegesTitle">
-                    Ваши преимущества
+            <div class="status-icon">✦</div>
+
+            <div>
+
+                <div class="status-title" data-i18n="subscription">
+                    Подписка
                 </div>
 
-            </div>
-
-            <div class="privileges">
-
-                <div class="priv-card">
-                    <div class="priv-icon">💎</div>
-                    <div>
-                        <b data-i18n="priv1Title">Привилегии</b>
-                        <span data-i18n="priv1Text">Особые условия у партнёров</span>
-                    </div>
-                </div>
-
-                <div class="priv-card">
-                    <div class="priv-icon">🎟</div>
-                    <div>
-                        <b data-i18n="priv2Title">Одна подписка</b>
-                        <span data-i18n="priv2Text">Доступ к клубу</span>
-                    </div>
-                </div>
-
-                <div class="priv-card">
-                    <div class="priv-icon">📊</div>
-                    <div>
-                        <b data-i18n="priv3Title">Экономия</b>
-                        <span data-i18n="priv3Text">Следите за своей выгодой</span>
-                    </div>
+                <div class="status-sub" id="statusText">
+                    Проверяем статус...
                 </div>
 
             </div>
 
         </div>
 
-
-        <div class="search">
-
-            <div class="search-icon">⌕</div>
-
-            <input
-                id="searchInput"
-                type="text"
-                placeholder="Поиск партнёра..."
-                data-i18n-placeholder="searchPlaceholder"
-                oninput="renderPartners()"
-            >
-
+        <div id="statusBadge" class="badge">
+            ...
         </div>
 
+    </div>
 
-        <div class="section">
+    <div class="section">
 
-            <div class="categories" id="categories">
+        <div class="section-head">
 
-                <button
-                    class="category active"
-                    data-category="all"
-                    onclick="selectCategory('all',this)"
-                    data-i18n="all"
-                >
-                    Все
-                </button>
-
-                <button
-                    class="category"
-                    data-category="restaurant"
-                    onclick="selectCategory('restaurant',this)"
-                    data-i18n="restaurants"
-                >
-                    Рестораны
-                </button>
-
-                <button
-                    class="category"
-                    data-category="sport"
-                    onclick="selectCategory('sport',this)"
-                    data-i18n="sport"
-                >
-                    Спорт
-                </button>
-
-                <button
-                    class="category"
-                    data-category="beauty"
-                    onclick="selectCategory('beauty',this)"
-                    data-i18n="beauty"
-                >
-                    Красота
-                </button>
-
-                <button
-                    class="category"
-                    data-category="services"
-                    onclick="selectCategory('services',this)"
-                    data-i18n="services"
-                >
-                    Услуги
-                </button>
-
+            <div class="section-title" data-i18n="privilegesTitle">
+                Ваши привилегии
             </div>
 
         </div>
 
+        <div class="privileges">
 
-        <div class="section">
-
-            <div class="section-head">
-
-                <div class="section-title" data-i18n="partnersTitle">
-                    Партнёры
-                </div>
-
-                <div
-                    class="section-link"
-                    onclick="showPage('partnersPage')"
-                    data-i18n="allPartners"
-                >
-                    Все
-                </div>
-
+            <div class="privilege">
+                <div class="privilege-icon">♛</div>
+                <strong data-i18n="p1">Особые условия</strong>
+                <span data-i18n="p1s">
+                    Эксклюзивные предложения партнёров
+                </span>
             </div>
 
-            <div class="partners" id="partnersList">
-
-                <div class="loader"></div>
-
+            <div class="privilege">
+                <div class="privilege-icon">◆</div>
+                <strong data-i18n="p2">Экономия</strong>
+                <span data-i18n="p2s">
+                    Получайте выгоду с каждой покупки
+                </span>
             </div>
 
-        </div>
-
-
-        <div class="section">
-
-            <div class="section-head">
-
-                <div class="section-title" data-i18n="mapTitle">
-                    Партнёры на карте
-                </div>
-
+            <div class="privilege">
+                <div class="privilege-icon">◈</div>
+                <strong data-i18n="p3">Партнёры</strong>
+                <span data-i18n="p3s">
+                    Лучшие места города
+                </span>
             </div>
 
-            <div class="map-wrap">
-
-                <div id="map"></div>
-
-                <div
-                    id="mapEmpty"
-                    class="map-empty hidden"
-                    data-i18n="mapEmpty"
-                >
-                    Пока нет партнёров с указанным местоположением.
-                </div>
-
+            <div class="privilege">
+                <div class="privilege-icon">✦</div>
+                <strong data-i18n="p4">Ваш статус</strong>
+                <span data-i18n="p4s">
+                    Один клуб — множество преимуществ
+                </span>
             </div>
 
         </div>
 
-    </section>
+    </div>
 
+    <div class="search">
 
-    <!-- PARTNERS PAGE -->
+        <input
+            id="searchInput"
+            type="text"
+            placeholder="Поиск партнёров..."
+            oninput="searchPartners()">
 
-    <section id="partnersPage" class="hidden">
+    </div>
 
-        <div class="section">
+    <div class="section">
 
-            <div class="section-head">
+        <div class="section-head">
 
-                <div class="section-title" data-i18n="partnersTitle">
-                    Партнёры
-                </div>
-
-            </div>
-
-            <div class="partners" id="allPartnersList"></div>
-
-        </div>
-
-    </section>
-
-
-    <!-- SUBSCRIPTION -->
-
-    <section id="subscriptionPage" class="hidden">
-
-        <div class="section">
-
-            <div class="section-title" data-i18n="subscriptionTitle">
-                Моя подписка
-            </div>
-
-            <div style="height:13px"></div>
-
-            <div class="subscription">
-
-                <div class="sub-row">
-
-                    <div>
-
-                        <div class="sub-label" data-i18n="subscriptionStatus">
-                            Статус подписки
-                        </div>
-
-                        <div
-                            class="sub-value"
-                            id="subscriptionText"
-                        >
-                            Проверяем...
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="status"
-                        id="subscriptionStatus"
-                    >
-                        ...
-                    </div>
-
-                </div>
-
-                <button
-                    class="subscribe-btn"
-                    onclick="showPaymentInfo()"
-                    id="subscribeBtn"
-                >
-                    Оформить подписку
-                </button>
-
+            <div class="section-title" data-i18n="categoriesTitle">
+                Категории
             </div>
 
         </div>
 
-    </section>
+        <div class="categories">
 
+            <button
+                class="category active"
+                onclick="filterCategory('all',this)"
+                data-i18n="all">
+                Все
+            </button>
 
-    <!-- PROFILE -->
+            <button
+                class="category"
+                onclick="filterCategory('restaurant',this)">
+                🍽 Рестораны
+            </button>
 
-    <section id="profilePage" class="hidden">
+            <button
+                class="category"
+                onclick="filterCategory('cafe',this)">
+                ☕ Кафе
+            </button>
 
-        <div class="section">
+            <button
+                class="category"
+                onclick="filterCategory('sport',this)">
+                🏋️ Спорт
+            </button>
 
-            <div class="section-title" data-i18n="profileTitle">
-                Профиль
-            </div>
-
-            <div style="height:13px"></div>
-
-            <div class="profile-card">
-
-                <div class="profile-head">
-
-                    <div
-                        class="profile-avatar"
-                        id="profileAvatar"
-                    >
-                        B
-                    </div>
-
-                    <div>
-
-                        <div
-                            class="profile-name"
-                            id="profileName"
-                        >
-                            Пользователь
-                        </div>
-
-                        <div
-                            class="profile-status"
-                            id="profileStatus"
-                        >
-                            BIZDE.KZ Privilege Club
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="profile-stats">
-
-                    <div class="profile-stat">
-
-                        <span data-i18n="totalSavings">
-                            Всего сэкономлено
-                        </span>
-
-                        <b id="totalSavingsValue">
-                            0 ₸
-                        </b>
-
-                    </div>
-
-                    <div class="profile-stat">
-
-                        <span data-i18n="operations">
-                            Использований
-                        </span>
-
-                        <b id="operationsValue">
-                            0
-                        </b>
-
-                    </div>
-
-                </div>
-
-            </div>
+            <button
+                class="category"
+                onclick="filterCategory('beauty',this)">
+                ✦ Beauty
+            </button>
 
         </div>
 
+    </div>
 
-        <div class="section">
+    <div class="section">
 
-            <div class="section-head">
+        <div class="section-head">
 
-                <div class="section-title" data-i18n="historyTitle">
-                    История
-                </div>
-
+            <div class="section-title" data-i18n="partnersTitle">
+                Партнёры
             </div>
 
             <div
-                class="history"
-                id="historyList"
-            >
-                <div class="loader"></div>
+                class="more"
+                onclick="showPage('favoritesPage')"
+                data-i18n="partnersAll">
+                Все
             </div>
 
         </div>
 
-    </section>
+        <div id="homePartners" class="partners"></div>
 
-</main>
+    </div>
+
+</div>
 
 
-<!-- BOTTOM NAV -->
+<div id="favoritesPage" class="page">
 
-<nav class="bottom-nav">
+    <div class="top">
+
+        <div class="logo">
+            BIZDE.KZ
+            <span>PRIVILEGE CLUB</span>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-title" data-i18n="favorites">
+            Избранное
+        </div>
+
+        <p style="color:var(--muted);font-size:12px;margin-top:5px;">
+            <span data-i18n="favoritesText">
+                Ваши любимые партнёры
+            </span>
+        </p>
+
+        <div
+            id="favoritePartners"
+            class="partners"
+            style="margin-top:15px;">
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="mapPage" class="page">
+
+    <div class="top">
+
+        <div class="logo">
+            BIZDE.KZ
+            <span>PRIVILEGE CLUB</span>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-title" data-i18n="map">
+            Карта
+        </div>
+
+        <div style="color:var(--muted);font-size:12px;margin:5px 0 14px;">
+            <span data-i18n="pavlodar">Павлодар</span>
+        </div>
+
+        <div class="map">
+
+            <div class="map-title">
+                BIZDE.KZ
+            </div>
+
+            <div
+                class="pin"
+                onclick="openMapPartner(0)">
+                1
+            </div>
+
+            <div
+                class="pin"
+                onclick="openMapPartner(1)">
+                2
+            </div>
+
+            <div
+                class="pin"
+                onclick="openMapPartner(2)">
+                3
+            </div>
+
+            <div
+                class="pin"
+                onclick="openMapPartner(3)">
+                4
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="profilePage" class="page">
+
+    <div class="top">
+
+        <div class="logo">
+            BIZDE.KZ
+            <span>PRIVILEGE CLUB</span>
+        </div>
+
+    </div>
+
+    <div class="profile-card">
+
+        <div class="profile-top">
+
+            <div class="avatar" id="avatar">
+                B
+            </div>
+
+            <div>
+
+                <div class="profile-name" id="profileName">
+                    BIZDE Member
+                </div>
+
+                <div class="profile-member" id="profileMember">
+                    Участник клуба
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="profile-stats">
+
+            <div class="stat">
+
+                <small data-i18n="savings">
+                    Экономия
+                </small>
+
+                <strong id="profileSavings">
+                    0 ₸
+                </strong>
+
+            </div>
+
+            <div class="stat">
+
+                <small data-i18n="subscription">
+                    Подписка
+                </small>
+
+                <strong id="profileSubscription">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="profile-menu">
+
+        <div class="profile-row" onclick="openCard()">
+
+            <div class="profile-row-icon">🎟</div>
+
+            <div class="profile-row-content">
+
+                <div class="profile-row-title" data-i18n="card">
+                    Моя карта
+                </div>
+
+                <div class="profile-row-sub">
+                    BIZDE Privilege Card
+                </div>
+
+            </div>
+
+            <div class="arrow">›</div>
+
+        </div>
+
+        <div class="profile-row" onclick="openHistory()">
+
+            <div class="profile-row-icon">◷</div>
+
+            <div class="profile-row-content">
+
+                <div class="profile-row-title" data-i18n="history">
+                    История
+                </div>
+
+                <div class="profile-row-sub">
+                    История ваших привилегий
+                </div>
+
+            </div>
+
+            <div class="arrow">›</div>
+
+        </div>
+
+        <div class="profile-row" onclick="openSavings()">
+
+            <div class="profile-row-icon">₸</div>
+
+            <div class="profile-row-content">
+
+                <div class="profile-row-title" data-i18n="savings">
+                    Моя экономия
+                </div>
+
+                <div class="profile-row-sub">
+                    Сколько вы сэкономили
+                </div>
+
+            </div>
+
+            <div class="arrow">›</div>
+
+        </div>
+
+        <div class="profile-row" onclick="openSubscription()">
+
+            <div class="profile-row-icon">✦</div>
+
+            <div class="profile-row-content">
+
+                <div class="profile-row-title" data-i18n="subscription">
+                    Подписка
+                </div>
+
+                <div class="profile-row-sub" id="profileSubText">
+                    Проверить статус
+                </div>
+
+            </div>
+
+            <div class="arrow">›</div>
+
+        </div>
+
+        <div class="profile-row" onclick="changeLanguage()">
+
+            <div class="profile-row-icon">文</div>
+
+            <div class="profile-row-content">
+
+                <div class="profile-row-title" data-i18n="language">
+                    Язык
+                </div>
+
+                <div
+                    class="profile-row-sub"
+                    id="languageText">
+                    Русский
+                </div>
+
+            </div>
+
+            <div class="arrow">›</div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="bottom">
 
     <button
-        class="nav-btn active"
-        onclick="showPage('homePage',this)"
-    >
-        <span>⌂</span>
-        <div data-i18n="navHome">Главная</div>
+        class="nav active"
+        id="navHome"
+        onclick="showPage('homePage')">
+
+        <div class="nav-icon">⌂</div>
+
+        <div data-i18n="home">
+            Главная
+        </div>
+
     </button>
 
     <button
-        class="nav-btn"
-        onclick="showPage('partnersPage',this)"
-    >
-        <span>◈</span>
-        <div data-i18n="navPartners">Партнёры</div>
+        class="nav"
+        id="navFavorites"
+        onclick="showPage('favoritesPage')">
+
+        <div class="nav-icon">♡</div>
+
+        <div data-i18n="favorites">
+            Избранное
+        </div>
+
     </button>
 
     <button
-        class="nav-btn"
-        onclick="openSubscription(this)"
-    >
-        <span>🎟</span>
-        <div data-i18n="navSubscription">Подписка</div>
+        class="nav"
+        id="navMap"
+        onclick="showPage('mapPage')">
+
+        <div class="nav-icon">⌖</div>
+
+        <div data-i18n="map">
+            Карта
+        </div>
+
     </button>
 
     <button
-        class="nav-btn"
-        onclick="showPage('profilePage',this)"
-    >
-        <span>◯</span>
-        <div data-i18n="navProfile">Профиль</div>
+        class="nav"
+        id="navProfile"
+        onclick="showPage('profilePage')">
+
+        <div class="nav-icon">◉</div>
+
+        <div data-i18n="profile">
+            Профиль
+        </div>
+
     </button>
 
-</nav>
+</div>
 
-
-<!-- MODAL -->
 
 <div
-    class="modal hidden"
     id="modal"
-    onclick="closeModalOutside(event)"
->
+    class="modal hidden"
+    onclick="closeModal(event)">
 
-    <div class="modal-box">
+    <div
+        class="modal-box"
+        onclick="event.stopPropagation()">
 
         <div class="modal-head">
 
-            <h2 id="modalTitle">
+            <div
+                class="modal-title"
+                id="modalTitle">
                 BIZDE.KZ
-            </h2>
+            </div>
 
             <button
-                class="close-btn"
-                onclick="closeModal()"
-            >
+                class="close"
+                onclick="hideModal()">
                 ×
             </button>
 
@@ -1307,384 +1290,44 @@ button{
 </div>
 
 
-<!-- TOAST -->
-
-<div
-    class="toast"
-    id="toast"
-></div>
-
-
 <script>
 
-/* =====================================================
-   TELEGRAM
-===================================================== */
+const tg = window.Telegram?.WebApp;
 
-const tg = window.Telegram?.WebApp || null;
-
-const API_URL = "https://bizde-bot.onrender.com";
+const API_URL =
+    "https://bizde-bot.onrender.com";
 
 const PARTNER_PAGE =
     "https://aydin200169.github.io/-bizde-bot/partner.html";
 
-let telegramInitData = "";
-
-let currentUser = null;
-
-let partners = [];
-
-let selectedCategory = "all";
 
 let currentLanguage =
-    localStorage.getItem("bizde_language") || "ru";
-
-let map = null;
-
-let mapMarkers = [];
-
-
-/* =====================================================
-   TRANSLATIONS
-===================================================== */
-
-const translations = {
-
-    ru: {
-
-        heroSmall:"PRIVILEGE CLUB",
-
-        heroTitle:"Ваши привилегии начинаются здесь.",
-
-        heroText:
-        "Получайте особые условия у наших партнёров и пользуйтесь преимуществами BIZDE.KZ.",
-
-        heroButton:"Моя подписка",
-
-        privilegesTitle:"Ваши преимущества",
-
-        priv1Title:"Привилегии",
-
-        priv1Text:"Особые условия у партнёров",
-
-        priv2Title:"Одна подписка",
-
-        priv2Text:"Доступ к клубу",
-
-        priv3Title:"Экономия",
-
-        priv3Text:"Следите за своей выгодой",
-
-        searchPlaceholder:"Поиск партнёра...",
-
-        all:"Все",
-
-        restaurants:"Рестораны",
-
-        sport:"Спорт",
-
-        beauty:"Красота",
-
-        services:"Услуги",
-
-        partnersTitle:"Партнёры",
-
-        allPartners:"Все",
-
-        mapTitle:"Партнёры на карте",
-
-        mapEmpty:
-        "Пока нет партнёров с указанным местоположением.",
-
-        navHome:"Главная",
-
-        navPartners:"Партнёры",
-
-        navSubscription:"Подписка",
-
-        navProfile:"Профиль",
-
-        subscriptionTitle:"Моя подписка",
-
-        subscriptionStatus:"Статус подписки",
-
-        active:"Активна",
-
-        inactive:"Не активна",
-
-        checking:"Проверяем...",
-
-        subscribe:"Оформить подписку",
-
-        subscriptionInfo:
-        "Оплата подписки подключается через платёжный сервис BIZDE.KZ. После оплаты статус будет обновлён автоматически.",
-
-        paymentLater:"Оплата",
-
-        profileTitle:"Профиль",
-
-        totalSavings:"Всего сэкономлено",
-
-        operations:"Использований",
-
-        historyTitle:"История",
-
-        noHistory:"История пока пуста.",
-
-        noPartners:"Партнёры пока не добавлены.",
-
-        conditions:"Условия",
-
-        use:"Использовать",
-
-        qr:"Ваш QR-код",
-
-        qrText:
-        "Покажите этот QR-код партнёру для проверки вашей подписки.",
-
-        registrationTitle:"Регистрация",
-
-        name:"Ваше имя",
-
-        phone:"Номер телефона",
-
-        terms:
-        "Я принимаю условия использования сервиса BIZDE.KZ.",
-
-        continue:"Продолжить",
-
-        enterName:"Введите имя.",
-
-        enterPhone:"Введите номер телефона.",
-
-        acceptTerms:"Необходимо принять условия.",
-
-        telegramOnly:
-        "Откройте BIZDE.KZ через Telegram.",
-
-        saved:"Сохранено",
-
-        error:"Произошла ошибка.",
-
-        partner:"Партнёр",
-
-        discount:"Выгода",
-
-        location:"Местоположение",
-
-        noLocation:"Адрес не указан"
-
-    },
-
-    kz: {
-
-        heroSmall:"PRIVILEGE CLUB",
-
-        heroTitle:"Артықшылықтарыңыз осы жерден басталады.",
-
-        heroText:
-        "Серіктестеріміздің арнайы шарттарын пайдаланып, BIZDE.KZ артықшылықтарына ие болыңыз.",
-
-        heroButton:"Менің жазылымым",
-
-        privilegesTitle:"Сіздің артықшылықтарыңыз",
-
-        priv1Title:"Артықшылықтар",
-
-        priv1Text:"Серіктестердің арнайы шарттары",
-
-        priv2Title:"Бір жазылым",
-
-        priv2Text:"Клубқа қолжетімділік",
-
-        priv3Title:"Үнем",
-
-        priv3Text:"Өз пайдаңызды бақылаңыз",
-
-        searchPlaceholder:"Серіктесті іздеу...",
-
-        all:"Барлығы",
-
-        restaurants:"Мейрамханалар",
-
-        sport:"Спорт",
-
-        beauty:"Сұлулық",
-
-        services:"Қызметтер",
-
-        partnersTitle:"Серіктестер",
-
-        allPartners:"Барлығы",
-
-        mapTitle:"Картадағы серіктестер",
-
-        mapEmpty:
-        "Орналасқан жері көрсетілген серіктестер әзірге жоқ.",
-
-        navHome:"Басты бет",
-
-        navPartners:"Серіктестер",
-
-        navSubscription:"Жазылым",
-
-        navProfile:"Профиль",
-
-        subscriptionTitle:"Менің жазылымым",
-
-        subscriptionStatus:"Жазылым статусы",
-
-        active:"Белсенді",
-
-        inactive:"Белсенді емес",
-
-        checking:"Тексерілуде...",
-
-        subscribe:"Жазылымды рәсімдеу",
-
-        subscriptionInfo:
-        "Жазылым төлемі BIZDE.KZ төлем сервисі арқылы қосылады. Төлемнен кейін статус автоматты түрде жаңартылады.",
-
-        paymentLater:"Төлем",
-
-        profileTitle:"Профиль",
-
-        totalSavings:"Жалпы үнем",
-
-        operations:"Пайдаланулар",
-
-        historyTitle:"Тарих",
-
-        noHistory:"Тарих әзірге бос.",
-
-        noPartners:"Серіктестер әлі қосылмаған.",
-
-        conditions:"Шарттар",
-
-        use:"Пайдалану",
-
-        qr:"Сіздің QR-кодыңыз",
-
-        qrText:
-        "Жазылымыңызды тексеру үшін осы QR-кодты серіктеске көрсетіңіз.",
-
-        registrationTitle:"Тіркелу",
-
-        name:"Атыңыз",
-
-        phone:"Телефон нөмірі",
-
-        terms:
-        "BIZDE.KZ сервисінің пайдалану шарттарын қабылдаймын.",
-
-        continue:"Жалғастыру",
-
-        enterName:"Атыңызды енгізіңіз.",
-
-        enterPhone:"Телефон нөмірін енгізіңіз.",
-
-        acceptTerms:"Шарттарды қабылдау қажет.",
-
-        telegramOnly:
-        "BIZDE.KZ сервисін Telegram арқылы ашыңыз.",
-
-        saved:"Сақталды",
-
-        error:"Қате орын алды.",
-
-        partner:"Серіктес",
-
-        discount:"Пайда",
-
-        location:"Орналасуы",
-
-        noLocation:"Мекенжай көрсетілмеген"
-
-    }
-
-};
-
-
-/* =====================================================
-   TRANSLATION
-===================================================== */
-
-function t(key){
-
-    return translations[currentLanguage]?.[key]
-        || translations.ru[key]
-        || key;
-
-}
-
-
-function applyTranslations(){
-
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-
-        const key = el.dataset.i18n;
-
-        if(translations[currentLanguage]?.[key]){
-
-            el.textContent =
-                translations[currentLanguage][key];
-
-        }
-
-    });
-
-
-    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-
-        const key = el.dataset.i18nPlaceholder;
-
-        if(translations[currentLanguage]?.[key]){
-
-            el.placeholder =
-                translations[currentLanguage][key];
-
-        }
-
-    });
-
-
-    const langBtn =
-        document.getElementById("langBtn");
-
-    if(langBtn){
-
-        langBtn.textContent =
-            currentLanguage === "ru" ? "RU" : "KZ";
-
-    }
-
-}
-
-
-function toggleLanguage(){
-
-    currentLanguage =
-        currentLanguage === "ru" ? "kz" : "ru";
-
-    localStorage.setItem(
-        "bizde_language",
-        currentLanguage
+    localStorage.getItem("bizdeLanguage") || "ru";
+
+let bizdeUser =
+    JSON.parse(
+        localStorage.getItem("bizdeUser") || "null"
     );
 
-    applyTranslations();
+let allPartners = [];
 
-    renderPartners();
+let activeCategory = "all";
 
-    renderAllPartners();
+let favorites =
+    JSON.parse(
+        localStorage.getItem("bizdeFavorites") || "[]"
+    );
 
-    updateSubscriptionUI();
+let currentQrTimer = null;
 
-}
+let currentQrToken = null;
+
+let scanner = null;
 
 
-/* =====================================================
+/* =========================
    TELEGRAM INIT
-===================================================== */
+========================= */
 
 async function initTelegram(){
 
@@ -1700,120 +1343,553 @@ async function initTelegram(){
 
         tg.expand();
 
-    }catch(e){}
+        try{
+
+            tg.setHeaderColor("#f4f5f2");
+            tg.setBackgroundColor("#f4f5f2");
+
+        }catch(e){}
 
 
-    for(let i=0;i<30;i++){
+        for(
+            let i = 0;
+            i < 30;
+            i++
+        ){
 
-        if(tg.initData){
+            if(
+                tg.initData &&
+                tg.initDataUnsafe?.user
+            ){
 
-            telegramInitData =
-                tg.initData;
+                console.log(
+                    "BIZDE Telegram OK"
+                );
 
-            return true;
+                return true;
+
+            }
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        100
+                    )
+            );
 
         }
 
-        await sleep(100);
+    }catch(error){
+
+        console.error(
+            "Telegram init error:",
+            error
+        );
 
     }
+
+    console.warn(
+        "Telegram initData отсутствует"
+    );
 
     return false;
 
 }
 
 
-function sleep(ms){
+/* =========================
+   TRANSLATIONS
+========================= */
 
-    return new Promise(
-        resolve => setTimeout(resolve,ms)
+const translations = {
+
+ru:{
+
+    home:"Главная",
+    profile:"Профиль",
+
+    heroLabel:"PRIVILEGE CLUB",
+
+    heroTitle:"Ваши привилегии начинаются здесь.",
+
+    heroText:
+        "Получайте особые условия, бонусы и преимущества у наших партнёров.",
+
+    heroPrimary:"Мои привилегии",
+
+    heroSecondary:"Партнёры",
+
+    privilegesTitle:"Ваши привилегии",
+
+    p1:"Особые условия",
+    p1s:"Эксклюзивные предложения партнёров",
+
+    p2:"Экономия",
+    p2s:"Получайте выгоду с каждой покупки",
+
+    p3:"Партнёры",
+    p3s:"Лучшие места города",
+
+    p4:"Ваш статус",
+    p4s:"Один клуб — множество преимуществ",
+
+    categoriesTitle:"Категории",
+
+    all:"Все",
+
+    partnersTitle:"Партнёры",
+
+    partnersAll:"Все",
+
+    favorites:"Избранное",
+
+    favoritesText:"Ваши любимые партнёры",
+
+    map:"Карта",
+
+    pavlodar:"Павлодар",
+
+    subscription:"Подписка",
+
+    card:"Моя карта",
+
+    history:"История",
+
+    savings:"Экономия",
+
+    language:"Язык",
+
+    russian:"Русский",
+
+    kazakh:"Қазақша",
+
+    active:"Активна",
+
+    inactive:"Не активна",
+
+    activeText:
+        "Вы можете пользоваться всеми привилегиями клуба.",
+
+    inactiveText:
+        "Подписка пока не активна.",
+
+    verified:"Участник подтверждён",
+
+    notFound:"Участник не найден",
+
+    subscriptionActive:"Подписка активна",
+
+    subscriptionInactive:"Подписка не активна",
+
+    choosePartner:"Выберите партнёра",
+
+    receiptAmount:"Сумма чека",
+
+    calculate:"Рассчитать экономию",
+
+    saving:"Экономия",
+
+    totalSavings:"Общая экономия",
+
+    done:"Готово",
+
+    noFavorites:"В избранном пока ничего нет.",
+
+    registerTitle:"Добро пожаловать",
+
+    name:"Ваше имя",
+
+    phone:"Номер телефона",
+
+    accept:"Я принимаю условия сервиса",
+
+    register:"Продолжить",
+
+    member:"Участник BIZDE.KZ",
+
+    qrExpired:"QR-код истёк",
+
+    qrRefresh:"Получить новый QR",
+
+    qrSeconds:"сек.",
+
+    qrInfo:
+        "QR-код действует ограниченное время и может быть использован только один раз.",
+
+    creatingQr:"Создаём защищённый QR-код..."
+
+},
+
+kk:{
+
+    home:"Басты бет",
+    profile:"Профиль",
+
+    heroLabel:"PRIVILEGE CLUB",
+
+    heroTitle:
+        "Артықшылықтарыңыз осы жерден басталады.",
+
+    heroText:
+        "Серіктестерімізден арнайы шарттар, бонустар және артықшылықтар алыңыз.",
+
+    heroPrimary:"Менің артықшылықтарым",
+
+    heroSecondary:"Серіктестер",
+
+    privilegesTitle:"Сіздің артықшылықтарыңыз",
+
+    p1:"Арнайы шарттар",
+    p1s:"Серіктестердің эксклюзивті ұсыныстары",
+
+    p2:"Үнемдеу",
+    p2s:"Әр сатып алудан пайда алыңыз",
+
+    p3:"Серіктестер",
+    p3s:"Қаланың үздік орындары",
+
+    p4:"Сіздің мәртебеңіз",
+    p4s:"Бір клуб — көптеген артықшылық",
+
+    categoriesTitle:"Санаттар",
+
+    all:"Барлығы",
+
+    partnersTitle:"Серіктестер",
+
+    partnersAll:"Барлығы",
+
+    favorites:"Таңдаулылар",
+
+    favoritesText:"Сіздің сүйікті серіктестеріңіз",
+
+    map:"Карта",
+
+    pavlodar:"Павлодар",
+
+    subscription:"Жазылым",
+
+    card:"Менің картам",
+
+    history:"Тарих",
+
+    savings:"Үнемдеу",
+
+    language:"Тіл",
+
+    russian:"Русский",
+
+    kazakh:"Қазақша",
+
+    active:"Белсенді",
+
+    inactive:"Белсенді емес",
+
+    activeText:
+        "Сіз клубтың барлық артықшылықтарын пайдалана аласыз.",
+
+    inactiveText:
+        "Жазылым әлі белсенді емес.",
+
+    verified:"Қатысушы расталды",
+
+    notFound:"Қатысушы табылмады",
+
+    subscriptionActive:"Жазылым белсенді",
+
+    subscriptionInactive:"Жазылым белсенді емес",
+
+    choosePartner:"Серіктесті таңдаңыз",
+
+    receiptAmount:"Чек сомасы",
+
+    calculate:"Үнемдеуді есептеу",
+
+    saving:"Үнемдеу",
+
+    totalSavings:"Жалпы үнемдеу",
+
+    done:"Дайын",
+
+    noFavorites:"Таңдаулыларда әзірге ештеңе жоқ.",
+
+    registerTitle:"Қош келдіңіз",
+
+    name:"Атыңыз",
+
+    phone:"Телефон нөмірі",
+
+    accept:"Сервис шарттарын қабылдаймын",
+
+    register:"Жалғастыру",
+
+    member:"BIZDE.KZ қатысушысы",
+
+    qrExpired:"QR кодының мерзімі аяқталды",
+
+    qrRefresh:"Жаңа QR алу",
+
+    qrSeconds:"сек.",
+
+    qrInfo:
+        "QR коды шектеулі уақыт жұмыс істейді және тек бір рет қолданылады.",
+
+    creatingQr:"Қорғалған QR коды жасалуда..."
+
+}
+
+};
+
+
+/* =========================
+   LANGUAGE
+========================= */
+
+function applyLanguage(){
+
+    const t =
+        translations[currentLanguage];
+
+    document
+        .querySelectorAll("[data-i18n]")
+        .forEach(el=>{
+
+            const key =
+                el.dataset.i18n;
+
+            if(t[key]){
+                el.textContent = t[key];
+            }
+
+        });
+
+    const langButton =
+        document.getElementById("langButton");
+
+    if(langButton){
+
+        langButton.textContent =
+            currentLanguage === "ru"
+            ? "RU"
+            : "KZ";
+
+    }
+
+    const languageText =
+        document.getElementById("languageText");
+
+    if(languageText){
+
+        languageText.textContent =
+            currentLanguage === "ru"
+            ? t.russian
+            : t.kazakh;
+
+    }
+
+    updateStatus();
+
+}
+
+
+async function changeLanguage(){
+
+    currentLanguage =
+        currentLanguage === "ru"
+        ? "kk"
+        : "ru";
+
+    localStorage.setItem(
+        "bizdeLanguage",
+        currentLanguage
+    );
+
+    applyLanguage();
+
+    if(!bizdeUser){
+        return;
+    }
+
+    await apiFetch(
+        "/api/language",
+        {
+            method:"POST",
+
+            body:JSON.stringify({
+
+                init_data:
+                    tg?.initData || "",
+
+                telegram_id:
+                    bizdeUser.telegram_id,
+
+                language:
+                    currentLanguage
+
+            })
+
+        }
     );
 
 }
 
 
-/* =====================================================
+/* =========================
    API
-===================================================== */
+========================= */
 
 async function apiFetch(
-    path,
-    options={}
+    url,
+    options = {}
 ){
-
-    const headers = {
-        ...(options.headers || {})
-    };
-
-
-    if(telegramInitData){
-
-        headers["X-Telegram-Init-Data"] =
-            telegramInitData;
-
-    }
-
-
-    if(
-        options.body &&
-        typeof options.body === "object"
-    ){
-
-        headers["Content-Type"] =
-            "application/json";
-
-        options.body =
-            JSON.stringify(options.body);
-
-    }
-
-
-    const response =
-        await fetch(
-            API_URL + path,
-            {
-                ...options,
-                headers
-            }
-        );
-
-
-    let data = {};
 
     try{
 
-        data = await response.json();
+        const headers = {
 
-    }catch(e){}
+            "Content-Type":
+                "application/json",
 
+            ...(options.headers || {})
 
-    if(!response.ok){
+        };
 
-        throw new Error(
-            data.error ||
-            t("error")
+        if(
+            tg &&
+            tg.initData
+        ){
+
+            headers[
+                "X-Telegram-Init-Data"
+            ] = tg.initData;
+
+        }
+
+        const response =
+            await fetch(
+                API_URL + url,
+                {
+                    ...options,
+                    headers:headers
+                }
+            );
+
+        let data = {};
+
+        const text =
+            await response.text();
+
+        try{
+
+            data =
+                text
+                ? JSON.parse(text)
+                : {};
+
+        }catch(e){
+
+            data = {
+
+                success:false,
+
+                error:
+                    text ||
+                    "Сервер вернул некорректный ответ."
+
+            };
+
+        }
+
+        if(!response.ok){
+
+            console.error(
+                "SERVER ERROR",
+                response.status,
+                data
+            );
+
+            return {
+
+                success:false,
+
+                ok:false,
+
+                status:
+                    response.status,
+
+                error:
+                    data.error ||
+                    data.message ||
+                    (
+                        "Ошибка сервера: HTTP " +
+                        response.status
+                    )
+
+            };
+
+        }
+
+        return data;
+
+    }catch(error){
+
+        console.error(
+            "API ERROR:",
+            error
         );
 
+        return {
+
+            success:false,
+
+            ok:false,
+
+            error:
+                "Ошибка соединения с сервером."
+
+        };
+
     }
-
-
-    return data;
 
 }
 
 
-/* =====================================================
+/* =========================
    AUTH
-===================================================== */
+========================= */
 
 async function authWithBackend(){
 
-    if(!telegramInitData){
+    const telegramReady =
+        await initTelegram();
 
-        return null;
+    const telegramUser =
+        tg?.initDataUnsafe?.user;
+
+    if(
+        !telegramReady ||
+        !tg?.initData ||
+        !telegramUser
+    ){
+
+        console.warn(
+            "Нет Telegram initData"
+        );
+
+        if(bizdeUser){
+
+            updateUI();
+
+        }else{
+
+            showRegistration();
+
+        }
+
+        return false;
 
     }
-
 
     try{
 
@@ -1821,163 +1897,307 @@ async function authWithBackend(){
             await apiFetch(
                 "/api/auth",
                 {
+
                     method:"POST",
-                    body:{
+
+                    body:JSON.stringify({
+
                         initData:
-                            telegramInitData
-                    }
+                            tg.initData,
+
+                        init_data:
+                            tg.initData,
+
+                        telegram_id:
+                            telegramUser.id,
+
+                        name:
+                            telegramUser.first_name ||
+                            telegramUser.username ||
+                            "BIZDE Member",
+
+                        username:
+                            telegramUser.username || "",
+
+                        language:
+                            currentLanguage
+
+                    })
+
                 }
             );
 
+        if(
+            (data.ok || data.success) &&
+            data.user
+        ){
 
-        if(data.user){
-
-            currentUser =
+            bizdeUser =
                 data.user;
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(
+                    bizdeUser
+                )
+            );
+
+            /*
+             * ВАЖНО:
+             * пользователь может уже существовать
+             * в БД, но ещё не пройти регистрацию.
+             *
+             * В таком случае обязательно
+             * показываем форму имени и телефона.
+             */
+
+            const hasName =
+                String(
+                    bizdeUser.name || ""
+                ).trim().length > 0;
+
+            const hasPhone =
+                String(
+                    bizdeUser.phone || ""
+                ).trim().length > 0;
+
+            if(
+                !hasName ||
+                !hasPhone
+            ){
+
+                showRegistration();
+
+                return false;
+
+            }
+
+            updateUI();
+
+            return true;
 
         }
 
+        if(
+            data.status === 404 ||
+            data.error === "USER_NOT_FOUND" ||
+            data.error === "Пользователь не найден"
+        ){
 
-        return data;
+            showRegistration();
+
+            return false;
+
+        }
+
+        if(
+            data.status >= 500 ||
+            (
+                data.error &&
+                data.error
+                    .toLowerCase()
+                    .includes("сервер")
+            )
+        ){
+
+            console.error(
+                "AUTH SERVER ERROR:",
+                data
+            );
+
+            if(bizdeUser){
+
+                updateUI();
+
+            }
+
+            return false;
+
+        }
+
+        showRegistration();
+
+        return false;
 
     }catch(error){
 
-        console.log(
-            "Auth error:",
+        console.error(
+            "AUTH ERROR:",
             error
         );
 
-        return null;
+        if(bizdeUser){
+
+            updateUI();
+
+        }else{
+
+            showRegistration();
+
+        }
+
+        return false;
 
     }
 
 }
 
 
-/* =====================================================
+/* =========================
    REGISTRATION
-===================================================== */
-
-function isRegistered(){
-
-    return !!localStorage.getItem(
-        "bizde_registered"
-    );
-
-}
-
+========================= */
 
 function showRegistration(){
 
-    openModal(
-        t("registrationTitle"),
-        `
+    const t =
+        translations[currentLanguage];
 
-        <div class="form-group">
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.registerTitle;
 
-            <label>${t("name")}</label>
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <input
+            id="regName"
+            class="modal-input"
+            placeholder="${escapeHTML(t.name)}"
+        >
+
+        <input
+            id="regPhone"
+            class="modal-input"
+            placeholder="${escapeHTML(t.phone)}"
+            type="tel"
+        >
+
+        <label style="
+            display:flex;
+            gap:9px;
+            align-items:center;
+            margin-top:14px;
+            font-size:12px;
+        ">
 
             <input
-                id="regName"
-                type="text"
-                placeholder="${t("name")}"
-            >
+                id="terms"
+                type="checkbox">
 
-        </div>
-
-
-        <div class="form-group">
-
-            <label>${t("phone")}</label>
-
-            <input
-                id="regPhone"
-                type="tel"
-                placeholder="+7 700 000 00 00"
-            >
-
-        </div>
-
-
-        <label class="checkbox">
-
-            <input
-                type="checkbox"
-                id="regTerms"
-            >
-
-            <span>
-                ${t("terms")}
-            </span>
+            ${escapeHTML(t.accept)}
 
         </label>
 
-
         <button
-            class="modal-action"
-            onclick="submitRegistration()"
-        >
-            ${t("continue")}
+            class="modal-button"
+            id="registerButton"
+            onclick="submitRegistration()">
+
+            ${escapeHTML(t.register)}
+
         </button>
 
-        `
-    );
+    `;
+
+    showModal();
 
 }
 
 
 async function submitRegistration(){
 
+    const nameInput =
+        document.getElementById(
+            "regName"
+        );
+
+    const phoneInput =
+        document.getElementById(
+            "regPhone"
+        );
+
+    const termsInput =
+        document.getElementById(
+            "terms"
+        );
+
     const name =
-        document.getElementById("regName")
-        ?.value
-        .trim();
+        nameInput?.value.trim() || "";
 
     const phone =
-        document.getElementById("regPhone")
-        ?.value
-        .trim();
+        phoneInput?.value.trim() || "";
 
     const terms =
-        document.getElementById("regTerms")
-        ?.checked;
+        termsInput?.checked || false;
 
+    if(
+        !name ||
+        !phone ||
+        !terms
+    ){
 
-    if(!name){
-
-        showToast(t("enterName"));
-
-        return;
-
-    }
-
-
-    if(!phone){
-
-        showToast(t("enterPhone"));
+        alert(
+            currentLanguage === "ru"
+            ? "Заполните все поля."
+            : "Барлық жолдарды толтырыңыз."
+        );
 
         return;
 
     }
 
+    const telegramReady =
+        await initTelegram();
 
-    if(!terms){
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
 
-        showToast(t("acceptTerms"));
+        alert(
+            currentLanguage === "ru"
+            ? "BIZDE нужно открыть через кнопку «Войти как пользователь» в Telegram."
+            : "BIZDE қолданбасын Telegram ішіндегі «Пайдаланушы ретінде кіру» батырмасы арқылы ашыңыз."
+        );
 
         return;
 
     }
 
+    const telegramUser =
+        tg?.initDataUnsafe?.user;
 
-    if(!telegramInitData){
+    if(!telegramUser){
 
-        showToast(t("telegramOnly"));
+        alert(
+            currentLanguage === "ru"
+            ? "Не удалось получить данные Telegram. Закройте Mini App и откройте его заново через бота."
+            : "Telegram деректерін алу мүмкін болмады. Mini App-ты жауып, бот арқылы қайта ашыңыз."
+        );
 
         return;
 
     }
 
+    const button =
+        document.getElementById(
+            "registerButton"
+        );
+
+    if(button){
+
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+        button.textContent =
+            currentLanguage === "ru"
+            ? "Регистрация..."
+            : "Тіркелу...";
+
+    }
 
     try{
 
@@ -1985,1091 +2205,135 @@ async function submitRegistration(){
             await apiFetch(
                 "/api/register",
                 {
+
                     method:"POST",
-                    body:{
+
+                    body:JSON.stringify({
+
                         initData:
-                            telegramInitData,
+                            tg.initData,
 
                         init_data:
-                            telegramInitData,
+                            tg.initData,
 
-                        name,
+                        telegram_id:
+                            telegramUser.id,
 
-                        phone,
+                        name:
+                            name,
 
-                        terms_accepted:true
-                    }
+                        phone:
+                            phone,
+
+                        terms_accepted:
+                            true
+
+                    })
+
                 }
             );
 
+        console.log(
+            "REGISTER RESPONSE:",
+            data
+        );
 
-        currentUser =
-            data.user || currentUser;
+        if(
+            !(data.success || data.ok) ||
+            !data.user
+        ){
 
+            if(button){
+
+                button.disabled = false;
+
+                button.style.opacity = "1";
+
+                button.textContent =
+                    translations[
+                        currentLanguage
+                    ].register;
+
+            }
+
+            alert(
+                data.error ||
+                (
+                    currentLanguage === "ru"
+                    ? "Не удалось зарегистрироваться."
+                    : "Тіркелу мүмкін болмады."
+                )
+            );
+
+            return;
+
+        }
+
+        bizdeUser =
+            data.user;
 
         localStorage.setItem(
-            "bizde_registered",
-            "1"
+            "bizdeUser",
+            JSON.stringify(
+                bizdeUser
+            )
         );
 
+        hideModal();
 
-        closeModal();
+        updateUI();
 
-        showToast(t("saved"));
-
-        await loadUserData();
+        await authWithBackend();
 
     }catch(error){
 
-        showToast(
-            error.message ||
-            t("error")
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   USER
-===================================================== */
-
-async function loadUserData(){
-
-    if(!telegramInitData){
-
-        return;
-
-    }
-
-
-    try{
-
-        const data =
-            await apiFetch(
-                "/api/user"
-            );
-
-
-        if(data.user){
-
-            currentUser =
-                data.user;
-
-        }
-
-
-        updateProfile();
-
-        updateSubscriptionUI();
-
-    }catch(error){
-
-        console.log(
-            "User error:",
+        console.error(
+            "REGISTER ERROR:",
             error
         );
 
-    }
+        if(button){
 
-}
+            button.disabled = false;
 
+            button.style.opacity = "1";
 
-/* =====================================================
-   PARTNERS
-===================================================== */
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].register;
 
-async function loadPartners(){
+        }
 
-    try{
-
-        const data =
-            await apiFetch(
-                "/api/partners"
-            );
-
-
-        partners =
-            Array.isArray(data)
-                ? data
-                : (
-                    data.partners ||
-                    data.items ||
-                    []
-                );
-
-
-        renderPartners();
-
-        renderAllPartners();
-
-        renderMap();
-
-    }catch(error){
-
-        console.log(
-            "Partners error:",
-            error
+        alert(
+            currentLanguage === "ru"
+            ? "Ошибка соединения с сервером."
+            : "Серверге қосылу қатесі."
         );
 
-
-        partners = [];
-
-        renderPartners();
-
-        renderAllPartners();
-
-        renderMap();
-
     }
 
 }
 
 
-/* =====================================================
-   PARTNER NORMALIZATION
-===================================================== */
+/* =========================
+   USER UI
+========================= */
 
-function partnerName(partner){
+function updateUI(){
 
-    return partner.name ||
-        partner.title ||
-        "BIZDE Partner";
-
-}
-
-
-function partnerCategory(partner){
-
-    return String(
-        partner.category ||
-        partner.type ||
-        "services"
-    ).toLowerCase();
-
-}
-
-
-function partnerDiscount(partner){
-
-    return partner.discount ||
-        partner.discount_percent ||
-        partner.percent ||
-        0;
-
-}
-
-
-function partnerDescription(partner){
-
-    return partner.description ||
-        partner.conditions ||
-        partner.offer ||
-        "";
-
-}
-
-
-function partnerAddress(partner){
-
-    return partner.address ||
-        partner.location ||
-        partner.city_address ||
-        "";
-
-}
-
-
-function partnerLatitude(partner){
-
-    const value =
-        partner.latitude ??
-        partner.lat;
-
-    if(
-        value === null ||
-        value === undefined ||
-        value === ""
-    ){
-
-        return null;
-
+    if(!bizdeUser){
+        return;
     }
-
-    const num =
-        Number(value);
-
-    return Number.isFinite(num)
-        ? num
-        : null;
-
-}
-
-
-function partnerLongitude(partner){
-
-    const value =
-        partner.longitude ??
-        partner.lng ??
-        partner.lon;
-
-    if(
-        value === null ||
-        value === undefined ||
-        value === ""
-    ){
-
-        return null;
-
-    }
-
-    const num =
-        Number(value);
-
-    return Number.isFinite(num)
-        ? num
-        : null;
-
-}
-
-
-function partnerImage(partner){
-
-    return partner.photo ||
-        partner.image ||
-        partner.logo ||
-        "";
-
-}
-
-
-/* =====================================================
-   PARTNER CARD
-===================================================== */
-
-function partnerCardHTML(partner){
 
     const name =
-        escapeHTML(
-            partnerName(partner)
-        );
-
-    const category =
-        escapeHTML(
-            partnerCategory(partner)
-        );
-
-    const discount =
-        partnerDiscount(partner);
-
-    const description =
-        escapeHTML(
-            partnerDescription(partner)
-        );
-
-    const address =
-        escapeHTML(
-            partnerAddress(partner)
-        );
-
-    const image =
-        partnerImage(partner);
-
-
-    const logoHTML =
-        image
-        ?
-        `<img src="${escapeAttribute(image)}" alt="">`
-        :
-        name.charAt(0).toUpperCase();
-
-
-    return `
-
-        <div class="partner-card">
-
-            <div class="partner-top">
-
-                <div class="partner-logo">
-                    ${logoHTML}
-                </div>
-
-                <div class="partner-info">
-
-                    <h3>${name}</h3>
-
-                    <p>
-                        ${description ||
-                        categoryLabel(category)}
-                    </p>
-
-                </div>
-
-                <button
-                    class="partner-fav"
-                    onclick="toggleFavorite('${escapeAttribute(name)}')"
-                >
-                    ${isFavorite(name) ? "♥" : "♡"}
-                </button>
-
-            </div>
-
-
-            <div class="partner-bottom">
-
-                <div>
-
-                    ${
-                        discount
-                        ?
-                        `<div class="discount">
-                            -${escapeHTML(String(discount))}%
-                        </div>`
-                        :
-                        `<div class="discount">
-                            ${t("partner")}
-                        </div>`
-                    }
-
-                    ${
-                        address
-                        ?
-                        `<div style="
-                            margin-top:3px;
-                            color:var(--muted);
-                            font-size:10px;
-                        ">
-                            📍 ${address}
-                        </div>`
-                        :
-                        ""
-                    }
-
-                </div>
-
-
-                <button
-                    class="use-btn"
-                    onclick="openPartner('${escapeAttribute(String(partner.id ?? ""))}')"
-                >
-                    ${t("use")}
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-function categoryLabel(category){
-
-    const map = {
-
-        restaurant:t("restaurants"),
-
-        sport:t("sport"),
-
-        beauty:t("beauty"),
-
-        services:t("services")
-
-    };
-
-    return map[category] || category;
-
-}
-
-
-/* =====================================================
-   RENDER PARTNERS
-===================================================== */
-
-function renderPartners(){
-
-    const container =
-        document.getElementById(
-            "partnersList"
-        );
-
-    if(!container){
-
-        return;
-
-    }
-
-
-    const search =
-        document.getElementById(
-            "searchInput"
-        )
-        ?.value
-        .trim()
-        .toLowerCase() || "";
-
-
-    let filtered =
-        partners.filter(partner => {
-
-            const name =
-                partnerName(partner)
-                .toLowerCase();
-
-            const description =
-                partnerDescription(partner)
-                .toLowerCase();
-
-            const address =
-                partnerAddress(partner)
-                .toLowerCase();
-
-            const category =
-                partnerCategory(partner);
-
-
-            const matchesSearch =
-                !search ||
-                name.includes(search) ||
-                description.includes(search) ||
-                address.includes(search);
-
-
-            const matchesCategory =
-                selectedCategory === "all" ||
-                category === selectedCategory;
-
-
-            return (
-                matchesSearch &&
-                matchesCategory
-            );
-
-        });
-
-
-    if(!filtered.length){
-
-        container.innerHTML = `
-            <div class="partner-card">
-                <div style="
-                    text-align:center;
-                    color:var(--muted);
-                    padding:20px 5px;
-                    font-size:12px;
-                ">
-                    ${t("noPartners")}
-                </div>
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        filtered
-        .slice(0,6)
-        .map(partnerCardHTML)
-        .join("");
-
-}
-
-
-function renderAllPartners(){
-
-    const container =
-        document.getElementById(
-            "allPartnersList"
-        );
-
-    if(!container){
-
-        return;
-
-    }
-
-
-    if(!partners.length){
-
-        container.innerHTML = `
-            <div class="partner-card">
-                <div style="
-                    text-align:center;
-                    color:var(--muted);
-                    padding:20px;
-                    font-size:12px;
-                ">
-                    ${t("noPartners")}
-                </div>
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        partners
-        .map(partnerCardHTML)
-        .join("");
-
-}
-
-
-/* =====================================================
-   CATEGORY
-===================================================== */
-
-function selectCategory(
-    category,
-    button
-){
-
-    selectedCategory =
-        category;
-
-
-    document
-        .querySelectorAll(".category")
-        .forEach(el =>
-            el.classList.remove("active")
-        );
-
-
-    if(button){
-
-        button.classList.add("active");
-
-    }
-
-
-    renderPartners();
-
-}
-
-
-/* =====================================================
-   PARTNER DETAILS
-===================================================== */
-
-function openPartner(id){
-
-    const partner =
-        partners.find(
-            p => String(p.id) === String(id)
-        );
-
-
-    if(!partner){
-
-        return;
-
-    }
-
-
-    const name =
-        escapeHTML(
-            partnerName(partner)
-        );
-
-    const description =
-        escapeHTML(
-            partnerDescription(partner)
-        );
-
-    const address =
-        escapeHTML(
-            partnerAddress(partner)
-        );
-
-    const discount =
-        partnerDiscount(partner);
-
-
-    openModal(
-        name,
-        `
-
-        <div>
-
-            ${
-                discount
-                ?
-                `<div style="
-                    font-size:25px;
-                    font-weight:900;
-                    color:var(--green);
-                    margin-bottom:12px;
-                ">
-                    -${escapeHTML(String(discount))}%
-                </div>`
-                :
-                ""
-            }
-
-
-            <div class="modal-text">
-
-                ${
-                    description ||
-                    t("conditions")
-                }
-
-            </div>
-
-
-            ${
-                address
-                ?
-                `<div style="
-                    margin-top:15px;
-                    padding:13px;
-                    background:var(--surface2);
-                    border-radius:15px;
-                    font-size:12px;
-                ">
-                    📍 ${address}
-                </div>`
-                :
-                ""
-            }
-
-
-            <button
-                class="modal-action"
-                onclick="createUserQR()"
-            >
-                ${t("qr")}
-            </button>
-
-        </div>
-
-        `
-    );
-
-}
-
-
-/* =====================================================
-   QR
-===================================================== */
-
-async function createUserQR(){
-
-    if(!telegramInitData){
-
-        showToast(t("telegramOnly"));
-
-        return;
-
-    }
-
-
-    try{
-
-        const data =
-            await apiFetch(
-                "/api/qr/create",
-                {
-                    method:"POST",
-                    body:{
-                        initData:
-                            telegramInitData
-                    }
-                }
-            );
-
-
-        const token =
-            data.token ||
-            data.qr_token ||
-            data.value;
-
-
-        if(!token){
-
-            throw new Error(
-                "QR token не получен"
-            );
-
-        }
-
-
-        openModal(
-            t("qr"),
-            `
-
-            <div class="qr-box">
-
-                <div id="qrcode"></div>
-
-                <div class="qr-note">
-                    ${t("qrText")}
-                </div>
-
-            </div>
-
-            `
-        );
-
-
-        new QRCode(
-            document.getElementById("qrcode"),
-            {
-                text:String(token),
-                width:230,
-                height:230,
-                correctLevel:
-                    QRCode.CorrectLevel.M
-            }
-        );
-
-    }catch(error){
-
-        showToast(
-            error.message ||
-            t("error")
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   MAP
-===================================================== */
-
-function initMap(){
-
-    if(map){
-
-        return;
-
-    }
-
-
-    const mapElement =
-        document.getElementById("map");
-
-
-    if(!mapElement){
-
-        return;
-
-    }
-
-
-    map =
-        L.map(
-            "map",
-            {
-                zoomControl:true,
-                attributionControl:true
-            }
-        )
-        .setView(
-            [52.2871,76.9674],
-            12
-        );
-
-
-    L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            maxZoom:19,
-            attribution:
-                '&copy; OpenStreetMap contributors'
-        }
-    ).addTo(map);
-
-}
-
-
-function renderMap(){
-
-    initMap();
-
-    if(!map){
-
-        return;
-
-    }
-
-
-    mapMarkers.forEach(
-        marker => marker.remove()
-    );
-
-    mapMarkers = [];
-
-
-    const locatedPartners =
-        partners.filter(partner => {
-
-            const lat =
-                partnerLatitude(partner);
-
-            const lng =
-                partnerLongitude(partner);
-
-            return (
-                lat !== null &&
-                lng !== null
-            );
-
-        });
-
-
-    const empty =
-        document.getElementById(
-            "mapEmpty"
-        );
-
-
-    if(!locatedPartners.length){
-
-        if(empty){
-
-            empty.classList.remove(
-                "hidden"
-            );
-
-        }
-
-        setTimeout(
-            () => map.invalidateSize(),
-            100
-        );
-
-        return;
-
-    }
-
-
-    if(empty){
-
-        empty.classList.add(
-            "hidden"
-        );
-
-    }
-
-
-    const bounds = [];
-
-
-    locatedPartners.forEach(
-        partner => {
-
-            const lat =
-                partnerLatitude(partner);
-
-            const lng =
-                partnerLongitude(partner);
-
-
-            const marker =
-                L.marker(
-                    [lat,lng]
-                )
-                .addTo(map);
-
-
-            const name =
-                escapeHTML(
-                    partnerName(partner)
-                );
-
-            const address =
-                escapeHTML(
-                    partnerAddress(partner)
-                );
-
-
-            marker.bindPopup(`
-
-                <div style="
-                    min-width:160px;
-                    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-                ">
-
-                    <strong>
-                        ${name}
-                    </strong>
-
-                    ${
-                        address
-                        ?
-                        `<div style="
-                            margin-top:5px;
-                            color:#666;
-                            font-size:11px;
-                        ">
-                            ${address}
-                        </div>`
-                        :
-                        ""
-                    }
-
-                    <button
-                        onclick="openPartner('${escapeAttribute(String(partner.id ?? ""))}')"
-                        style="
-                            margin-top:9px;
-                            background:#071f1d;
-                            color:white;
-                            border:0;
-                            border-radius:8px;
-                            padding:7px 10px;
-                            font-size:10px;
-                            font-weight:700;
-                        "
-                    >
-                        ${t("use")}
-                    </button>
-
-                </div>
-
-            `);
-
-
-            mapMarkers.push(marker);
-
-            bounds.push(
-                [lat,lng]
-            );
-
-        }
-    );
-
-
-    if(bounds.length === 1){
-
-        map.setView(
-            bounds[0],
-            15
-        );
-
-    }else{
-
-        map.fitBounds(
-            bounds,
-            {
-                padding:[25,25]
-            }
-        );
-
-    }
-
-
-    setTimeout(
-        () => map.invalidateSize(),
-        100
-    );
-
-}
-
-
-/* =====================================================
-   FAVORITES
-===================================================== */
-
-function getFavorites(){
-
-    try{
-
-        return JSON.parse(
-            localStorage.getItem(
-                "bizde_favorites"
-            ) || "[]"
-        );
-
-    }catch(e){
-
-        return [];
-
-    }
-
-}
-
-
-function isFavorite(name){
-
-    return getFavorites()
-        .includes(name);
-
-}
-
-
-function toggleFavorite(name){
-
-    let favorites =
-        getFavorites();
-
-
-    if(favorites.includes(name)){
-
-        favorites =
-            favorites.filter(
-                item => item !== name
-            );
-
-    }else{
-
-        favorites.push(name);
-
-    }
-
-
-    localStorage.setItem(
-        "bizde_favorites",
-        JSON.stringify(favorites)
-    );
-
-
-    renderPartners();
-
-    renderAllPartners();
-
-}
-
-
-/* =====================================================
-   PROFILE
-===================================================== */
-
-function updateProfile(){
-
-    if(!currentUser){
-
-        return;
-
-    }
-
-
-    const name =
-        currentUser.name ||
-        currentUser.full_name ||
-        currentUser.first_name ||
-        "Пользователь";
-
+        bizdeUser.name ||
+        "BIZDE Member";
 
     const profileName =
         document.getElementById(
             "profileName"
         );
-
-
-    const avatar =
-        document.getElementById(
-            "profileAvatar"
-        );
-
 
     if(profileName){
 
@@ -3078,669 +2342,1613 @@ function updateProfile(){
 
     }
 
+    const avatar =
+        document.getElementById(
+            "avatar"
+        );
 
     if(avatar){
 
         avatar.textContent =
             name
-            .charAt(0)
-            .toUpperCase();
+                .charAt(0)
+                .toUpperCase();
 
     }
 
-
-    const savings =
-        Number(
-            currentUser.total_savings ||
-            currentUser.totalSavings ||
-            currentUser.savings ||
-            0
-        );
-
-
-    const savingsElement =
+    const profileMember =
         document.getElementById(
-            "totalSavingsValue"
+            "profileMember"
         );
 
+    if(profileMember){
 
-    if(savingsElement){
-
-        savingsElement.textContent =
-            formatMoney(savings);
+        profileMember.textContent =
+            bizdeUser.member_code ||
+            translations[
+                currentLanguage
+            ].member;
 
     }
+
+    const profileSavings =
+        document.getElementById(
+            "profileSavings"
+        );
+
+    if(profileSavings){
+
+        profileSavings.textContent =
+            formatMoney(
+                bizdeUser.total_savings || 0
+            );
+
+    }
+
+    const profileSubscription =
+        document.getElementById(
+            "profileSubscription"
+        );
+
+    if(profileSubscription){
+
+        profileSubscription.textContent =
+            bizdeUser.subscription_active
+            ? translations[
+                currentLanguage
+              ].active
+            : translations[
+                currentLanguage
+              ].inactive;
+
+    }
+
+    const profileSubText =
+        document.getElementById(
+            "profileSubText"
+        );
+
+    if(profileSubText){
+
+        profileSubText.textContent =
+            bizdeUser.subscription_active
+            ? translations[
+                currentLanguage
+              ].activeText
+            : translations[
+                currentLanguage
+              ].inactiveText;
+
+    }
+
+    updateStatus();
 
 }
 
 
-/* =====================================================
-   SUBSCRIPTION
-===================================================== */
-
-function isSubscriptionActive(){
-
-    if(!currentUser){
-
-        return false;
-
-    }
-
-
-    return Boolean(
-        currentUser.subscription_active ??
-        currentUser.is_subscribed ??
-        currentUser.active_subscription ??
-        false
-    );
-
-}
-
-
-function updateSubscriptionUI(){
+function updateStatus(){
 
     const active =
-        isSubscriptionActive();
+        !!bizdeUser?.subscription_active;
 
-
-    const text =
+    const statusText =
         document.getElementById(
-            "subscriptionText"
+            "statusText"
         );
 
-    const status =
+    const badge =
         document.getElementById(
-            "subscriptionStatus"
+            "statusBadge"
         );
 
-    const button =
-        document.getElementById(
-            "subscribeBtn"
-        );
+    if(statusText){
 
-
-    if(text){
-
-        text.textContent =
+        statusText.textContent =
             active
-            ? t("active")
-            : t("inactive");
+            ? translations[
+                currentLanguage
+              ].activeText
+            : translations[
+                currentLanguage
+              ].inactiveText;
 
     }
 
+    if(badge){
 
-    if(status){
-
-        status.textContent =
+        badge.textContent =
             active
-            ? t("active")
-            : t("inactive");
+            ? translations[
+                currentLanguage
+              ].active
+            : translations[
+                currentLanguage
+              ].inactive;
 
-        status.classList.toggle(
-            "off",
-            !active
-        );
-
-    }
-
-
-    if(button){
-
-        button.textContent =
+        badge.className =
             active
-            ? t("qr")
-            : t("subscribe");
+            ? "badge"
+            : "badge off";
 
     }
 
 }
 
 
-function openSubscription(button){
+/* =========================
+   MONEY
+========================= */
 
-    showPage(
-        "subscriptionPage",
-        button
-    );
+function formatMoney(value){
 
-    updateSubscriptionUI();
-
-}
-
-
-function showPaymentInfo(){
-
-    if(isSubscriptionActive()){
-
-        createUserQR();
-
-        return;
-
-    }
-
-
-    openModal(
-        t("paymentLater"),
-        `
-
-        <div class="modal-text">
-
-            ${t("subscriptionInfo")}
-
-        </div>
-
-
-        <button
-            class="modal-action"
-            onclick="closeModal()"
-        >
-            OK
-        </button>
-
-        `
-    );
+    return Number(value || 0)
+        .toLocaleString("ru-RU") +
+        " ₸";
 
 }
 
 
-/* =====================================================
-   HISTORY
-===================================================== */
-
-async function loadHistory(){
-
-    const container =
-        document.getElementById(
-            "historyList"
-        );
-
-
-    if(!container){
-
-        return;
-
-    }
-
-
-    if(!telegramInitData){
-
-        container.innerHTML = "";
-
-        return;
-
-    }
-
-
-    try{
-
-        const data =
-            await apiFetch(
-                "/api/history"
-            );
-
-
-        const history =
-            Array.isArray(data)
-            ? data
-            : (
-                data.history ||
-                data.transactions ||
-                []
-            );
-
-
-        document.getElementById(
-            "operationsValue"
-        ).textContent =
-            history.length;
-
-
-        if(!history.length){
-
-            container.innerHTML = `
-
-                <div class="history-item">
-
-                    <div class="history-name">
-                        ${t("noHistory")}
-                    </div>
-
-                </div>
-
-            `;
-
-            return;
-
-        }
-
-
-        container.innerHTML =
-            history.map(item => {
-
-                const name =
-                    escapeHTML(
-                        item.partner_name ||
-                        item.partner ||
-                        t("partner")
-                    );
-
-
-                const saving =
-                    Number(
-                        item.savings ||
-                        item.saved ||
-                        item.discount_amount ||
-                        0
-                    );
-
-
-                const date =
-                    item.created_at ||
-                    item.date ||
-                    "";
-
-
-                return `
-
-                    <div class="history-item">
-
-                        <div>
-
-                            <div class="history-name">
-                                ${name}
-                            </div>
-
-                            <div class="history-date">
-                                ${formatDate(date)}
-                            </div>
-
-                        </div>
-
-                        <div class="history-save">
-                            +${formatMoney(saving)}
-                        </div>
-
-                    </div>
-
-                `;
-
-            })
-            .join("");
-
-
-    }catch(error){
-
-        console.log(
-            "History error:",
-            error
-        );
-
-        container.innerHTML = `
-
-            <div class="history-item">
-
-                <div class="history-name">
-                    ${t("noHistory")}
-                </div>
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-/* =====================================================
-   PAGE NAVIGATION
-===================================================== */
-
-function showPage(
-    pageId,
-    button=null
-){
-
-    const pages = [
-        "homePage",
-        "partnersPage",
-        "subscriptionPage",
-        "profilePage"
-    ];
-
-
-    pages.forEach(id => {
-
-        const page =
-            document.getElementById(id);
-
-        if(page){
-
-            page.classList.toggle(
-                "hidden",
-                id !== pageId
-            );
-
-        }
-
-    });
-
+/* =========================
+   PAGES
+========================= */
+
+function showPage(pageId){
 
     document
-        .querySelectorAll(".nav-btn")
-        .forEach(btn =>
-            btn.classList.remove("active")
-        );
+        .querySelectorAll(".page")
+        .forEach(page=>{
 
-
-    if(button){
-
-        button.classList.add("active");
-
-    }else{
-
-        const nav =
-            document.querySelector(
-                `.nav-btn[onclick*="'${pageId}'"]`
+            page.classList.remove(
+                "active"
             );
 
-        if(nav){
+        });
 
-            nav.classList.add("active");
+    const page =
+        document.getElementById(
+            pageId
+        );
 
-        }
+    if(page){
+
+        page.classList.add(
+            "active"
+        );
 
     }
 
+    document
+        .querySelectorAll(".nav")
+        .forEach(nav=>{
+
+            nav.classList.remove(
+                "active"
+            );
+
+        });
+
+    if(pageId === "homePage"){
+
+        document
+            .getElementById("navHome")
+            .classList.add("active");
+
+    }
+
+    if(pageId === "favoritesPage"){
+
+        document
+            .getElementById("navFavorites")
+            .classList.add("active");
+
+        renderFavorites();
+
+    }
+
+    if(pageId === "mapPage"){
+
+        document
+            .getElementById("navMap")
+            .classList.add("active");
+
+    }
+
+    if(pageId === "profilePage"){
+
+        document
+            .getElementById("navProfile")
+            .classList.add("active");
+
+    }
 
     window.scrollTo({
         top:0,
         behavior:"smooth"
     });
 
-
-    if(pageId === "profilePage"){
-
-        loadHistory();
-
-    }
-
-
-    if(pageId === "subscriptionPage"){
-
-        updateSubscriptionUI();
-
-    }
-
-
-    if(pageId === "homePage"){
-
-        setTimeout(
-            () => {
-
-                if(map){
-
-                    map.invalidateSize();
-
-                }
-
-            },
-            250
-        );
-
-    }
-
 }
 
 
-/* =====================================================
-   MODAL
-===================================================== */
+/* =========================
+   PARTNERS
+========================= */
 
-function openModal(
-    title,
-    content
-){
+async function loadPartners(){
 
-    const modal =
-        document.getElementById(
-            "modal"
+    const data =
+        await apiFetch(
+            "/api/partners"
         );
-
-    const modalTitle =
-        document.getElementById(
-            "modalTitle"
-        );
-
-    const modalContent =
-        document.getElementById(
-            "modalContent"
-        );
-
-
-    modalTitle.textContent =
-        title;
-
-    modalContent.innerHTML =
-        content;
-
-    modal.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-function closeModal(){
-
-    document
-        .getElementById("modal")
-        .classList.add(
-            "hidden"
-        );
-
-}
-
-
-function closeModalOutside(event){
-
-    if(event.target.id === "modal"){
-
-        closeModal();
-
-    }
-
-}
-
-
-/* =====================================================
-   TOAST
-===================================================== */
-
-let toastTimer = null;
-
-
-function showToast(message){
-
-    const toast =
-        document.getElementById(
-            "toast"
-        );
-
-
-    toast.textContent =
-        message;
-
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimer
-    );
-
-
-    toastTimer =
-        setTimeout(
-            () => {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-            2500
-        );
-
-}
-
-
-/* =====================================================
-   FORMATTERS
-===================================================== */
-
-function formatMoney(value){
-
-    const number =
-        Number(value) || 0;
-
-
-    return number.toLocaleString(
-        "ru-RU"
-    ) + " ₸";
-
-}
-
-
-function formatDate(value){
-
-    if(!value){
-
-        return "";
-
-    }
-
-
-    try{
-
-        return new Date(value)
-            .toLocaleDateString(
-                currentLanguage === "ru"
-                    ? "ru-RU"
-                    : "kk-KZ",
-                {
-                    day:"2-digit",
-                    month:"2-digit",
-                    year:"numeric"
-                }
-            );
-
-    }catch(e){
-
-        return String(value);
-
-    }
-
-}
-
-
-/* =====================================================
-   SECURITY / HTML
-===================================================== */
-
-function escapeHTML(value){
-
-    return String(value ?? "")
-        .replace(
-            /[&<>"']/g,
-            char => ({
-                "&":"&amp;",
-                "<":"&lt;",
-                ">":"&gt;",
-                '"':"&quot;",
-                "'":"&#039;"
-            }[char])
-        );
-
-}
-
-
-function escapeAttribute(value){
-
-    return String(value ?? "")
-        .replace(
-            /[&<>"']/g,
-            char => ({
-                "&":"&amp;",
-                "<":"&lt;",
-                ">":"&gt;",
-                '"":"&quot;",
-                "'":"&#039;"
-            }[char])
-        );
-
-}
-
-
-/* =====================================================
-   START
-===================================================== */
-
-async function startApp(){
-
-    applyTranslations();
-
-    initMap();
-
-
-    await initTelegram();
-
-
-    if(!telegramInitData){
-
-        console.log(
-            "Telegram initData отсутствует. Откройте Mini App через Telegram."
-        );
-
-    }
-
-
-    await authWithBackend();
-
-
-    await Promise.all([
-        loadPartners(),
-        loadUserData()
-    ]);
-
 
     if(
-        telegramInitData &&
-        !isRegistered() &&
-        !currentUser?.name &&
-        !currentUser?.phone
+        (data.success || data.ok) &&
+        Array.isArray(data.partners)
     ){
+
+        allPartners =
+            data.partners;
+
+    }else{
+
+        allPartners = [
+
+            {
+                id:1,
+                name:"Partner 1",
+                category:"restaurant",
+                description:
+                    "Ресторан восточной кухни",
+                discount_percent:20
+            },
+
+            {
+                id:2,
+                name:"VERO Café",
+                category:"cafe",
+                description:
+                    "Кофе и десерты",
+                discount_percent:20
+            },
+
+            {
+                id:3,
+                name:"FITROOM",
+                category:"sport",
+                description:
+                    "Спорт и тренировки",
+                discount_percent:15
+            },
+
+            {
+                id:4,
+                name:"Beauty Room",
+                category:"beauty",
+                description:
+                    "Красота и уход",
+                discount_percent:15
+            }
+
+        ];
+
+    }
+
+    renderPartners();
+
+}
+
+
+function renderPartners(){
+
+    let partners =
+        [...allPartners];
+
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
+
+    const search =
+        input?.value
+            ?.toLowerCase()
+            ?.trim();
+
+    if(activeCategory !== "all"){
+
+        partners =
+            partners.filter(
+                p =>
+                    String(p.category)
+                    .toLowerCase() ===
+                    String(activeCategory)
+                    .toLowerCase()
+            );
+
+    }
+
+    if(search){
+
+        partners =
+            partners.filter(p =>
+
+                String(p.name || "")
+                    .toLowerCase()
+                    .includes(search)
+
+                ||
+
+                String(p.description || "")
+                    .toLowerCase()
+                    .includes(search)
+
+            );
+
+    }
+
+    const container =
+        document.getElementById(
+            "homePartners"
+        );
+
+    if(!container){
+        return;
+    }
+
+    if(!partners.length){
+
+        container.innerHTML =
+            `<div class="empty">
+                Партнёры не найдены.
+            </div>`;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        partners
+            .map(partnerCard)
+            .join("");
+
+}
+
+
+function partnerCard(partner){
+
+    const isFavorite =
+        favorites.includes(
+            Number(partner.id)
+        );
+
+    const letter =
+        String(
+            partner.name || "B"
+        )
+        .charAt(0)
+        .toUpperCase();
+
+    return `
+
+        <div
+            class="partner"
+            onclick="openPartner(${Number(partner.id)})">
+
+            <div class="partner-logo">
+                ${escapeHTML(letter)}
+            </div>
+
+            <div class="partner-info">
+
+                <div class="partner-name">
+                    ${escapeHTML(partner.name)}
+                </div>
+
+                <div class="partner-desc">
+                    ${escapeHTML(
+                        partner.description || ""
+                    )}
+                </div>
+
+                <div class="partner-discount">
+                    ${Number(
+                        partner.discount_percent || 0
+                    )}% PRIVILEGE
+                </div>
+
+            </div>
+
+            <button
+                class="favorite"
+                onclick="
+                    toggleFavorite(
+                        event,
+                        ${Number(partner.id)}
+                    )
+                ">
+
+                ${
+                    isFavorite
+                    ? "♥"
+                    : "♡"
+                }
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+function openPartner(id){
+
+    const partner =
+        allPartners.find(
+            p =>
+                Number(p.id) ===
+                Number(id)
+        );
+
+    if(!partner){
+        return;
+    }
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        partner.name;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            background:var(--surface2);
+            padding:20px;
+            border-radius:20px;
+        ">
+
+            <div style="
+                font-size:24px;
+                font-weight:900;
+                color:var(--green);
+            ">
+
+                ${Number(
+                    partner.discount_percent || 0
+                )}%
+
+            </div>
+
+            <div style="
+                font-weight:800;
+                margin-top:4px;
+            ">
+                PRIVILEGE
+            </div>
+
+        </div>
+
+        <div style="
+            margin-top:15px;
+            line-height:1.5;
+        ">
+
+            <strong>
+                ${escapeHTML(
+                    partner.description || ""
+                )}
+            </strong>
+
+            <p style="
+                color:var(--muted);
+                font-size:13px;
+                margin-top:8px;
+            ">
+
+                ${escapeHTML(
+                    partner.conditions ||
+                    "Привилегия доступна участникам BIZDE.KZ."
+                )}
+
+            </p>
+
+        </div>
+
+        <button
+            class="modal-button"
+            onclick="
+                hideModal();
+                useOffer(
+                    '${escapeJS(partner.name)}',
+                    ${Number(partner.discount_percent || 0)},
+                    ${Number(partner.id)}
+                );
+            ">
+
+            Использовать привилегию
+
+        </button>
+
+    `;
+
+    showModal();
+
+}
+
+
+/* =========================
+   WORKING MAP
+========================= */
+
+function openMapPartner(index){
+
+    if(
+        !Array.isArray(allPartners) ||
+        !allPartners.length
+    ){
+
+        alert(
+            currentLanguage === "ru"
+            ? "Партнёры ещё загружаются."
+            : "Серіктестер әлі жүктелуде."
+        );
+
+        return;
+
+    }
+
+    const partner =
+        allPartners[index];
+
+    if(!partner){
+
+        alert(
+            currentLanguage === "ru"
+            ? "Партнёр не найден."
+            : "Серіктес табылмады."
+        );
+
+        return;
+
+    }
+
+    openPartner(
+        partner.id
+    );
+
+}
+
+
+/* =========================
+   CATEGORY
+========================= */
+
+function filterCategory(
+    category,
+    button
+){
+
+    activeCategory =
+        category;
+
+    document
+        .querySelectorAll(".category")
+        .forEach(el=>{
+
+            el.classList.remove(
+                "active"
+            );
+
+        });
+
+    if(button){
+
+        button.classList.add(
+            "active"
+        );
+
+    }
+
+    renderPartners();
+
+}
+
+
+function searchPartners(){
+
+    renderPartners();
+
+}
+
+
+/* =========================
+   FAVORITES
+========================= */
+
+function toggleFavorite(
+    event,
+    id
+){
+
+    event.stopPropagation();
+
+    id = Number(id);
+
+    if(
+        favorites.includes(id)
+    ){
+
+        favorites =
+            favorites.filter(
+                x => x !== id
+            );
+
+    }else{
+
+        favorites.push(id);
+
+    }
+
+    localStorage.setItem(
+        "bizdeFavorites",
+        JSON.stringify(
+            favorites
+        )
+    );
+
+    renderPartners();
+
+    renderFavorites();
+
+}
+
+
+function renderFavorites(){
+
+    const container =
+        document.getElementById(
+            "favoritePartners"
+        );
+
+    if(!container){
+        return;
+    }
+
+    const list =
+        allPartners.filter(
+            p =>
+                favorites.includes(
+                    Number(p.id)
+                )
+        );
+
+    if(!list.length){
+
+        container.innerHTML =
+            `<div class="empty">
+                ${
+                    translations[
+                        currentLanguage
+                    ].noFavorites
+                }
+            </div>`;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        list
+            .map(partnerCard)
+            .join("");
+
+}
+
+
+function restoreFavorites(){
+
+    renderFavorites();
+
+}
+
+
+/* =========================
+   USE PRIVILEGE
+========================= */
+
+function useOffer(
+    name,
+    discount,
+    partnerId
+){
+
+    if(!bizdeUser){
 
         showRegistration();
 
+        return;
+
     }
 
+    if(!bizdeUser.phone){
 
-    updateProfile();
+        showRegistration();
 
-    updateSubscriptionUI();
+        return;
 
-    loadHistory();
+    }
+
+    if(!bizdeUser.subscription_active){
+
+        openSubscription();
+
+        return;
+
+    }
+
+    showQR(
+        name,
+        discount,
+        partnerId
+    );
 
 }
 
 
-document.addEventListener(
-    "DOMContentLoaded",
-    startApp
-);
+/* =========================
+   QR
+========================= */
+
+async function showQR(
+    name,
+    discount,
+    partnerId
+){
+
+    if(!bizdeUser){
+
+        showRegistration();
+
+        return;
+
+    }
+
+    if(!bizdeUser.subscription_active){
+
+        openSubscription();
+
+        return;
+
+    }
+
+    const telegramReady =
+        await initTelegram();
+
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
+
+        alert(
+            currentLanguage === "ru"
+            ? "Откройте приложение через Telegram."
+            : "Қосымшаны Telegram арқылы ашыңыз."
+        );
+
+        return;
+
+    }
+
+    clearQrTimer();
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        currentLanguage === "ru"
+        ? "Ваша привилегия"
+        : "Сіздің артықшылығыңыз";
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            text-align:center;
+            color:var(--muted);
+            font-size:12px;
+        ">
+
+            ${
+                translations[
+                    currentLanguage
+                ].creatingQr
+            }
+
+        </div>
+
+        <div
+            class="qr-wrap"
+            style="min-height:248px;align-items:center;">
+
+            <div
+                id="qrCode"
+                style="
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                ">
+
+                <div style="
+                    color:var(--muted);
+                    font-size:12px;
+                ">
+                    ...
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="member-code">
+            ${escapeHTML(
+                bizdeUser.member_code || ""
+            )}
+        </div>
+
+        <div style="
+            text-align:center;
+            margin-top:10px;
+            font-weight:900;
+            color:var(--green);
+        ">
+
+            ${escapeHTML(name)}
+            —
+            ${escapeHTML(discount)}%
+
+        </div>
+
+        <div
+            id="qrTimer"
+            class="qr-timer">
+        </div>
+
+        <div class="qr-warning">
+
+            ${
+                translations[
+                    currentLanguage
+                ].qrInfo
+            }
+
+        </div>
+
+    `;
+
+    showModal();
+
+    const data =
+        await apiFetch(
+            "/api/qr/create",
+            {
+
+                method:"POST",
+
+                body:JSON.stringify({
+
+                    initData:
+                        tg.initData,
+
+                    init_data:
+                        tg.initData,
+
+                    partner_id:
+                        partnerId
+                            ? Number(partnerId)
+                            : null
+
+                })
+
+            }
+        );
+
+    if(
+        !(data.success || data.ok) ||
+        !data.qr ||
+        !data.qr.token
+    ){
+
+        const content =
+            document.getElementById(
+                "modalContent"
+            );
+
+        if(content){
+
+            content.innerHTML = `
+
+                <div class="result error">
+
+                    ${
+                        escapeHTML(
+                            data.error ||
+                            "Не удалось создать QR-код."
+                        )
+                    }
+
+                </div>
+
+                <button
+                    class="modal-button"
+                    onclick="hideModal()">
+
+                    ${translations[
+                        currentLanguage
+                    ].done}
+
+                </button>
+
+            `;
+
+        }
+
+        return;
+
+    }
+
+    currentQrToken =
+        data.qr.token;
+
+    const qr =
+        document.getElementById(
+            "qrCode"
+        );
+
+    if(!qr){
+        return;
+    }
+
+    qr.innerHTML = "";
+
+    if(!window.QRCode){
+
+        qr.innerHTML = `
+            <div style="
+                color:#8a4444;
+                padding:20px;
+                text-align:center;
+            ">
+                QR-библиотека не загрузилась.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    new QRCode(
+        qr,
+        {
+
+            text:
+                data.qr.token,
+
+            width:220,
+
+            height:220,
+
+            colorDark:"#071f1d",
+
+            colorLight:"#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.H
+
+        }
+    );
+
+    startQrTimer(
+        data.qr.expires_at
+    );
+
+}
+
+
+/* =========================
+   QR TIMER
+========================= */
+
+function startQrTimer(
+    expiresAt
+){
+
+    clearQrTimer();
+
+    let expires =
+        new Date(
+            expiresAt
+        ).getTime();
+
+    if(
+        !Number.isFinite(expires)
+    ){
+
+        expires =
+            Date.now() + 60000;
+
+    }
+
+    const timer =
+        document.getElementById(
+            "qrTimer"
+        );
+
+    function update(){
+
+        const seconds =
+            Math.max(
+                0,
+                Math.ceil(
+                    (expires - Date.now()) /
+                    1000
+                )
+            );
+
+        if(!timer){
+            return;
+        }
+
+        if(seconds <= 0){
+
+            timer.textContent =
+                translations[
+                    currentLanguage
+                ].qrExpired;
+
+            timer.style.color =
+                "#8a4444";
+
+            clearQrTimer();
+
+            const qr =
+                document.getElementById(
+                    "qrCode"
+                );
+
+            if(qr){
+
+                qr.innerHTML = `
+
+                    <div style="
+                        text-align:center;
+                        padding:35px 20px;
+                        color:#8a4444;
+                        font-weight:900;
+                    ">
+
+                        ${
+                            translations[
+                                currentLanguage
+                            ].qrExpired
+                        }
+
+                    </div>
+
+                `;
+
+            }
+
+            return;
+
+        }
+
+        timer.textContent =
+            "QR: " +
+            seconds +
+            " " +
+            translations[
+                currentLanguage
+            ].qrSeconds;
+
+    }
+
+    update();
+
+    currentQrTimer =
+        setInterval(
+            update,
+            500
+        );
+
+}
+
+
+function clearQrTimer(){
+
+    if(currentQrTimer){
+
+        clearInterval(
+            currentQrTimer
+        );
+
+        currentQrTimer = null;
+
+    }
+
+    currentQrToken = null;
+
+}
+
+
+/* =========================
+   CARD
+========================= */
+
+function openCard(){
+
+    if(!bizdeUser){
+
+        showRegistration();
+
+        return;
+
+    }
+
+    if(!bizdeUser.phone){
+
+        showRegistration();
+
+        return;
+
+    }
+
+    if(!bizdeUser.subscription_active){
+
+        openSubscription();
+
+        return;
+
+    }
+
+    showQR(
+        "BIZDE Privilege Card",
+        "100",
+        null
+    );
+
+}
+
+
+/* =========================
+   SUBSCRIPTION
+========================= */
+
+function openSubscription(){
+
+    const active =
+        !!bizdeUser?.subscription_active;
+
+    const t =
+        translations[currentLanguage];
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.subscription;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            text-align:center;
+            padding:15px 5px;
+        ">
+
+            <div style="
+                font-size:48px;
+                margin-bottom:10px;
+            ">
+
+                ${
+                    active
+                    ? "✦"
+                    : "○"
+                }
+
+            </div>
+
+            <div style="
+                font-size:22px;
+                font-weight:900;
+                color:${
+                    active
+                    ? "var(--green)"
+                    : "var(--text)"
+                };
+            ">
+
+                ${
+                    active
+                    ? t.active
+                    : t.inactive
+                }
+
+            </div>
+
+            <p style="
+                color:var(--muted);
+                font-size:13px;
+                line-height:1.5;
+                margin-top:9px;
+            ">
+
+                ${
+                    active
+                    ? t.activeText
+                    : t.inactiveText
+                }
+
+            </p>
+
+        </div>
+
+    `;
+
+    showModal();
+
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+async function openHistory(){
+
+    if(!bizdeUser){
+
+        showRegistration();
+
+        return;
+
+    }
+
+    const telegramReady =
+        await initTelegram();
+
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
+
+        alert(
+            currentLanguage === "ru"
+            ? "Откройте BIZDE через Telegram."
+            : "BIZDE қолданбасын Telegram арқылы ашыңыз."
+        );
+
+        return;
+
+    }
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        translations[
+            currentLanguage
+        ].history;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML =
+        `<div class="empty">Загрузка...</div>`;
+
+    showModal();
+
+    const data =
+        await apiFetch(
+            "/api/history?init_data=" +
+            encodeURIComponent(
+                tg.initData
+            )
+        );
+
+    if(
+        !(data.ok || data.success)
+    ){
+
+        document.getElementById(
+            "modalContent"
+        ).innerHTML =
+            `<div class="empty">
+                ${
+                    escapeHTML(
+                        data.error ||
+                        "Не удалось загрузить историю."
+                    )
+                }
+            </div>`;
+
+        return;
+
+    }
+
+    const history =
+        data.history || [];
+
+    if(!history.length){
+
+        document.getElementById(
+            "modalContent"
+        ).innerHTML =
+            `<div class="empty">
+                История пока пустая.
+            </div>`;
+
+        return;
+
+    }
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML =
+
+        history
+            .map(
+                item => `
+
+                    <div style="
+                        padding:15px 0;
+                        border-bottom:1px solid var(--line);
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:10px;
+                        ">
+
+                            <strong>
+                                ${escapeHTML(
+                                    item.partner_name ||
+                                    "Партнёр"
+                                )}
+                            </strong>
+
+                            <strong style="
+                                color:var(--green);
+                                white-space:nowrap;
+                            ">
+
+                                +${formatMoney(
+                                    item.savings
+                                )}
+
+                            </strong>
+
+                        </div>
+
+                        <div style="
+                            color:var(--muted);
+                            font-size:12px;
+                            margin-top:5px;
+                        ">
+
+                            Чек:
+                            ${formatMoney(
+                                item.receipt_amount
+                            )}
+
+                            ·
+                            ${Number(
+                                item.discount_percent || 0
+                            )}%
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+
+}
+
+
+/* =========================
+   SAVINGS
+========================= */
+
+function openSavings(){
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        translations[
+            currentLanguage
+        ].savings;
+
+    const total =
+        bizdeUser?.total_savings || 0;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            text-align:center;
+            padding:25px 5px;
+        ">
+
+            <div style="
+                color:var(--muted);
+                font-size:12px;
+            ">
+
+                ${
+                    translations[
+                        currentLanguage
+                    ].totalSavings
+                }
+
+            </div>
+
+            <div style="
+                color:var(--green);
+                font-size:35px;
+                font-weight:900;
+                margin-top:7px;
+            ">
+
+                ${formatMoney(total)}
+
+            </div>
+
+        </div>
+
+    `;
+
+    showModal();
+
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+function showModal(){
+
+    document
+        .getElementById("modal")
+        .classList.remove("hidden");
+
+}
+
+
+function hideModal(){
+
+    clearQrTimer();
+
+    if(scanner){
+
+        try{
+
+            scanner.stop()
+                .catch(()=>{});
+
+        }catch(e){}
+
+        scanner = null;
+
+    }
+
+    document
+        .getElementById("modal")
+        .classList.add("hidden");
+
+}
+
+
+function closeModal(event){
+
+    if(
+        event.target.id === "modal"
+    ){
+
+        hideModal();
+
+    }
+
+}
+
+
+/* =========================
+   ESCAPE
+========================= */
+
+function escapeHTML(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function escapeJS(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    )
+    .replace(
+        /\n/g,
+        "\\n"
+    )
+    .replace(
+        /\r/g,
+        "\\r"
+    );
+
+}
+
+
+/* =========================
+   START APP
+========================= */
+
+async function startApp(){
+
+    applyLanguage();
+
+    await initTelegram();
+
+    await loadPartners();
+
+    restoreFavorites();
+
+    await authWithBackend();
+
+    updateUI();
+
+}
+
+
+/* =========================
+   RUN
+========================= */
+
+startApp();
 
 </script>
 
