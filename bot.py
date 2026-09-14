@@ -6,6 +6,7 @@ import secrets
 import threading
 import urllib.parse
 
+from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
@@ -19,6 +20,7 @@ from telegram import (
     InlineKeyboardMarkup,
     WebAppInfo,
 )
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -196,7 +198,6 @@ def seed_partners():
                 ]
 
                 for partner in partners:
-
                     cur.execute("""
                         INSERT INTO partners
                         (
@@ -229,7 +230,6 @@ def generate_member_code():
         )
 
         with db() as conn:
-
             with conn.cursor() as cur:
 
                 cur.execute(
@@ -244,7 +244,6 @@ def generate_member_code():
 def get_user(telegram_id):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -261,7 +260,6 @@ def get_user(telegram_id):
 def get_user_by_member_code(code):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -290,7 +288,6 @@ def upsert_user(
         member_code = generate_member_code()
 
         with db() as conn:
-
             with conn.cursor() as cur:
 
                 cur.execute("""
@@ -343,7 +340,6 @@ def upsert_user(
     values.append(telegram_id)
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute(
@@ -365,7 +361,10 @@ def upsert_user(
 # =========================================================
 
 def is_owner(telegram_id):
-    return int(telegram_id) == OWNER_ID
+    try:
+        return int(telegram_id) == OWNER_ID
+    except (TypeError, ValueError):
+        return False
 
 
 def is_admin(telegram_id):
@@ -374,7 +373,6 @@ def is_admin(telegram_id):
         return True
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute(
@@ -388,7 +386,6 @@ def is_admin(telegram_id):
 def add_admin(telegram_id, added_by):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -414,7 +411,6 @@ def remove_admin(telegram_id):
         return False
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute(
@@ -432,7 +428,6 @@ def remove_admin(telegram_id):
 def get_admins():
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -453,7 +448,6 @@ def get_admins():
 def get_partners():
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -471,7 +465,6 @@ def get_partners():
 def get_all_partners_admin():
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -488,7 +481,6 @@ def get_all_partners_admin():
 def get_partner_by_id(partner_id):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -505,7 +497,6 @@ def get_partner_by_id(partner_id):
 def get_partner_by_telegram_id(telegram_id):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -545,7 +536,6 @@ def create_partner(
 ):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -615,7 +605,6 @@ def update_partner(
     values.append(partner_id)
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute(
@@ -635,7 +624,6 @@ def update_partner(
 def delete_partner(partner_id):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute(
@@ -653,7 +641,6 @@ def delete_partner(partner_id):
 def assign_partner(partner_id, telegram_id):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -681,7 +668,6 @@ def assign_partner(partner_id, telegram_id):
 def unassign_partner(partner_id):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -704,7 +690,6 @@ def unassign_partner(partner_id):
 def get_all_users_admin():
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -721,7 +706,6 @@ def get_all_users_admin():
 def update_language(telegram_id, language):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -742,7 +726,6 @@ def update_language(telegram_id, language):
 def set_subscription(telegram_id, active):
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -767,7 +750,6 @@ def set_subscription(telegram_id, active):
 def get_history(telegram_id):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -793,7 +775,6 @@ def create_transaction(
 ):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -855,7 +836,6 @@ def create_qr_token(
     )
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -898,7 +878,6 @@ def verify_qr_token(
 ):
 
     with db() as conn:
-
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
@@ -946,7 +925,6 @@ def verify_qr_token(
         )
 
         if not partner:
-
             return {
                 "valid": False,
                 "error": "Доступ только для партнёра"
@@ -954,9 +932,7 @@ def verify_qr_token(
 
         if row["partner_id"] is not None:
 
-            if int(row["partner_id"]) != int(
-                partner["id"]
-            ):
+            if int(row["partner_id"]) != int(partner["id"]):
 
                 return {
                     "valid": False,
@@ -986,7 +962,6 @@ def confirm_qr_transaction(
     qr = result["qr"]
 
     if not qr["subscription_active"]:
-
         return {
             "valid": False,
             "error": "Подписка пользователя неактивна"
@@ -995,6 +970,12 @@ def confirm_qr_transaction(
     partner = get_partner_by_telegram_id(
         partner_telegram_id
     )
+
+    if not partner:
+        return {
+            "valid": False,
+            "error": "Партнёр не найден"
+        }
 
     try:
         amount = float(receipt_amount)
@@ -1022,7 +1003,6 @@ def confirm_qr_transaction(
     )
 
     with db() as conn:
-
         with conn.cursor() as cur:
 
             cur.execute("""
@@ -1122,7 +1102,6 @@ def verify_member(member_code):
     )
 
     if not user:
-
         return {
             "valid": False,
             "error": "Участник не найден"
@@ -1210,25 +1189,21 @@ def validate_init_data(init_data):
         )
 
         if current - auth_date > 86400:
-
             raise ValueError(
                 "Telegram initData устарел"
             )
 
     if "user" not in data:
-
         raise ValueError(
             "Telegram user отсутствует"
         )
 
     try:
-
         return json.loads(
             data["user"]
         )
 
     except Exception:
-
         raise ValueError(
             "Некорректный Telegram user"
         )
@@ -1249,9 +1224,13 @@ def get_request_user(
     )
 
     if not init_data and body:
-
         init_data = body.get(
             "initData"
+        )
+
+    if not init_data and body:
+        init_data = body.get(
+            "init_data"
         )
 
     return validate_init_data(
@@ -1292,28 +1271,28 @@ def authenticate(
 
 def json_safe(value):
 
-    if isinstance(
-        value,
-        datetime
-    ):
+    if isinstance(value, datetime):
         return value.isoformat()
 
-    if isinstance(
-        value,
-        list
-    ):
+    if isinstance(value, Decimal):
+        return float(value)
+
+    if isinstance(value, list):
         return [
-            json_safe(x)
-            for x in value
+            json_safe(item)
+            for item in value
         ]
 
-    if isinstance(
-        value,
-        dict
-    ):
+    if isinstance(value, tuple):
+        return [
+            json_safe(item)
+            for item in value
+        ]
+
+    if isinstance(value, dict):
         return {
-            str(k): json_safe(v)
-            for k, v in value.items()
+            str(key): json_safe(val)
+            for key, val in value.items()
         }
 
     return value
@@ -1386,7 +1365,12 @@ def read_json(handler):
             raw.decode("utf-8")
         )
 
-    except Exception:
+    except Exception as e:
+
+        print(
+            "JSON READ ERROR:",
+            repr(e)
+        )
 
         return {}
 
@@ -1420,6 +1404,7 @@ class RequestHandler(
         format,
         *args
     ):
+
         print(
             "%s - %s"
             % (
@@ -1447,12 +1432,18 @@ class RequestHandler(
             "GET, POST, OPTIONS"
         )
 
+        self.send_header(
+            "Access-Control-Allow-Credentials",
+            "true"
+        )
+
         self.end_headers()
 
     def do_GET(self):
 
         try:
             handle_get(self)
+
         except Exception as e:
 
             print(
@@ -1470,6 +1461,7 @@ class RequestHandler(
 
         try:
             handle_post(self)
+
         except Exception as e:
 
             print(
@@ -1494,7 +1486,10 @@ def handle_get(handler):
         handler.path
     ).path
 
-    # Render health check
+    # -----------------------------------------------------
+    # HEALTH CHECK
+    # -----------------------------------------------------
+
     if path == "/":
 
         return json_response(
@@ -1506,7 +1501,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # PUBLIC PARTNERS
+    # -----------------------------------------------------
+
     if path == "/api/partners":
 
         return json_response(
@@ -1517,7 +1515,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # USER
+    # -----------------------------------------------------
+
     if path == "/api/user":
 
         tg_user, telegram_id = authenticate(
@@ -1543,9 +1544,8 @@ def handle_get(handler):
                 ""
             )
 
-            if tg_user.get(
-                "last_name"
-            ):
+            if tg_user.get("last_name"):
+
                 name += (
                     " "
                     + tg_user["last_name"]
@@ -1571,7 +1571,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # ROLE
+    # -----------------------------------------------------
+
     if path == "/api/role":
 
         _, telegram_id = authenticate(
@@ -1600,7 +1603,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # HISTORY
+    # -----------------------------------------------------
+
     if path == "/api/history":
 
         _, telegram_id = authenticate(
@@ -1626,7 +1632,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # PARTNER ME
+    # -----------------------------------------------------
+
     if path == "/api/partner/me":
 
         _, telegram_id = authenticate(
@@ -1662,7 +1671,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # ADMIN PARTNERS
+    # -----------------------------------------------------
+
     if path == "/api/admin/partners":
 
         _, telegram_id = authenticate(
@@ -1677,9 +1689,7 @@ def handle_get(handler):
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -1696,7 +1706,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # ADMIN USERS
+    # -----------------------------------------------------
+
     if path == "/api/admin/users":
 
         _, telegram_id = authenticate(
@@ -1711,9 +1724,7 @@ def handle_get(handler):
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -1730,7 +1741,10 @@ def handle_get(handler):
             }
         )
 
+    # -----------------------------------------------------
     # ADMINS
+    # -----------------------------------------------------
+
     if path == "/api/admin/admins":
 
         _, telegram_id = authenticate(
@@ -1745,9 +1759,7 @@ def handle_get(handler):
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -1808,9 +1820,7 @@ def handle_post(handler):
             ""
         )
 
-        if tg_user.get(
-            "last_name"
-        ):
+        if tg_user.get("last_name"):
 
             name += (
                 " "
@@ -1995,6 +2005,7 @@ def handle_post(handler):
                 partner_id = int(
                     partner_id
                 )
+
             except (TypeError, ValueError):
 
                 return error_response(
@@ -2203,15 +2214,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2291,15 +2302,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2328,9 +2339,11 @@ def handle_post(handler):
         if discount is not None:
 
             try:
+
                 discount = float(
                     discount
                 )
+
             except (TypeError, ValueError):
 
                 return error_response(
@@ -2366,15 +2379,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2415,15 +2428,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2476,15 +2489,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2525,15 +2538,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2582,15 +2595,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
@@ -2634,15 +2647,15 @@ def handle_post(handler):
         )
 
         if not telegram_id:
+
             return error_response(
                 handler,
                 "Неавторизовано",
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
+
             return error_response(
                 handler,
                 "Нет доступа",
