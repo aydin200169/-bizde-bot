@@ -1341,7 +1341,8 @@ button{
 
 const tg = window.Telegram?.WebApp;
 
-const API_URL = "https://bizde-bot.onrender.com";
+const API_URL =
+    "https://bizde-bot.onrender.com";
 
 const PARTNER_PAGE =
     "https://aydin200169.github.io/-bizde-bot/partner.html";
@@ -1739,10 +1740,6 @@ async function changeLanguage(){
         {
             method:"POST",
 
-            headers:{
-                "Content-Type":"application/json"
-            },
-
             body:JSON.stringify({
 
                 init_data:
@@ -1766,32 +1763,67 @@ async function changeLanguage(){
    API
 ========================= */
 
-async function apiFetch(url,options={}){
+async function apiFetch(url, options = {}){
 
     try{
+
+        const headers = {
+
+            "Content-Type":
+                "application/json",
+
+            ...(options.headers || {})
+
+        };
+
+        /*
+         * Главное изменение:
+         * передаём Telegram initData
+         * в специальном заголовке.
+         */
+
+        if(tg?.initData){
+
+            headers[
+                "X-Telegram-Init-Data"
+            ] = tg.initData;
+
+        }
 
         const response =
             await fetch(
                 API_URL + url,
-                options
+                {
+                    ...options,
+                    headers:headers
+                }
             );
 
-        let data;
+        let data = {};
 
         try{
-            data = await response.json();
+
+            data =
+                await response.json();
+
         }catch(e){
+
             data = {};
+
         }
 
         if(!response.ok){
 
             return {
+
                 success:false,
+
                 ok:false,
+
                 error:
                     data.error ||
                     "Ошибка сервера"
+
             };
 
         }
@@ -1806,9 +1838,14 @@ async function apiFetch(url,options={}){
         );
 
         return {
+
             success:false,
+
             ok:false,
-            error:"Ошибка соединения с сервером."
+
+            error:
+                "Ошибка соединения с сервером."
+
         };
 
     }
@@ -1825,7 +1862,16 @@ async function authWithBackend(){
     const telegramUser =
         tg?.initDataUnsafe?.user;
 
-    if(!telegramUser){
+    /*
+     * Если приложение открыто не через Telegram,
+     * настоящего initData нет.
+     */
+
+    if(
+        !tg ||
+        !tg.initData ||
+        !telegramUser
+    ){
 
         if(bizdeUser){
 
@@ -1850,15 +1896,10 @@ async function authWithBackend(){
 
                     method:"POST",
 
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-
                     body:JSON.stringify({
 
                         init_data:
-                            tg?.initData || "",
+                            tg.initData,
 
                         telegram_id:
                             telegramUser.id,
@@ -1896,13 +1937,21 @@ async function authWithBackend(){
 
         }else{
 
+            /*
+             * Если пользователь ещё не зарегистрирован,
+             * открываем форму регистрации.
+             */
+
             showRegistration();
 
         }
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "AUTH ERROR:",
+            error
+        );
 
         if(bizdeUser){
 
@@ -1981,24 +2030,34 @@ function showRegistration(){
 }
 
 
+/*
+ * ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ
+ *
+ * Раньше здесь использовался /api/auth.
+ * Теперь регистрационные данные отправляются
+ * именно на /api/register.
+ */
+
 async function submitRegistration(){
 
+    const nameInput =
+        document.getElementById("regName");
+
+    const phoneInput =
+        document.getElementById("regPhone");
+
+    const termsInput =
+        document.getElementById("terms");
+
     const name =
-        document
-            .getElementById("regName")
-            .value
-            .trim();
+        nameInput?.value.trim() || "";
 
     const phone =
-        document
-            .getElementById("regPhone")
-            .value
-            .trim();
+        phoneInput?.value.trim() || "";
 
     const terms =
-        document
-            .getElementById("terms")
-            .checked;
+        termsInput?.checked || false;
+
 
     if(!name || !phone || !terms){
 
@@ -2012,83 +2071,152 @@ async function submitRegistration(){
 
     }
 
-    const telegramUser =
-        tg?.initDataUnsafe?.user;
 
-    if(!telegramUser){
+    /*
+     * Без Telegram initData сервер не сможет
+     * подтвердить личность пользователя.
+     */
+
+    if(
+        !tg ||
+        !tg.initData
+    ){
 
         alert(
             currentLanguage === "ru"
-            ? "Откройте приложение через Telegram."
-            : "Қосымшаны Telegram арқылы ашыңыз."
+            ? "Откройте BIZDE через Telegram."
+            : "BIZDE қолданбасын Telegram арқылы ашыңыз."
         );
 
         return;
 
     }
 
+
+    /*
+     * Получаем кнопку регистрации
+     * и временно блокируем её.
+     */
+
+    const button =
+        document.querySelector(
+            "#modalContent .modal-button"
+        );
+
+    if(button){
+
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+        button.textContent =
+            currentLanguage === "ru"
+            ? "Регистрация..."
+            : "Тіркелу...";
+
+    }
+
+
+    /*
+     * Отправляем регистрацию на новый endpoint.
+     */
+
     const data =
         await apiFetch(
-            "/api/auth",
+            "/api/register",
             {
 
                 method:"POST",
 
-                headers:{
-                    "Content-Type":
-                        "application/json"
-                },
-
                 body:JSON.stringify({
 
+                    /*
+                     * Оставляем оба варианта.
+                     * Новый backend принимает initData.
+                     */
+
+                    initData:
+                        tg.initData,
+
                     init_data:
-                        tg?.initData || "",
+                        tg.initData,
 
-                    telegram_id:
-                        telegramUser.id,
+                    name:
+                        name,
 
-                    name:name,
+                    phone:
+                        phone,
 
-                    username:
-                        telegramUser.username || "",
-
-                    phone:phone,
-
-                    terms_accepted:true,
-
-                    language:
-                        currentLanguage
+                    terms_accepted:
+                        true
 
                 })
 
             }
         );
 
+
+    /*
+     * Ошибка регистрации
+     */
+
     if(
-        (data.ok || data.success) &&
-        data.user
+        !(data.success || data.ok) ||
+        !data.user
     ){
 
-        bizdeUser =
-            data.user;
+        if(button){
 
-        localStorage.setItem(
-            "bizdeUser",
-            JSON.stringify(bizdeUser)
-        );
+            button.disabled = false;
 
-        hideModal();
+            button.style.opacity = "1";
 
-        updateUI();
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].register;
 
-    }else{
+        }
 
         alert(
             data.error ||
-            "Не удалось зарегистрироваться."
+            (
+                currentLanguage === "ru"
+                ? "Не удалось зарегистрироваться."
+                : "Тіркелу мүмкін болмады."
+            )
         );
 
+        return;
+
     }
+
+
+    /*
+     * Регистрация успешна.
+     */
+
+    bizdeUser =
+        data.user;
+
+    localStorage.setItem(
+        "bizdeUser",
+        JSON.stringify(bizdeUser)
+    );
+
+
+    hideModal();
+
+    updateUI();
+
+
+    /*
+     * После регистрации ещё раз
+     * синхронизируем данные пользователя
+     * с сервером.
+     */
+
+    await authWithBackend();
 
 }
 
@@ -2107,44 +2235,96 @@ function updateUI(){
         bizdeUser.name ||
         "BIZDE Member";
 
-    document.getElementById(
-        "profileName"
-    ).textContent =
-        name;
-
-    document.getElementById(
-        "avatar"
-    ).textContent =
-        name
-            .charAt(0)
-            .toUpperCase();
-
-    document.getElementById(
-        "profileMember"
-    ).textContent =
-        bizdeUser.member_code ||
-        translations[currentLanguage].member;
-
-    document.getElementById(
-        "profileSavings"
-    ).textContent =
-        formatMoney(
-            bizdeUser.total_savings || 0
+    const profileName =
+        document.getElementById(
+            "profileName"
         );
 
-    document.getElementById(
-        "profileSubscription"
-    ).textContent =
-        bizdeUser.subscription_active
-        ? translations[currentLanguage].active
-        : translations[currentLanguage].inactive;
+    if(profileName){
 
-    document.getElementById(
-        "profileSubText"
-    ).textContent =
-        bizdeUser.subscription_active
-        ? translations[currentLanguage].activeText
-        : translations[currentLanguage].inactiveText;
+        profileName.textContent =
+            name;
+
+    }
+
+    const avatar =
+        document.getElementById(
+            "avatar"
+        );
+
+    if(avatar){
+
+        avatar.textContent =
+            name
+                .charAt(0)
+                .toUpperCase();
+
+    }
+
+    const profileMember =
+        document.getElementById(
+            "profileMember"
+        );
+
+    if(profileMember){
+
+        profileMember.textContent =
+            bizdeUser.member_code ||
+            translations[
+                currentLanguage
+            ].member;
+
+    }
+
+    const profileSavings =
+        document.getElementById(
+            "profileSavings"
+        );
+
+    if(profileSavings){
+
+        profileSavings.textContent =
+            formatMoney(
+                bizdeUser.total_savings || 0
+            );
+
+    }
+
+    const profileSubscription =
+        document.getElementById(
+            "profileSubscription"
+        );
+
+    if(profileSubscription){
+
+        profileSubscription.textContent =
+            bizdeUser.subscription_active
+            ? translations[
+                currentLanguage
+              ].active
+            : translations[
+                currentLanguage
+              ].inactive;
+
+    }
+
+    const profileSubText =
+        document.getElementById(
+            "profileSubText"
+        );
+
+    if(profileSubText){
+
+        profileSubText.textContent =
+            bizdeUser.subscription_active
+            ? translations[
+                currentLanguage
+              ].activeText
+            : translations[
+                currentLanguage
+              ].inactiveText;
+
+    }
 
     updateStatus();
 
@@ -2157,17 +2337,25 @@ function updateStatus(){
         !!bizdeUser?.subscription_active;
 
     const statusText =
-        document.getElementById("statusText");
+        document.getElementById(
+            "statusText"
+        );
 
     const badge =
-        document.getElementById("statusBadge");
+        document.getElementById(
+            "statusBadge"
+        );
 
     if(statusText){
 
         statusText.textContent =
             active
-            ? translations[currentLanguage].activeText
-            : translations[currentLanguage].inactiveText;
+            ? translations[
+                currentLanguage
+              ].activeText
+            : translations[
+                currentLanguage
+              ].inactiveText;
 
     }
 
@@ -2175,8 +2363,12 @@ function updateStatus(){
 
         badge.textContent =
             active
-            ? translations[currentLanguage].active
-            : translations[currentLanguage].inactive;
+            ? translations[
+                currentLanguage
+              ].active
+            : translations[
+                currentLanguage
+              ].inactive;
 
         badge.className =
             active
@@ -2218,11 +2410,15 @@ function showPage(pageId){
         });
 
     const page =
-        document.getElementById(pageId);
+        document.getElementById(
+            pageId
+        );
 
     if(page){
 
-        page.classList.add("active");
+        page.classList.add(
+            "active"
+        );
 
     }
 
@@ -2230,7 +2426,9 @@ function showPage(pageId){
         .querySelectorAll(".nav")
         .forEach(nav=>{
 
-            nav.classList.remove("active");
+            nav.classList.remove(
+                "active"
+            );
 
         });
 
@@ -2891,11 +3089,6 @@ async function showQR(
 
                 method:"POST",
 
-                headers:{
-                    "Content-Type":
-                        "application/json"
-                },
-
                 body:JSON.stringify({
 
                     init_data:
@@ -2911,18 +3104,6 @@ async function showQR(
             }
         );
 
-    /*
-       BACKEND:
-       {
-           success: true,
-           qr: {
-               token: "...",
-               expires_at: "...",
-               expires_in: 60,
-               partner_id: 1
-           }
-       }
-    */
 
     if(
         !(data.success || data.ok) ||
@@ -2930,39 +3111,48 @@ async function showQR(
         !data.qr.token
     ){
 
-        document.getElementById(
-            "modalContent"
-        ).innerHTML = `
+        const content =
+            document.getElementById(
+                "modalContent"
+            );
 
-            <div class="result error">
+        if(content){
 
-                ${
-                    escapeHTML(
-                        data.error ||
-                        "Не удалось создать QR-код."
-                    )
-                }
+            content.innerHTML = `
 
-            </div>
+                <div class="result error">
 
-            <button
-                class="modal-button"
-                onclick="hideModal()">
+                    ${
+                        escapeHTML(
+                            data.error ||
+                            "Не удалось создать QR-код."
+                        )
+                    }
 
-                ${translations[currentLanguage].done}
+                </div>
 
-            </button>
+                <button
+                    class="modal-button"
+                    onclick="hideModal()">
 
-        `;
+                    ${translations[
+                        currentLanguage
+                    ].done}
+
+                </button>
+
+            `;
+
+        }
 
         return;
 
     }
 
-    /* ИСПРАВЛЕНО */
 
     currentQrToken =
         data.qr.token;
+
 
     const qr =
         document.getElementById(
@@ -2973,7 +3163,9 @@ async function showQR(
         return;
     }
 
+
     qr.innerHTML = "";
+
 
     if(!window.QRCode){
 
@@ -2991,11 +3183,10 @@ async function showQR(
 
     }
 
+
     new QRCode(
         qr,
         {
-
-            /* ИСПРАВЛЕНО */
 
             text:
                 data.qr.token,
@@ -3014,7 +3205,6 @@ async function showQR(
         }
     );
 
-    /* ИСПРАВЛЕНО */
 
     startQrTimer(
         data.qr.expires_at
@@ -3095,7 +3285,11 @@ function startQrTimer(
                         font-weight:900;
                     ">
 
-                        QR-код истёк
+                        ${
+                            translations[
+                                currentLanguage
+                            ].qrExpired
+                        }
 
                     </div>
 
@@ -3538,17 +3732,6 @@ function openPartnerCabinet(){
 /* =========================
    LEGACY VERIFY
 ========================= */
-
-/*
-   Старый сканер намеренно не используется
-   для проведения операции.
-
-   Теперь пользователь показывает временный
-   QR-токен, а партнёр проверяет его через
-   partner.html.
-
-   Это важно для безопасности.
-*/
 
 async function verifyMember(code){
 
