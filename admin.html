@@ -898,354 +898,249 @@ tr:last-child td{
 
 <div class="container">
 
-    <!-- =========================
-         HEADER
-    ========================== -->
+<header class="header">
 
-    <header class="header">
-
-        <div class="logo">
-            BIZDE.KZ
-            <span>PRIVILEGE CLUB</span>
-        </div>
-
-        <div class="status">
-            <span class="status-dot"></span>
-            ONLINE
-        </div>
-
-    </header>
-
-
-    <!-- =========================
-         TITLE
-    ========================== -->
-
-    <h1 class="page-title">
-        Администрация
-    </h1>
-
-    <p class="page-subtitle">
-        Управление платформой BIZDE.KZ
-    </p>
-
-
-    <!-- =========================
-         STATS
-    ========================== -->
-
-    <div class="stats">
-
-        <div class="stat">
-            <div class="stat-label">
-                Партнёры
-            </div>
-
-            <div
-                class="stat-value"
-                id="statPartners"
-            >
-                —
-            </div>
-
-            <div class="stat-small">
-                активные партнёры
-            </div>
-        </div>
-
-
-        <div class="stat">
-            <div class="stat-label">
-                Пользователи
-            </div>
-
-            <div
-                class="stat-value"
-                id="statUsers"
-            >
-                —
-            </div>
-
-            <div class="stat-small">
-                зарегистрировано
-            </div>
-        </div>
-
-
-        <div class="stat">
-            <div class="stat-label">
-                Подписки
-            </div>
-
-            <div
-                class="stat-value"
-                id="statSubscriptions"
-            >
-                —
-            </div>
-
-            <div class="stat-small">
-                активные
-            </div>
-        </div>
-
-
-        <div class="stat">
-            <div class="stat-label">
-                Администраторы
-            </div>
-
-            <div
-                class="stat-value"
-                id="statAdmins"
-            >
-                —
-            </div>
-
-            <div class="stat-small">
-                доступ к панели
-            </div>
-        </div>
-
+    <div class="logo">
+        BIZDE.KZ
+        <span>PRIVILEGE CLUB</span>
     </div>
 
+    <div class="status">
+        <span class="status-dot"></span>
+        ONLINE
+    </div>
 
-    <!-- =========================
-         TABS
-    ========================== -->
+</header>
 
-    <div class="tabs">
+<h1 class="page-title">
+    Администрация
+</h1>
+
+<p class="page-subtitle">
+    Управление платформой BIZDE.KZ
+</p>
+
+<div class="stats">
+
+    <div class="stat">
+        <div class="stat-label">Партнёры</div>
+        <div class="stat-value" id="statPartners">—</div>
+        <div class="stat-small">активные партнёры</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-label">Пользователи</div>
+        <div class="stat-value" id="statUsers">—</div>
+        <div class="stat-small">зарегистрировано</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-label">Подписки</div>
+        <div class="stat-value" id="statSubscriptions">—</div>
+        <div class="stat-small">активные</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-label">Администраторы</div>
+        <div class="stat-value" id="statAdmins">—</div>
+        <div class="stat-small">доступ к панели</div>
+    </div>
+
+</div>
+
+<div class="tabs">
+
+    <button
+        class="tab active"
+        onclick="switchTab('dashboard',this)"
+    >
+        Dashboard
+    </button>
+
+    <button
+        class="tab"
+        onclick="switchTab('partners',this)"
+    >
+        Partners
+    </button>
+
+    <button
+        class="tab"
+        onclick="switchTab('users',this)"
+    >
+        Users
+    </button>
+
+    <button
+        class="tab"
+        onclick="switchTab('admins',this)"
+    >
+        Admins
+    </button>
+
+</div>
+
+<section id="dashboard" class="section active">
+
+    <div class="section-head">
+
+        <div class="section-title">
+            Обзор
+        </div>
 
         <button
-            class="tab active"
-            onclick="switchTab('dashboard',this)"
+            class="btn btn-secondary"
+            onclick="loadAll()"
         >
-            Dashboard
-        </button>
-
-        <button
-            class="tab"
-            onclick="switchTab('partners',this)"
-        >
-            Partners
-        </button>
-
-        <button
-            class="tab"
-            onclick="switchTab('users',this)"
-        >
-            Users
-        </button>
-
-        <button
-            class="tab"
-            onclick="switchTab('admins',this)"
-        >
-            Admins
+            ↻ Обновить
         </button>
 
     </div>
 
+    <div class="empty">
 
-    <!-- =========================
-         DASHBOARD
-    ========================== -->
-
-    <section
-        id="dashboard"
-        class="section active"
-    >
-
-        <div class="section-head">
-
-            <div class="section-title">
-                Обзор
-            </div>
-
-            <button
-                class="btn btn-secondary"
-                onclick="loadAll()"
-            >
-                ↻ Обновить
-            </button>
-
-        </div>
-
-
-        <div class="empty">
-
-            <div
-                style="
-                    font-size:34px;
-                    margin-bottom:12px;
-                "
-            >
-                ✦
-            </div>
-
-            <div
-                style="
-                    color:#fff;
-                    font-weight:800;
-                    margin-bottom:7px;
-                "
-            >
-                BIZDE.KZ Privilege Club
-            </div>
-
-            <div>
-                Здесь вы можете управлять
-                партнёрами, пользователями,
-                подписками и администраторами.
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         PARTNERS
-    ========================== -->
-
-    <section
-        id="partners"
-        class="section"
-    >
-
-        <div class="section-head">
-
-            <div class="section-title">
-                Партнёры
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="openCreatePartner()"
-            >
-                + Добавить
-            </button>
-
+        <div
+            style="
+                font-size:34px;
+                margin-bottom:12px;
+            "
+        >
+            ✦
         </div>
 
         <div
-            id="partnersList"
-            class="partner-grid"
+            style="
+                color:#fff;
+                font-weight:800;
+                margin-bottom:7px;
+            "
         >
-
-            <div class="loading">
-                Загрузка...
-            </div>
-
+            BIZDE.KZ Privilege Club
         </div>
 
-    </section>
-
-
-    <!-- =========================
-         USERS
-    ========================== -->
-
-    <section
-        id="users"
-        class="section"
-    >
-
-        <div class="section-head">
-
-            <div class="section-title">
-                Пользователи
-            </div>
-
-            <button
-                class="btn btn-secondary"
-                onclick="loadUsers()"
-            >
-                ↻
-            </button>
-
+        <div>
+            Здесь вы можете управлять
+            партнёрами, пользователями,
+            подписками и администраторами.
         </div>
 
-        <div class="table-wrap">
+    </div>
 
-            <table>
+</section>
 
-                <thead>
+<section id="partners" class="section">
 
-                    <tr>
-                        <th>Пользователь</th>
-                        <th>Telegram ID</th>
-                        <th>Телефон</th>
-                        <th>Подписка</th>
-                        <th>Накоплено</th>
-                        <th>Действие</th>
-                    </tr>
+    <div class="section-head">
 
-                </thead>
-
-                <tbody id="usersTable">
-
-                    <tr>
-                        <td
-                            colspan="6"
-                            class="loading"
-                        >
-                            Загрузка...
-                        </td>
-                    </tr>
-
-                </tbody>
-
-            </table>
-
+        <div class="section-title">
+            Партнёры
         </div>
 
-    </section>
-
-
-    <!-- =========================
-         ADMINS
-    ========================== -->
-
-    <section
-        id="admins"
-        class="section"
-    >
-
-        <div class="section-head">
-
-            <div class="section-title">
-                Администраторы
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="openAddAdmin()"
-            >
-                + Добавить
-            </button>
-
-        </div>
-
-        <div
-            id="adminsList"
-            class="admin-list"
+        <button
+            class="btn btn-primary"
+            onclick="openCreatePartner()"
         >
+            + Добавить
+        </button>
 
-            <div class="loading">
-                Загрузка...
-            </div>
+    </div>
 
+    <div id="partnersList" class="partner-grid">
+
+        <div class="loading">
+            Загрузка...
         </div>
 
-    </section>
+    </div>
+
+</section>
+
+<section id="users" class="section">
+
+    <div class="section-head">
+
+        <div class="section-title">
+            Пользователи
+        </div>
+
+        <button
+            class="btn btn-secondary"
+            onclick="loadUsers()"
+        >
+            ↻
+        </button>
+
+    </div>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Telegram ID</th>
+                    <th>Телефон</th>
+                    <th>Подписка</th>
+                    <th>Накоплено</th>
+                    <th>Действие</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="usersTable">
+
+                <tr>
+                    <td
+                        colspan="6"
+                        class="loading"
+                    >
+                        Загрузка...
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+<section id="admins" class="section">
+
+    <div class="section-head">
+
+        <div class="section-title">
+            Администраторы
+        </div>
+
+        <button
+            class="btn btn-primary"
+            onclick="openAddAdmin()"
+        >
+            + Добавить
+        </button>
+
+    </div>
+
+    <div id="adminsList" class="admin-list">
+
+        <div class="loading">
+            Загрузка...
+        </div>
+
+    </div>
+
+</section>
 
 </div>
 
 
 <!-- =========================
      PARTNER MODAL
-========================== -->
+========================= -->
 
 <div
     id="partnerModal"
@@ -1253,272 +1148,233 @@ tr:last-child td{
     onclick="closeModalOutside(event,'partnerModal')"
 >
 
-    <div class="modal">
-
-        <div class="modal-header">
-
-            <div
-                id="partnerModalTitle"
-                class="modal-title"
-            >
-                Новый партнёр
-            </div>
-
-            <button
-                class="close"
-                onclick="closeModal('partnerModal')"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <input
-            type="hidden"
-            id="partnerId"
-        >
-
-
-        <div class="form-grid">
-
-            <div class="field full">
-
-                <label>
-                    Название партнёра
-                </label>
-
-                <input
-                    id="partnerName"
-                    type="text"
-                    placeholder="Например: VERO Café"
-                >
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    Категория
-                </label>
-
-                <input
-                    id="partnerCategory"
-                    type="text"
-                    placeholder="cafe"
-                >
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    Скидка %
-                </label>
-
-                <input
-                    id="partnerDiscount"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    placeholder="20"
-                >
-
-            </div>
-
-
-            <div class="field full">
-
-                <label>
-                    Описание
-                </label>
-
-                <textarea
-                    id="partnerDescription"
-                    placeholder="Описание партнёра"
-                ></textarea>
-
-            </div>
-
-
-            <div class="field full">
-
-                <label>
-                    Условия
-                </label>
-
-                <textarea
-                    id="partnerConditions"
-                    placeholder="Условия получения привилегии"
-                ></textarea>
-
-            </div>
-
-
-            <div class="field full">
-
-                <label>
-                    Фото URL
-                </label>
-
-                <input
-                    id="partnerPhoto"
-                    type="url"
-                    placeholder="https://..."
-                >
-
-            </div>
-
-
-            <div class="field full">
-
-                <label>
-                    Адрес
-                </label>
-
-                <input
-                    id="partnerAddress"
-                    type="text"
-                    placeholder="г. Павлодар, ..."
-                >
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    Широта
-                </label>
-
-                <input
-                    id="partnerLatitude"
-                    type="number"
-                    step="any"
-                    placeholder="52.287"
-                >
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    Долгота
-                </label>
-
-                <input
-                    id="partnerLongitude"
-                    type="number"
-                    step="any"
-                    placeholder="76.967"
-                >
-
-            </div>
-
-
-            <div
-                id="activeField"
-                class="field full"
-            >
-
-                <label>
-                    Статус
-                </label>
-
-                <select id="partnerActive">
-
-                    <option value="true">
-                        Активен
-                    </option>
-
-                    <option value="false">
-                        Отключён
-                    </option>
-
-                </select>
-
-            </div>
-
-        </div>
-
-
-        <!-- ASSIGN -->
-
-        <div
-            id="assignBox"
-            class="assign-box"
-        >
-
-            <div class="assign-title">
-                Telegram партнёра
-            </div>
-
-            <div class="assign-row">
-
-                <input
-                    id="partnerTelegramId"
-                    type="number"
-                    placeholder="Telegram ID"
-                >
-
-                <button
-                    class="btn btn-gold"
-                    onclick="assignCurrentPartner()"
-                >
-                    Назначить
-                </button>
-
-                <button
-                    class="btn btn-secondary"
-                    onclick="unassignCurrentPartner()"
-                >
-                    Снять
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="btn btn-secondary"
-                onclick="closeModal('partnerModal')"
-            >
-                Отмена
-            </button>
-
-            <button
-                id="deletePartnerButton"
-                class="btn btn-danger"
-                onclick="deleteCurrentPartner()"
-                style="display:none"
-            >
-                Удалить
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="savePartner()"
-            >
-                Сохранить
-            </button>
-
-        </div>
-
+<div class="modal">
+
+<div class="modal-header">
+
+    <div
+        id="partnerModalTitle"
+        class="modal-title"
+    >
+        Новый партнёр
     </div>
+
+    <button
+        class="close"
+        onclick="closeModal('partnerModal')"
+    >
+        ×
+    </button>
+
+</div>
+
+<input
+    type="hidden"
+    id="partnerId"
+>
+
+<div class="form-grid">
+
+<div class="field full">
+
+<label>Название партнёра</label>
+
+<input
+    id="partnerName"
+    type="text"
+    placeholder="Например: VERO Café"
+>
+
+</div>
+
+<div class="field">
+
+<label>Категория</label>
+
+<input
+    id="partnerCategory"
+    type="text"
+    placeholder="cafe"
+>
+
+</div>
+
+<div class="field">
+
+<label>Скидка %</label>
+
+<input
+    id="partnerDiscount"
+    type="number"
+    min="0"
+    max="100"
+    step="0.1"
+    placeholder="20"
+>
+
+</div>
+
+<div class="field full">
+
+<label>Описание</label>
+
+<textarea
+    id="partnerDescription"
+    placeholder="Описание партнёра"
+></textarea>
+
+</div>
+
+<div class="field full">
+
+<label>Условия</label>
+
+<textarea
+    id="partnerConditions"
+    placeholder="Условия получения привилегии"
+></textarea>
+
+</div>
+
+<div class="field full">
+
+<label>Фото URL</label>
+
+<input
+    id="partnerPhoto"
+    type="url"
+    placeholder="https://..."
+>
+
+</div>
+
+<div class="field full">
+
+<label>Адрес</label>
+
+<input
+    id="partnerAddress"
+    type="text"
+    placeholder="г. Павлодар, ..."
+>
+
+</div>
+
+<div class="field">
+
+<label>Широта</label>
+
+<input
+    id="partnerLatitude"
+    type="number"
+    step="any"
+    placeholder="52.287"
+>
+
+</div>
+
+<div class="field">
+
+<label>Долгота</label>
+
+<input
+    id="partnerLongitude"
+    type="number"
+    step="any"
+    placeholder="76.967"
+>
+
+</div>
+
+<div id="activeField" class="field full">
+
+<label>Статус</label>
+
+<select id="partnerActive">
+
+<option value="true">
+    Активен
+</option>
+
+<option value="false">
+    Отключён
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div id="assignBox" class="assign-box">
+
+<div class="assign-title">
+    Telegram партнёра
+</div>
+
+<div class="assign-row">
+
+<input
+    id="partnerTelegramId"
+    type="number"
+    placeholder="Telegram ID"
+>
+
+<button
+    class="btn btn-gold"
+    onclick="assignCurrentPartner()"
+>
+    Назначить
+</button>
+
+<button
+    class="btn btn-secondary"
+    onclick="unassignCurrentPartner()"
+>
+    Снять
+</button>
+
+</div>
+
+</div>
+
+
+<div class="modal-actions">
+
+<button
+    class="btn btn-secondary"
+    onclick="closeModal('partnerModal')"
+>
+    Отмена
+</button>
+
+<button
+    id="deletePartnerButton"
+    class="btn btn-danger"
+    onclick="deleteCurrentPartner()"
+    style="display:none"
+>
+    Удалить
+</button>
+
+<button
+    class="btn btn-primary"
+    onclick="savePartner()"
+>
+    Сохранить
+</button>
+
+</div>
+
+</div>
 
 </div>
 
 
 <!-- =========================
      ADMIN MODAL
-========================== -->
+========================= -->
 
 <div
     id="adminModal"
@@ -1526,70 +1382,59 @@ tr:last-child td{
     onclick="closeModalOutside(event,'adminModal')"
 >
 
-    <div class="modal">
+<div class="modal">
 
-        <div class="modal-header">
+<div class="modal-header">
 
-            <div class="modal-title">
-                Добавить администратора
-            </div>
+<div class="modal-title">
+    Добавить администратора
+</div>
 
-            <button
-                class="close"
-                onclick="closeModal('adminModal')"
-            >
-                ×
-            </button>
+<button
+    class="close"
+    onclick="closeModal('adminModal')"
+>
+    ×
+</button>
 
-        </div>
+</div>
 
+<div class="field">
 
-        <div class="field">
+<label>Telegram ID</label>
 
-            <label>
-                Telegram ID
-            </label>
+<input
+    id="newAdminId"
+    type="number"
+    placeholder="Например: 123456789"
+>
 
-            <input
-                id="newAdminId"
-                type="number"
-                placeholder="Например: 123456789"
-            >
+</div>
 
-        </div>
+<div class="modal-actions">
 
+<button
+    class="btn btn-secondary"
+    onclick="closeModal('adminModal')"
+>
+    Отмена
+</button>
 
-        <div class="modal-actions">
+<button
+    class="btn btn-primary"
+    onclick="addAdmin()"
+>
+    Добавить
+</button>
 
-            <button
-                class="btn btn-secondary"
-                onclick="closeModal('adminModal')"
-            >
-                Отмена
-            </button>
+</div>
 
-            <button
-                class="btn btn-primary"
-                onclick="addAdmin()"
-            >
-                Добавить
-            </button>
-
-        </div>
-
-    </div>
+</div>
 
 </div>
 
 
-<!-- =========================
-     TOAST
-========================== -->
-
-<div
-    id="toast"
-    class="toast"
-></div>
+<div id="toast" class="toast"></div>
 
 
 <script>
@@ -1604,10 +1449,6 @@ const tg =
 const API_URL =
     "https://bizde-bot.onrender.com";
 
-
-/* =========================================================
-   TELEGRAM
-========================================================= */
 
 if(tg){
 
@@ -1643,9 +1484,14 @@ async function apiFetch(
     const initData =
         tg?.initData || "";
 
+
     const headers = {
+
         ...(options.headers || {}),
-        "X-Telegram-Init-Data": initData
+
+        "X-Telegram-Init-Data":
+            initData
+
     };
 
 
@@ -1679,6 +1525,7 @@ async function apiFetch(
 
         throw new Error(
             data.error ||
+            data.message ||
             "Ошибка запроса"
         );
 
@@ -1689,10 +1536,6 @@ async function apiFetch(
 
 }
 
-
-/* =========================================================
-   API POST
-========================================================= */
 
 async function apiPost(
     endpoint,
@@ -1718,22 +1561,71 @@ async function apiPost(
 
 
 /* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(
+        value ?? ""
+    )
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function escapeAttribute(value){
+
+    return escapeHtml(value);
+
+}
+
+
+function numberOrNull(value){
+
+    if(
+        value === null ||
+        value === undefined ||
+        String(value).trim() === ""
+    ){
+
+        return null;
+
+    }
+
+
+    const number =
+        Number(value);
+
+
+    return Number.isFinite(number)
+        ? number
+        : null;
+
+}
+
+
+/* =========================================================
    TOAST
 ========================================================= */
 
 let toastTimer = null;
 
-function showToast(
-    message
-){
+function showToast(message){
 
     const toast =
         document.getElementById(
             "toast"
         );
 
+
     toast.textContent =
         message;
+
 
     toast.classList.add(
         "show"
@@ -1761,16 +1653,87 @@ function showToast(
 
 
 /* =========================================================
-   AUTH CHECK
+   MODAL
+========================================================= */
+
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.remove(
+            "show"
+        );
+
+}
+
+
+function closeModalOutside(
+    event,
+    id
+){
+
+    if(
+        event.target.id === id
+    ){
+
+        closeModal(id);
+
+    }
+
+}
+
+
+/* =========================================================
+   ACCESS
 ========================================================= */
 
 async function checkAccess(){
 
     if(!tg?.initData){
 
-        showToast(
-            "Откройте админ-панель через Telegram"
-        );
+        document.body.innerHTML = `
+
+            <div style="
+                min-height:100vh;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:25px;
+                text-align:center;
+                background:#08090b;
+                color:#fff;
+                font-family:Arial,sans-serif;
+            ">
+
+                <div>
+
+                    <div style="
+                        font-size:50px;
+                        margin-bottom:15px;
+                    ">
+                        🔐
+                    </div>
+
+                    <h2 style="
+                        margin-bottom:10px;
+                    ">
+                        Откройте админ-панель
+                        через Telegram
+                    </h2>
+
+                    <p style="
+                        color:#8c949e;
+                        line-height:1.5;
+                    ">
+                        Панель BIZDE.KZ доступна
+                        только через Telegram.
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
 
         return false;
 
@@ -1785,10 +1748,17 @@ async function checkAccess(){
             );
 
 
-        if(
-            data.role !== "admin" &&
-            data.role !== "owner"
-        ){
+        /*
+         * ГЛАВНОЕ ИЗМЕНЕНИЕ:
+         *
+         * Проверяем is_admin,
+         * а не только role.
+         *
+         * Поэтому аккаунт может одновременно
+         * быть админом и партнёром.
+         */
+
+        if(!data.is_admin){
 
             document.body.innerHTML = `
 
@@ -1821,10 +1791,10 @@ async function checkAccess(){
 
                         <p style="
                             color:#8c949e;
+                            line-height:1.5;
                         ">
-                            Этот Telegram-аккаунт
-                            не имеет доступа
-                            к админ-панели.
+                            У этого Telegram-аккаунта
+                            нет прав администратора.
                         </p>
 
                     </div>
@@ -1839,6 +1809,7 @@ async function checkAccess(){
 
 
         return true;
+
 
     }catch(error){
 
@@ -1868,11 +1839,11 @@ async function checkAccess(){
                     <h2 style="
                         margin-bottom:10px;
                     ">
-                        Не авторизовано
+                        Ошибка авторизации
                     </h2>
 
                     <p style="
-                        color:#8c949e;
+                        color:#ff8585;
                         line-height:1.5;
                     ">
                         ${escapeHtml(
@@ -1903,9 +1874,7 @@ function switchTab(
 ){
 
     document
-        .querySelectorAll(
-            ".tab"
-        )
+        .querySelectorAll(".tab")
         .forEach(
             el =>
                 el.classList.remove(
@@ -1915,9 +1884,7 @@ function switchTab(
 
 
     document
-        .querySelectorAll(
-            ".section"
-        )
+        .querySelectorAll(".section")
         .forEach(
             el =>
                 el.classList.remove(
@@ -1932,9 +1899,7 @@ function switchTab(
 
 
     document
-        .getElementById(
-            tab
-        )
+        .getElementById(tab)
         .classList.add(
             "active"
         );
@@ -1946,11 +1911,13 @@ function switchTab(
 
     }
 
+
     if(tab === "users"){
 
         loadUsers();
 
     }
+
 
     if(tab === "admins"){
 
@@ -1977,7 +1944,7 @@ async function loadAll(){
 
 
 /* =========================================================
-   LOAD PARTNERS
+   PARTNERS
 ========================================================= */
 
 async function loadPartners(){
@@ -1987,9 +1954,10 @@ async function loadPartners(){
             "partnersList"
         );
 
+
     container.innerHTML = `
         <div class="loading">
-            Загрузка партнёров...
+            Загрузка...
         </div>
     `;
 
@@ -2040,10 +2008,6 @@ async function loadPartners(){
 }
 
 
-/* =========================================================
-   RENDER PARTNERS
-========================================================= */
-
 function renderPartners(){
 
     const container =
@@ -2077,9 +2041,6 @@ function renderPartners(){
                                 partner.photo_url
                             )}"
                             alt=""
-                            onerror="
-                                this.style.display='none'
-                            "
                         >
                     `
                     : "✦";
@@ -2122,28 +2083,39 @@ function renderPartners(){
                         <div class="partner-top">
 
                             <div class="partner-photo">
+
                                 ${photo}
+
                             </div>
+
 
                             <div class="partner-info">
 
                                 <div class="partner-name">
+
                                     ${escapeHtml(
                                         partner.name
                                     )}
+
                                 </div>
 
+
                                 <div class="partner-category">
+
                                     ${escapeHtml(
                                         partner.category ||
                                         "Без категории"
                                     )}
+
                                 </div>
 
+
                                 <div class="partner-discount">
+
                                     −${Number(
                                         partner.discount_percent || 0
                                     )}%
+
                                 </div>
 
                             </div>
@@ -2152,35 +2124,45 @@ function renderPartners(){
 
 
                         <div class="partner-description">
+
                             ${escapeHtml(
                                 partner.description ||
                                 "Описание отсутствует."
                             )}
+
                         </div>
 
 
                         <div class="partner-meta">
 
                             <div class="meta-row">
+
                                 Статус:
                                 ${status}
+
                             </div>
 
+
                             <div class="meta-row">
+
                                 Партнёр:
                                 ${assigned}
+
                             </div>
+
 
                             ${
                                 partner.address
                                 ? `
                                     <div class="meta-row">
+
                                         Адрес:
                                         <strong>
                                             ${escapeHtml(
                                                 partner.address
                                             )}
                                         </strong>
+
                                     </div>
                                 `
                                 : ""
@@ -2195,23 +2177,29 @@ function renderPartners(){
                                 class="btn btn-secondary"
                                 onclick="
                                     editPartner(
-                                        ${Number(partner.id)}
+                                        ${Number(
+                                            partner.id
+                                        )}
                                     )
                                 "
                             >
                                 Изменить
                             </button>
 
+
                             <button
                                 class="btn btn-gold"
                                 onclick="
                                     assignPartnerFromCard(
-                                        ${Number(partner.id)}
+                                        ${Number(
+                                            partner.id
+                                        )}
                                     )
                                 "
                             >
                                 Назначить
                             </button>
+
 
                             ${
                                 partner.active
@@ -2220,7 +2208,9 @@ function renderPartners(){
                                         class="btn btn-secondary"
                                         onclick="
                                             togglePartner(
-                                                ${Number(partner.id)},
+                                                ${Number(
+                                                    partner.id
+                                                )},
                                                 false
                                             )
                                         "
@@ -2233,7 +2223,9 @@ function renderPartners(){
                                         class="btn btn-primary"
                                         onclick="
                                             togglePartner(
-                                                ${Number(partner.id)},
+                                                ${Number(
+                                                    partner.id
+                                                )},
                                                 true
                                             )
                                         "
@@ -2261,8 +2253,7 @@ function renderPartners(){
 
 function openCreatePartner(){
 
-    editingPartnerId =
-        null;
+    editingPartnerId = null;
 
 
     document.getElementById(
@@ -2356,9 +2347,7 @@ function openCreatePartner(){
    EDIT PARTNER
 ========================================================= */
 
-function editPartner(
-    id
-){
+function editPartner(id){
 
     const partner =
         partners.find(
@@ -2509,7 +2498,7 @@ async function savePartner(){
 
     const payload = {
 
-        name,
+        name:name,
 
         category:
             document.getElementById(
@@ -2568,6 +2557,7 @@ async function savePartner(){
                 Number(
                     editingPartnerId
                 );
+
 
             payload.active =
                 document.getElementById(
@@ -2632,13 +2622,11 @@ async function deleteCurrentPartner(){
     }
 
 
-    const ok =
-        confirm(
+    if(
+        !confirm(
             "Удалить этого партнёра?"
-        );
-
-
-    if(!ok){
+        )
+    ){
 
         return;
 
@@ -2724,16 +2712,12 @@ async function togglePartner(
 
 
 /* =========================================================
-   ASSIGN PARTNER FROM CARD
+   ASSIGN PARTNER
 ========================================================= */
 
-function assignPartnerFromCard(
-    id
-){
+function assignPartnerFromCard(id){
 
-    editPartner(
-        id
-    );
+    editPartner(id);
 
 
     setTimeout(
@@ -2751,10 +2735,6 @@ function assignPartnerFromCard(
 
 }
 
-
-/* =========================================================
-   ASSIGN CURRENT PARTNER
-========================================================= */
 
 async function assignCurrentPartner(){
 
@@ -2856,10 +2836,6 @@ async function assignCurrentPartner(){
 }
 
 
-/* =========================================================
-   UNASSIGN
-========================================================= */
-
 async function unassignCurrentPartner(){
 
     if(!editingPartnerId){
@@ -2888,7 +2864,7 @@ async function unassignCurrentPartner(){
 
 
         showToast(
-            "Партнёр отключён"
+            "Партнёр отвязан"
         );
 
 
@@ -2988,10 +2964,6 @@ async function loadUsers(){
 }
 
 
-/* =========================================================
-   RENDER USERS
-========================================================= */
-
 function renderUsers(){
 
     const tbody =
@@ -3035,38 +3007,48 @@ function renderUsers(){
                         <td>
 
                             <div class="user-name">
+
                                 ${escapeHtml(
                                     user.name ||
                                     "Без имени"
                                 )}
+
                             </div>
 
                             <div class="user-id">
-                                ${user.username
-                                    ? "@"+escapeHtml(
-                                        user.username
+
+                                ${
+                                    user.username
+                                    ? "@" +
+                                      escapeHtml(
+                                          user.username
                                       )
                                     : "Telegram пользователь"
                                 }
+
                             </div>
 
                         </td>
 
 
                         <td>
+
                             ${escapeHtml(
                                 String(
                                     user.telegram_id
                                 )
                             )}
+
                         </td>
 
 
                         <td>
+
                             ${escapeHtml(
                                 user.phone ||
                                 "—"
                             )}
+
                         </td>
 
 
@@ -3075,12 +3057,18 @@ function renderUsers(){
                             ${
                                 active
                                 ? `
-                                    <span class="badge badge-green">
+                                    <span class="
+                                        badge
+                                        badge-green
+                                    ">
                                         Активна
                                     </span>
                                 `
                                 : `
-                                    <span class="badge badge-red">
+                                    <span class="
+                                        badge
+                                        badge-red
+                                    ">
                                         Неактивна
                                     </span>
                                 `
@@ -3248,10 +3236,6 @@ async function loadAdmins(){
 }
 
 
-/* =========================================================
-   RENDER ADMINS
-========================================================= */
-
 function renderAdmins(){
 
     const container =
@@ -3280,8 +3264,7 @@ function renderAdmins(){
                 const owner =
                     Number(
                         admin.telegram_id
-                    ) ===
-                    1882252883;
+                    ) === 1882252883;
 
 
                 return `
@@ -3367,7 +3350,7 @@ function renderAdmins(){
 
 
 /* =========================================================
-   ADD ADMIN MODAL
+   ADD ADMIN
 ========================================================= */
 
 function openAddAdmin(){
@@ -3385,10 +3368,6 @@ function openAddAdmin(){
 
 }
 
-
-/* =========================================================
-   ADD ADMIN
-========================================================= */
 
 async function addAdmin(){
 
@@ -3470,9 +3449,8 @@ async function removeAdmin(
 ){
 
     if(
-        Number(
-            telegramId
-        ) === 1882252883
+        Number(telegramId) ===
+        1882252883
     ){
 
         showToast(
@@ -3528,117 +3506,6 @@ async function removeAdmin(
 
 
 /* =========================================================
-   MODALS
-========================================================= */
-
-function closeModal(
-    id
-){
-
-    document
-        .getElementById(
-            id
-        )
-        .classList.remove(
-            "show"
-        );
-
-}
-
-
-function closeModalOutside(
-    event,
-    id
-){
-
-    if(
-        event.target.id === id
-    ){
-
-        closeModal(
-            id
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function numberOrNull(
-    value
-){
-
-    if(
-        value === null ||
-        value === undefined ||
-        String(value).trim() === ""
-    ){
-
-        return null;
-
-    }
-
-
-    const number =
-        Number(value);
-
-
-    return Number.isFinite(
-        number
-    )
-    ? number
-    : null;
-
-}
-
-
-function escapeHtml(
-    value
-){
-
-    return String(
-        value ?? ""
-    )
-    .replace(
-        /&/g,
-        "&amp;"
-    )
-    .replace(
-        /</g,
-        "&lt;"
-    )
-    .replace(
-        />/g,
-        "&gt;"
-    )
-    .replace(
-        /"/g,
-        "&quot;"
-    )
-    .replace(
-        /'/g,
-        "&#039;"
-    );
-
-}
-
-
-function escapeAttribute(
-    value
-){
-
-    return escapeHtml(
-        value
-    );
-
-}
-
-
-/* =========================================================
    INIT
 ========================================================= */
 
@@ -3680,8 +3547,7 @@ async function init(){
                         line-height:1.5;
                     ">
                         Админ-панель BIZDE.KZ
-                        работает внутри
-                        Telegram Mini App.
+                        работает внутри Telegram Mini App.
                     </p>
 
                 </div>
@@ -3710,10 +3576,6 @@ async function init(){
 
 }
 
-
-/* =========================================================
-   START
-========================================================= */
 
 init();
 
