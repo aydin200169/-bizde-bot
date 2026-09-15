@@ -36,15 +36,31 @@ from telegram.ext import (
 TOKEN = os.environ.get("BOT_TOKEN")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+# Telegram ID владельца
 OWNER_ID = 1882252883
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
-PARTNER_PAGE = WEB_APP_URL.rstrip("/") + "/partner.html"
-ADMIN_PAGE = WEB_APP_URL.rstrip("/") + "/admin.html"
 
-ALLOWED_ORIGIN = "https://aydin200169.github.io"
+PARTNER_PAGE = (
+    WEB_APP_URL.rstrip("/")
+    + "/partner.html"
+)
 
-PORT = int(os.environ.get("PORT", "10000"))
+ADMIN_PAGE = (
+    WEB_APP_URL.rstrip("/")
+    + "/admin.html"
+)
+
+ALLOWED_ORIGIN = (
+    "https://aydin200169.github.io"
+)
+
+PORT = int(
+    os.environ.get(
+        "PORT",
+        "10000"
+    )
+)
 
 QR_LIFETIME_SECONDS = 60
 
@@ -54,10 +70,16 @@ QR_LIFETIME_SECONDS = 60
 # =========================================================
 
 def db():
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL не настроен")
 
-    return psycopg2.connect(DATABASE_URL)
+    if not DATABASE_URL:
+
+        raise RuntimeError(
+            "DATABASE_URL не настроен"
+        )
+
+    return psycopg2.connect(
+        DATABASE_URL
+    )
 
 
 def init_db():
@@ -66,7 +88,10 @@ def init_db():
 
         with conn.cursor() as cur:
 
+            # =================================================
             # USERS
+            # =================================================
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
@@ -84,7 +109,10 @@ def init_db():
                 )
             """)
 
+            # =================================================
             # PARTNERS
+            # =================================================
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS partners (
                     id SERIAL PRIMARY KEY,
@@ -99,38 +127,42 @@ def init_db():
                 )
             """)
 
-            # PARTNER TELEGRAM ID
+            # Telegram ID партнёра
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS telegram_id BIGINT
             """)
 
-            # ADDRESS
+            # Адрес
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS address TEXT DEFAULT ''
             """)
 
-            # LATITUDE
+            # Координаты
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
             """)
 
-            # LONGITUDE
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
             """)
 
-            # UNIQUE PARTNER TELEGRAM ID
+            # Один Telegram ID может быть назначен
+            # только одному партнёру
             cur.execute("""
-                CREATE UNIQUE INDEX IF NOT EXISTS partners_telegram_id_unique
+                CREATE UNIQUE INDEX IF NOT EXISTS
+                partners_telegram_id_unique
                 ON partners(telegram_id)
                 WHERE telegram_id IS NOT NULL
             """)
 
+            # =================================================
             # TRANSACTIONS
+            # =================================================
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS transactions (
                     id SERIAL PRIMARY KEY,
@@ -144,7 +176,10 @@ def init_db():
                 )
             """)
 
+            # =================================================
             # ADMINS
+            # =================================================
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS admins (
                     id SERIAL PRIMARY KEY,
@@ -154,7 +189,10 @@ def init_db():
                 )
             """)
 
+            # =================================================
             # QR TOKENS
+            # =================================================
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS qr_tokens (
                     id SERIAL PRIMARY KEY,
@@ -169,14 +207,21 @@ def init_db():
                 )
             """)
 
+            # =================================================
             # OWNER
+            # =================================================
+
+            # Владелец автоматически становится админом.
+            # Даже если запись уже существует,
+            # is_owner() всё равно даст доступ.
             cur.execute("""
                 INSERT INTO admins (
                     telegram_id,
                     added_by
                 )
                 VALUES (%s, %s)
-                ON CONFLICT (telegram_id) DO NOTHING
+                ON CONFLICT (telegram_id)
+                DO NOTHING
             """, (
                 OWNER_ID,
                 OWNER_ID
@@ -288,11 +333,14 @@ def generate_member_code():
 
     while True:
 
-        code = "BZ-" + "".join(
-            secrets.choice(
-                "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        code = (
+            "BZ-"
+            + "".join(
+                secrets.choice(
+                    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+                )
+                for _ in range(8)
             )
-            for _ in range(8)
         )
 
         with db() as conn:
@@ -300,11 +348,16 @@ def generate_member_code():
             with conn.cursor() as cur:
 
                 cur.execute(
-                    "SELECT 1 FROM users WHERE member_code=%s",
+                    """
+                    SELECT 1
+                    FROM users
+                    WHERE member_code=%s
+                    """,
                     (code,)
                 )
 
                 if not cur.fetchone():
+
                     return code
 
 
@@ -320,7 +373,9 @@ def get_user(telegram_id):
                 SELECT *
                 FROM users
                 WHERE telegram_id=%s
-            """, (telegram_id,))
+            """, (
+                telegram_id,
+            ))
 
             return cur.fetchone()
 
@@ -337,7 +392,9 @@ def get_user_by_member_code(code):
                 SELECT *
                 FROM users
                 WHERE member_code=%s
-            """, (code,))
+            """, (
+                code,
+            ))
 
             return cur.fetchone()
 
@@ -350,9 +407,14 @@ def upsert_user(
     terms_accepted=None
 ):
 
-    existing = get_user(telegram_id)
+    existing = get_user(
+        telegram_id
+    )
 
+    # =====================================================
     # CREATE
+    # =====================================================
+
     if not existing:
 
         member_code = generate_member_code()
@@ -370,49 +432,84 @@ def upsert_user(
                         member_code,
                         terms_accepted
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    VALUES (
+                        %s, %s, %s, %s, %s, %s
+                    )
                 """, (
                     telegram_id,
                     name or "",
                     username or "",
                     phone or "",
                     member_code,
-                    bool(terms_accepted)
+                    bool(
+                        terms_accepted
+                    )
                     if terms_accepted is not None
                     else False
                 ))
 
             conn.commit()
 
-        return get_user(telegram_id)
+        return get_user(
+            telegram_id
+        )
 
+    # =====================================================
     # UPDATE
+    # =====================================================
+
     fields = []
     values = []
 
     if name:
 
-        fields.append("name=%s")
-        values.append(name)
+        fields.append(
+            "name=%s"
+        )
+
+        values.append(
+            name
+        )
 
     if username is not None:
 
-        fields.append("username=%s")
-        values.append(username or "")
+        fields.append(
+            "username=%s"
+        )
+
+        values.append(
+            username or ""
+        )
 
     if phone is not None:
 
-        fields.append("phone=%s")
-        values.append(phone)
+        fields.append(
+            "phone=%s"
+        )
+
+        values.append(
+            phone
+        )
 
     if terms_accepted is not None:
 
-        fields.append("terms_accepted=%s")
-        values.append(bool(terms_accepted))
+        fields.append(
+            "terms_accepted=%s"
+        )
 
-    fields.append("updated_at=NOW()")
+        values.append(
+            bool(
+                terms_accepted
+            )
+        )
 
-    values.append(telegram_id)
+    fields.append(
+        "updated_at=NOW()"
+    )
+
+    values.append(
+        telegram_id
+    )
 
     with db() as conn:
 
@@ -429,7 +526,9 @@ def upsert_user(
 
         conn.commit()
 
-    return get_user(telegram_id)
+    return get_user(
+        telegram_id
+    )
 
 
 # =========================================================
@@ -440,16 +539,24 @@ def is_owner(telegram_id):
 
     try:
 
-        return int(telegram_id) == OWNER_ID
+        return (
+            int(telegram_id)
+            == OWNER_ID
+        )
 
-    except (TypeError, ValueError):
+    except (
+        TypeError,
+        ValueError
+    ):
 
         return False
 
 
 def is_admin(telegram_id):
 
+    # Владелец всегда администратор.
     if is_owner(telegram_id):
+
         return True
 
     with db() as conn:
@@ -457,11 +564,18 @@ def is_admin(telegram_id):
         with conn.cursor() as cur:
 
             cur.execute(
-                "SELECT 1 FROM admins WHERE telegram_id=%s",
+                """
+                SELECT 1
+                FROM admins
+                WHERE telegram_id=%s
+                """,
                 (telegram_id,)
             )
 
-            return cur.fetchone() is not None
+            return (
+                cur.fetchone()
+                is not None
+            )
 
 
 def add_admin(
@@ -489,9 +603,12 @@ def add_admin(
         conn.commit()
 
 
-def remove_admin(telegram_id):
+def remove_admin(
+    telegram_id
+):
 
     if int(telegram_id) == OWNER_ID:
+
         return False
 
     with db() as conn:
@@ -499,11 +616,16 @@ def remove_admin(telegram_id):
         with conn.cursor() as cur:
 
             cur.execute(
-                "DELETE FROM admins WHERE telegram_id=%s",
+                """
+                DELETE FROM admins
+                WHERE telegram_id=%s
+                """,
                 (telegram_id,)
             )
 
-            result = cur.rowcount > 0
+            result = (
+                cur.rowcount > 0
+            )
 
         conn.commit()
 
@@ -566,7 +688,9 @@ def get_all_partners_admin():
             return cur.fetchall()
 
 
-def get_partner_by_id(partner_id):
+def get_partner_by_id(
+    partner_id
+):
 
     with db() as conn:
 
@@ -578,12 +702,16 @@ def get_partner_by_id(partner_id):
                 SELECT *
                 FROM partners
                 WHERE id=%s
-            """, (partner_id,))
+            """, (
+                partner_id,
+            ))
 
             return cur.fetchone()
 
 
-def get_partner_by_telegram_id(telegram_id):
+def get_partner_by_telegram_id(
+    telegram_id
+):
 
     with db() as conn:
 
@@ -597,7 +725,9 @@ def get_partner_by_telegram_id(telegram_id):
                 WHERE telegram_id=%s
                 AND active=TRUE
                 LIMIT 1
-            """, (telegram_id,))
+            """, (
+                telegram_id,
+            ))
 
             return cur.fetchone()
 
@@ -609,13 +739,31 @@ def get_partner_by_telegram_id(telegram_id):
 def get_role(telegram_id):
 
     # =====================================================
-    # ВАЖНО:
-    # ЕСЛИ TELEGRAM ID НАЗНАЧЕН ПАРТНЁРОМ,
-    # ВОЗВРАЩАЕМ PARTNER ДАЖЕ ЕСЛИ ЭТО OWNER/ADMIN.
+    # ВАЖНО
     #
-    # Это позволяет одному аккаунту иметь одновременно:
-    # - права владельца/админа
-    # - кабинет партнёра
+    # Владелец имеет приоритет.
+    # Даже если его Telegram ID назначен партнёру,
+    # его роль всё равно owner.
+    # =====================================================
+
+    if is_owner(
+        telegram_id
+    ):
+
+        return "owner"
+
+    # =====================================================
+    # Администратор имеет приоритет над партнёром.
+    # =====================================================
+
+    if is_admin(
+        telegram_id
+    ):
+
+        return "admin"
+
+    # =====================================================
+    # Обычный партнёр
     # =====================================================
 
     partner = get_partner_by_telegram_id(
@@ -626,13 +774,9 @@ def get_role(telegram_id):
 
         return "partner"
 
-    if is_owner(telegram_id):
-
-        return "owner"
-
-    if is_admin(telegram_id):
-
-        return "admin"
+    # =====================================================
+    # Обычный пользователь
+    # =====================================================
 
     return "user"
 
@@ -739,7 +883,9 @@ def update_partner(
                 f"{field}=%s"
             )
 
-            values.append(value)
+            values.append(
+                value
+            )
 
     if not fields:
 
@@ -775,18 +921,25 @@ def update_partner(
 # DELETE PARTNER
 # =========================================================
 
-def delete_partner(partner_id):
+def delete_partner(
+    partner_id
+):
 
     with db() as conn:
 
         with conn.cursor() as cur:
 
             cur.execute(
-                "DELETE FROM partners WHERE id=%s",
+                """
+                DELETE FROM partners
+                WHERE id=%s
+                """,
                 (partner_id,)
             )
 
-            result = cur.rowcount > 0
+            result = (
+                cur.rowcount > 0
+            )
 
         conn.commit()
 
@@ -806,7 +959,7 @@ def assign_partner(
 
         with conn.cursor() as cur:
 
-            # Убираем пользователя с другого партнёра
+            # Убираем Telegram ID с другого партнёра.
             cur.execute("""
                 UPDATE partners
                 SET telegram_id=NULL
@@ -815,7 +968,7 @@ def assign_partner(
                 telegram_id,
             ))
 
-            # Назначаем на выбранного партнёра
+            # Назначаем выбранному партнёру.
             cur.execute("""
                 UPDATE partners
                 SET telegram_id=%s
@@ -825,7 +978,9 @@ def assign_partner(
                 partner_id
             ))
 
-            result = cur.rowcount > 0
+            result = (
+                cur.rowcount > 0
+            )
 
         conn.commit()
 
@@ -836,7 +991,9 @@ def assign_partner(
 # UNASSIGN PARTNER
 # =========================================================
 
-def unassign_partner(partner_id):
+def unassign_partner(
+    partner_id
+):
 
     with db() as conn:
 
@@ -850,7 +1007,9 @@ def unassign_partner(partner_id):
                 partner_id,
             ))
 
-            result = cur.rowcount > 0
+            result = (
+                cur.rowcount > 0
+            )
 
         conn.commit()
 
@@ -934,7 +1093,9 @@ def set_subscription(
 # TRANSACTIONS
 # =========================================================
 
-def get_history(telegram_id):
+def get_history(
+    telegram_id
+):
 
     with db() as conn:
 
@@ -1063,14 +1224,16 @@ def create_qr_token(
     expires_at_ms = int(
         expires_at.replace(
             tzinfo=timezone.utc
-        ).timestamp() * 1000
+        ).timestamp()
+        * 1000
     )
 
     return {
 
         "token": token,
 
-        "expires_at": expires_at_ms,
+        "expires_at":
+            expires_at_ms,
 
         "expires_in":
             QR_LIFETIME_SECONDS
@@ -1117,21 +1280,24 @@ def verify_qr_token(
 
         return {
             "valid": False,
-            "error": "QR-код не найден"
+            "error":
+                "QR-код не найден"
         }
 
     if row["used"]:
 
         return {
             "valid": False,
-            "error": "QR-код уже использован"
+            "error":
+                "QR-код уже использован"
         }
 
     if row["expires_at"] < datetime.utcnow():
 
         return {
             "valid": False,
-            "error": "QR-код истёк"
+            "error":
+                "QR-код истёк"
         }
 
     if partner_telegram_id is not None:
@@ -1144,7 +1310,8 @@ def verify_qr_token(
 
             return {
                 "valid": False,
-                "error": "Доступ только для партнёра"
+                "error":
+                    "Доступ только для партнёра"
             }
 
         if row["partner_id"] is not None:
@@ -1189,7 +1356,9 @@ def confirm_qr_transaction(
 
     qr = result["qr"]
 
-    if not qr["subscription_active"]:
+    if not qr[
+        "subscription_active"
+    ]:
 
         return {
             "valid": False,
@@ -1205,7 +1374,8 @@ def confirm_qr_transaction(
 
         return {
             "valid": False,
-            "error": "Партнёр не найден"
+            "error":
+                "Партнёр не найден"
         }
 
     try:
@@ -1233,7 +1403,6 @@ def confirm_qr_transaction(
                 "Сумма должна быть больше 0"
         }
 
-    # Защита от случайно огромной суммы
     if amount > 100000000:
 
         return {
@@ -1243,7 +1412,9 @@ def confirm_qr_transaction(
         }
 
     discount = float(
-        partner["discount_percent"] or 0
+        partner[
+            "discount_percent"
+        ] or 0
     )
 
     savings = round(
@@ -1306,7 +1477,9 @@ def confirm_qr_transaction(
                     %s, %s, %s
                 )
             """, (
-                qr["user_telegram_id"],
+                qr[
+                    "user_telegram_id"
+                ],
                 partner["id"],
                 partner["name"],
                 amount,
@@ -1322,7 +1495,9 @@ def confirm_qr_transaction(
                 WHERE telegram_id=%s
             """, (
                 savings,
-                qr["user_telegram_id"]
+                qr[
+                    "user_telegram_id"
+                ]
             ))
 
             cur.execute("""
@@ -1344,13 +1519,17 @@ def confirm_qr_transaction(
 
         "success": True,
 
-        "receipt_amount": amount,
+        "receipt_amount":
+            amount,
 
-        "discount_percent": discount,
+        "discount_percent":
+            discount,
 
-        "savings": savings,
+        "savings":
+            savings,
 
-        "partner": partner["name"],
+        "partner":
+            partner["name"],
 
         "user": {
 
@@ -1372,7 +1551,9 @@ def confirm_qr_transaction(
 # MEMBER
 # =========================================================
 
-def verify_member(member_code):
+def verify_member(
+    member_code
+):
 
     user = get_user_by_member_code(
         member_code
@@ -1396,7 +1577,9 @@ def verify_member(member_code):
 # TELEGRAM INIT DATA
 # =========================================================
 
-def validate_init_data(init_data):
+def validate_init_data(
+    init_data
+):
 
     if not init_data:
 
@@ -1430,7 +1613,9 @@ def validate_init_data(init_data):
 
     data_check_string = "\n".join(
         f"{key}={data[key]}"
-        for key in sorted(data.keys())
+        for key in sorted(
+            data.keys()
+        )
     )
 
     secret_key = hmac.new(
@@ -1474,7 +1659,10 @@ def validate_init_data(init_data):
             ).timestamp()
         )
 
-        if current - auth_date > 86400:
+        if (
+            current - auth_date
+            > 86400
+        ):
 
             raise ValueError(
                 "Telegram initData устарел"
@@ -1517,13 +1705,19 @@ def get_request_user(
         )
     )
 
-    if not init_data and body:
+    if (
+        not init_data
+        and body
+    ):
 
         init_data = body.get(
             "initData"
         )
 
-    if not init_data and body:
+    if (
+        not init_data
+        and body
+    ):
 
         init_data = body.get(
             "init_data"
@@ -1567,7 +1761,9 @@ def authenticate(
 # JSON
 # =========================================================
 
-def json_safe(value):
+def json_safe(
+    value
+):
 
     if isinstance(
         value,
@@ -1581,7 +1777,9 @@ def json_safe(value):
         Decimal
     ):
 
-        return float(value)
+        return float(
+            value
+        )
 
     if isinstance(
         value,
@@ -1666,7 +1864,9 @@ def json_response(
     )
 
 
-def read_json(handler):
+def read_json(
+    handler
+):
 
     try:
 
@@ -1739,7 +1939,9 @@ class RequestHandler(
             )
         )
 
-    def do_OPTIONS(self):
+    def do_OPTIONS(
+        self
+    ):
 
         self.send_response(
             204
@@ -1767,7 +1969,9 @@ class RequestHandler(
 
         self.end_headers()
 
-    def do_GET(self):
+    def do_GET(
+        self
+    ):
 
         try:
 
@@ -1788,7 +1992,9 @@ class RequestHandler(
                 500
             )
 
-    def do_POST(self):
+    def do_POST(
+        self
+    ):
 
         try:
 
@@ -1814,7 +2020,9 @@ class RequestHandler(
 # GET ROUTES
 # =========================================================
 
-def handle_get(handler):
+def handle_get(
+    handler
+):
 
     path = urlparse(
         handler.path
@@ -1863,11 +2071,13 @@ def handle_get(handler):
         for partner in partners:
 
             if (
-                partner.get("latitude")
-                is not None
+                partner.get(
+                    "latitude"
+                ) is not None
                 and
-                partner.get("longitude")
-                is not None
+                partner.get(
+                    "longitude"
+                ) is not None
             ):
 
                 map_partners.append({
@@ -1885,7 +2095,9 @@ def handle_get(handler):
                         partner["description"],
 
                     "discount_percent":
-                        partner["discount_percent"],
+                        partner[
+                            "discount_percent"
+                        ],
 
                     "conditions":
                         partner["conditions"],
@@ -1948,7 +2160,9 @@ def handle_get(handler):
 
                 name += (
                     " "
-                    + tg_user["last_name"]
+                    + tg_user[
+                        "last_name"
+                    ]
                 )
 
             user = upsert_user(
@@ -1990,7 +2204,32 @@ def handle_get(handler):
                 401
             )
 
+        # Получаем партнёра отдельно.
         partner = get_partner_by_telegram_id(
+            telegram_id
+        )
+
+        # =================================================
+        # ГЛАВНОЕ ИСПРАВЛЕНИЕ
+        #
+        # Раньше admin.html проверял:
+        #
+        # data.is_admin
+        #
+        # Но backend это поле не отправлял.
+        #
+        # Теперь отправляем его явно.
+        # =================================================
+
+        admin_status = is_admin(
+            telegram_id
+        )
+
+        partner_status = (
+            partner is not None
+        )
+
+        role = get_role(
             telegram_id
         )
 
@@ -2000,9 +2239,13 @@ def handle_get(handler):
                 "success": True,
 
                 "role":
-                    get_role(
-                        telegram_id
-                    ),
+                    role,
+
+                "is_admin":
+                    admin_status,
+
+                "is_partner":
+                    partner_status,
 
                 "partner":
                     partner
@@ -2199,7 +2442,9 @@ def handle_get(handler):
 # POST ROUTES
 # =========================================================
 
-def handle_post(handler):
+def handle_post(
+    handler
+):
 
     path = urlparse(
         handler.path
@@ -2239,7 +2484,9 @@ def handle_post(handler):
 
             name += (
                 " "
-                + tg_user["last_name"]
+                + tg_user[
+                    "last_name"
+                ]
             )
 
         user = upsert_user(
@@ -2516,7 +2763,9 @@ def handle_post(handler):
                 "user": {
 
                     "telegram_id":
-                        qr["user_telegram_id"],
+                        qr[
+                            "user_telegram_id"
+                        ],
 
                     "name":
                         qr["name"],
@@ -2531,10 +2780,14 @@ def handle_post(handler):
                         qr["member_code"],
 
                     "subscription_active":
-                        qr["subscription_active"],
+                        qr[
+                            "subscription_active"
+                        ],
 
                     "total_savings":
-                        qr["total_savings"]
+                        qr[
+                            "total_savings"
+                        ]
 
                 },
 
@@ -3359,7 +3612,10 @@ async def start(
     if not user:
         return
 
-    name = user.first_name or ""
+    name = (
+        user.first_name
+        or ""
+    )
 
     if user.last_name:
 
@@ -3415,9 +3671,11 @@ async def start(
 
     ]
 
-    # Админская кнопка остаётся доступной
-    # независимо от роли partner
-    if is_admin(user.id):
+    # Администратор видит кнопку,
+    # даже если одновременно является партнёром.
+    if is_admin(
+        user.id
+    ):
 
         keyboard.append([
 
@@ -3547,8 +3805,11 @@ async def addadmin_command(
 
     user = update.effective_user
 
-    if not user or not is_owner(
-        user.id
+    if (
+        not user
+        or not is_owner(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3600,8 +3861,11 @@ async def removeadmin_command(
 
     user = update.effective_user
 
-    if not user or not is_owner(
-        user.id
+    if (
+        not user
+        or not is_owner(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3660,8 +3924,11 @@ async def admins_command(
 
     user = update.effective_user
 
-    if not user or not is_admin(
-        user.id
+    if (
+        not user
+        or not is_admin(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3672,7 +3939,9 @@ async def admins_command(
 
     admins = get_admins()
 
-    text = "⚙️ Администраторы:\n\n"
+    text = (
+        "⚙️ Администраторы:\n\n"
+    )
 
     for admin in admins:
 
@@ -3704,8 +3973,11 @@ async def setpartner_command(
 
     user = update.effective_user
 
-    if not user or not is_admin(
-        user.id
+    if (
+        not user
+        or not is_admin(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3714,7 +3986,9 @@ async def setpartner_command(
 
         return
 
-    if len(context.args) < 2:
+    if len(
+        context.args
+    ) < 2:
 
         await update.message.reply_text(
             "Использование:\n"
@@ -3768,8 +4042,11 @@ async def unsetpartner_command(
 
     user = update.effective_user
 
-    if not user or not is_admin(
-        user.id
+    if (
+        not user
+        or not is_admin(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3821,8 +4098,11 @@ async def activate_command(
 
     user = update.effective_user
 
-    if not user or not is_admin(
-        user.id
+    if (
+        not user
+        or not is_admin(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -3874,8 +4154,11 @@ async def deactivate_command(
 
     user = update.effective_user
 
-    if not user or not is_admin(
-        user.id
+    if (
+        not user
+        or not is_admin(
+            user.id
+        )
     ):
 
         await update.message.reply_text(
@@ -4086,10 +4369,16 @@ def main():
         "Запуск BIZDE.KZ..."
     )
 
-    # Создаём/проверяем БД
+    # =====================================================
+    # DATABASE
+    # =====================================================
+
     init_db()
 
-    # Запускаем HTTP API
+    # =====================================================
+    # HTTP API
+    # =====================================================
+
     server_thread = threading.Thread(
         target=run_http_server,
         daemon=True
@@ -4097,7 +4386,10 @@ def main():
 
     server_thread.start()
 
-    # Telegram application
+    # =====================================================
+    # TELEGRAM
+    # =====================================================
+
     application = (
         Application
         .builder()
@@ -4196,7 +4488,10 @@ def main():
         "Telegram bot запущен."
     )
 
-    # Запуск Telegram polling
+    # =====================================================
+    # POLLING
+    # =====================================================
+
     application.run_polling(
         drop_pending_updates=True
     )
