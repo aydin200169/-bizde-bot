@@ -628,7 +628,9 @@ async function checkAccess(){
         }
 
 
-        /* ROLE */
+        /* =========================
+           ROLE
+        ========================= */
 
         const roleData =
             await apiFetch(
@@ -636,22 +638,30 @@ async function checkAccess(){
             );
 
 
-        const role =
-            roleData.role ||
-            roleData.user_role ||
-            "";
+        /*
+         * ВАЖНО:
+         *
+         * Не проверяем role === "partner".
+         *
+         * Один Telegram-аккаунт может одновременно
+         * быть OWNER / ADMIN и PARTNER.
+         *
+         * Поэтому для входа в партнёрский кабинет
+         * проверяем именно is_partner.
+         */
 
-
-        if(role !== "partner"){
+        if(!roleData.is_partner){
 
             throw new Error(
-                "У вас нет доступа к кабинету партнёра."
+                "Этот Telegram-аккаунт не назначен партнёром."
             );
 
         }
 
 
-        /* PARTNER */
+        /* =========================
+           PARTNER
+        ========================= */
 
         const partnerData =
             await apiFetch(
@@ -676,7 +686,9 @@ async function checkAccess(){
         }
 
 
-        /* UI */
+        /* =========================
+           UI
+        ========================= */
 
         document
             .getElementById(
@@ -751,6 +763,7 @@ async function checkAccess(){
 
                 </div>
                 `;
+
 
         document
             .getElementById(
@@ -879,7 +892,7 @@ async function startScanner(){
             )
             .style
             .display =
-                "none";
+            "none";
 
 
         document
