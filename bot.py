@@ -36,7 +36,6 @@ from telegram.ext import (
 TOKEN = os.environ.get("BOT_TOKEN")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Telegram ID владельца
 OWNER_ID = 1882252883
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
@@ -127,19 +126,16 @@ def init_db():
                 )
             """)
 
-            # Telegram ID партнёра
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS telegram_id BIGINT
             """)
 
-            # Адрес
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS address TEXT DEFAULT ''
             """)
 
-            # Координаты
             cur.execute("""
                 ALTER TABLE partners
                 ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
@@ -150,8 +146,6 @@ def init_db():
                 ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
             """)
 
-            # Один Telegram ID может быть назначен
-            # только одному партнёру
             cur.execute("""
                 CREATE UNIQUE INDEX IF NOT EXISTS
                 partners_telegram_id_unique
@@ -211,9 +205,6 @@ def init_db():
             # OWNER
             # =================================================
 
-            # Владелец автоматически становится админом.
-            # Даже если запись уже существует,
-            # is_owner() всё равно даст доступ.
             cur.execute("""
                 INSERT INTO admins (
                     telegram_id,
@@ -554,7 +545,6 @@ def is_owner(telegram_id):
 
 def is_admin(telegram_id):
 
-    # Владелец всегда администратор.
     if is_owner(telegram_id):
 
         return True
@@ -738,33 +728,17 @@ def get_partner_by_telegram_id(
 
 def get_role(telegram_id):
 
-    # =====================================================
-    # ВАЖНО
-    #
-    # Владелец имеет приоритет.
-    # Даже если его Telegram ID назначен партнёру,
-    # его роль всё равно owner.
-    # =====================================================
-
     if is_owner(
         telegram_id
     ):
 
         return "owner"
 
-    # =====================================================
-    # Администратор имеет приоритет над партнёром.
-    # =====================================================
-
     if is_admin(
         telegram_id
     ):
 
         return "admin"
-
-    # =====================================================
-    # Обычный партнёр
-    # =====================================================
 
     partner = get_partner_by_telegram_id(
         telegram_id
@@ -773,10 +747,6 @@ def get_role(telegram_id):
     if partner:
 
         return "partner"
-
-    # =====================================================
-    # Обычный пользователь
-    # =====================================================
 
     return "user"
 
@@ -959,7 +929,6 @@ def assign_partner(
 
         with conn.cursor() as cur:
 
-            # Убираем Telegram ID с другого партнёра.
             cur.execute("""
                 UPDATE partners
                 SET telegram_id=NULL
@@ -968,7 +937,6 @@ def assign_partner(
                 telegram_id,
             ))
 
-            # Назначаем выбранному партнёру.
             cur.execute("""
                 UPDATE partners
                 SET telegram_id=%s
@@ -1256,9 +1224,15 @@ def verify_qr_token(
             cursor_factory=RealDictCursor
         ) as cur:
 
+            # =================================================
+            # ИСПРАВЛЕНИЕ:
+            # добавили u.id AS user_id
+            # =================================================
+
             cur.execute("""
                 SELECT
                     q.*,
+                    u.id AS user_id,
                     u.name,
                     u.username,
                     u.phone,
@@ -1532,6 +1506,9 @@ def confirm_qr_transaction(
             partner["name"],
 
         "user": {
+
+            "id":
+                qr["user_id"],
 
             "telegram_id":
                 qr["user_telegram_id"],
@@ -2204,22 +2181,9 @@ def handle_get(
                 401
             )
 
-        # Получаем партнёра отдельно.
         partner = get_partner_by_telegram_id(
             telegram_id
         )
-
-        # =================================================
-        # ГЛАВНОЕ ИСПРАВЛЕНИЕ
-        #
-        # Раньше admin.html проверял:
-        #
-        # data.is_admin
-        #
-        # Но backend это поле не отправлял.
-        #
-        # Теперь отправляем его явно.
-        # =================================================
 
         admin_status = is_admin(
             telegram_id
@@ -2761,6 +2725,14 @@ def handle_post(
                 "valid": True,
 
                 "user": {
+
+                    # =================================================
+                    # ИСПРАВЛЕНИЕ:
+                    # partner.html проверяет user.id
+                    # =================================================
+
+                    "id":
+                        qr["user_id"],
 
                     "telegram_id":
                         qr[
@@ -3671,8 +3643,6 @@ async def start(
 
     ]
 
-    # Администратор видит кнопку,
-    # даже если одновременно является партнёром.
     if is_admin(
         user.id
     ):
@@ -4212,10 +4182,6 @@ async def callback_handler(
 
     await query.answer()
 
-    # =====================================================
-    # CATEGORIES
-    # =====================================================
-
     if query.data == "categories":
 
         partners = get_partners()
@@ -4248,10 +4214,6 @@ async def callback_handler(
             text
         )
 
-    # =====================================================
-    # PARTNERS
-    # =====================================================
-
     elif query.data == "partners":
 
         partners = get_partners()
@@ -4278,10 +4240,6 @@ async def callback_handler(
         await query.message.reply_text(
             text
         )
-
-    # =====================================================
-    # SUBSCRIPTION
-    # =====================================================
 
     elif query.data == "subscription":
 
@@ -4397,7 +4355,6 @@ def main():
         .build()
     )
 
-    # /start
     application.add_handler(
         CommandHandler(
             "start",
@@ -4405,7 +4362,6 @@ def main():
         )
     )
 
-    # /admin
     application.add_handler(
         CommandHandler(
             "admin",
@@ -4413,7 +4369,6 @@ def main():
         )
     )
 
-    # /partner
     application.add_handler(
         CommandHandler(
             "partner",
@@ -4421,7 +4376,6 @@ def main():
         )
     )
 
-    # /addadmin
     application.add_handler(
         CommandHandler(
             "addadmin",
@@ -4429,7 +4383,6 @@ def main():
         )
     )
 
-    # /removeadmin
     application.add_handler(
         CommandHandler(
             "removeadmin",
@@ -4437,7 +4390,6 @@ def main():
         )
     )
 
-    # /admins
     application.add_handler(
         CommandHandler(
             "admins",
@@ -4445,7 +4397,6 @@ def main():
         )
     )
 
-    # /setpartner
     application.add_handler(
         CommandHandler(
             "setpartner",
@@ -4453,7 +4404,6 @@ def main():
         )
     )
 
-    # /unsetpartner
     application.add_handler(
         CommandHandler(
             "unsetpartner",
@@ -4461,7 +4411,6 @@ def main():
         )
     )
 
-    # /activate
     application.add_handler(
         CommandHandler(
             "activate",
@@ -4469,7 +4418,6 @@ def main():
         )
     )
 
-    # /deactivate
     application.add_handler(
         CommandHandler(
             "deactivate",
@@ -4477,7 +4425,6 @@ def main():
         )
     )
 
-    # CALLBACKS
     application.add_handler(
         CallbackQueryHandler(
             callback_handler
@@ -4487,10 +4434,6 @@ def main():
     print(
         "Telegram bot запущен."
     )
-
-    # =====================================================
-    # POLLING
-    # =====================================================
 
     application.run_polling(
         drop_pending_updates=True
