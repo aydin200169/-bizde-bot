@@ -5,6 +5,7 @@ import hashlib
 import secrets
 import threading
 import urllib.parse
+import asyncio
 
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
@@ -62,6 +63,21 @@ PORT = int(
 )
 
 QR_LIFETIME_SECONDS = 60
+
+# =========================================================
+# ПОДПИСКА
+# =========================================================
+
+SUBSCRIPTION_PRICE = 2990
+
+PAYMENT_DETAILS = os.environ.get(
+    "PAYMENT_DETAILS",
+    "Реквизиты для оплаты пока не указаны. Обратитесь к администратору BIZDE.KZ."
+)
+
+# Глобальная ссылка на Telegram Application.
+# Нужна HTTP API для отправки заявки администраторам.
+TELEGRAM_APPLICATION = None
 
 
 # =========================================================
@@ -199,6 +215,34 @@ def init_db():
                     used_at TIMESTAMP,
                     used_by_partner BIGINT
                 )
+            """)
+
+            # =================================================
+            # SUBSCRIPTION PAYMENTS
+            # =================================================
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS subscription_payments (
+                    id SERIAL PRIMARY KEY,
+                    telegram_id BIGINT NOT NULL,
+                    amount NUMERIC(12,2) NOT NULL DEFAULT 2990,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    processed_at TIMESTAMP,
+                    processed_by BIGINT
+                )
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS
+                subscription_payments_user_idx
+                ON subscription_payments(telegram_id)
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS
+                subscription_payments_status_idx
+                ON subscription_payments(status)
             """)
 
             # =================================================
@@ -402,10 +446,6 @@ def upsert_user(
         telegram_id
     )
 
-    # =====================================================
-    # CREATE
-    # =====================================================
-
     if not existing:
 
         member_code = generate_member_code()
@@ -444,10 +484,6 @@ def upsert_user(
         return get_user(
             telegram_id
         )
-
-    # =====================================================
-    # UPDATE
-    # =====================================================
 
     fields = []
     values = []
@@ -1058,6 +1094,311 @@ def set_subscription(
 
 
 # =========================================================
+# SUBSCRIPTION PAYMENTS
+# =========================================================
+
+def get_pending_payment(
+    telegram_id
+):
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                SELECT *
+                FROM subscription_payments
+                WHERE telegram_id=%s
+                AND status='pending'
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (
+                telegram_id,
+            ))
+
+            return cur.fetchone()
+
+
+def create_subscription_payment(
+    telegram_id
+):
+
+    existing = get_pending_payment(
+        telegram_id
+    )
+
+    if existing:
+
+        return existing
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                INSERT INTO subscription_payments (
+                    telegram_id,
+                    amount,
+                    status
+                )
+                VALUES (
+                    %s,
+                    %s,
+                    'pending'
+                )
+                RETURNING *
+            """, (
+                telegram_id,
+                SUBSCRIPTION_PRICE
+            ))
+
+            payment = cur.fetchone()
+
+        conn.commit()
+
+    return payment
+
+
+def get_payment_by_id(
+    payment_id
+):
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                SELECT *
+                FROM subscription_payments
+                WHERE id=%s
+            """, (
+                payment_id,
+            ))
+
+            return cur.fetchone()
+
+
+def process_subscription_payment(
+    payment_id,
+    admin_id,
+    approved
+):
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                SELECT *
+                FROM subscription_payments
+                WHERE id=%s
+                FOR UPDATE
+            """, (
+                payment_id,
+            ))
+
+            payment = cur.fetchone()
+
+            if not payment:
+
+                return {
+                    "success": False,
+                    "error":
+                        "Заявка не найдена"
+                }
+
+            if payment["status"] != "pending":
+
+                return {
+                    "success": False,
+                    "error":
+                        "Заявка уже обработана"
+                }
+
+            new_status = (
+                "approved"
+                if approved
+                else "rejected"
+            )
+
+            cur.execute("""
+                UPDATE subscription_payments
+                SET status=%s,
+                    processed_at=NOW(),
+                    processed_by=%s
+                WHERE id=%s
+            """, (
+                new_status,
+                admin_id,
+                payment_id
+            ))
+
+            if approved:
+
+                cur.execute("""
+                    UPDATE users
+                    SET subscription_active=TRUE,
+                        updated_at=NOW()
+                    WHERE telegram_id=%s
+                """, (
+                    payment["telegram_id"],
+                ))
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "status": new_status,
+        "telegram_id":
+            payment["telegram_id"]
+    }
+
+
+async def send_payment_request(
+    context,
+    payment
+):
+
+    user = get_user(
+        payment["telegram_id"]
+    )
+
+    if not user:
+
+        return
+
+    username = (
+        f"@{user['username']}"
+        if user["username"]
+        else "нет username"
+    )
+
+    text = (
+        "🔔 НОВАЯ ЗАЯВКА НА ПОДПИСКУ\n\n"
+        f"👤 Пользователь: "
+        f"{user['name'] or 'Без имени'}\n"
+        f"🆔 Telegram ID: "
+        f"{user['telegram_id']}\n"
+        f"📱 Username: "
+        f"{username}\n"
+        f"💰 Сумма: "
+        f"{SUBSCRIPTION_PRICE:,} ₸\n"
+        f"🧾 Заявка №{payment['id']}\n\n"
+        "Пользователь сообщил, что оплатил "
+        "подписку.\n"
+        "Проверьте поступление денег."
+    ).replace(",", " ")
+
+    keyboard = InlineKeyboardMarkup([
+
+        [
+            InlineKeyboardButton(
+                "✅ Подтвердить оплату",
+                callback_data=
+                    f"payment_approve_{payment['id']}"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "❌ Отклонить",
+                callback_data=
+                    f"payment_reject_{payment['id']}"
+            )
+        ]
+
+    ])
+
+    admins = get_admins()
+
+    for admin in admins:
+
+        try:
+
+            await context.bot.send_message(
+
+                chat_id=int(
+                    admin["telegram_id"]
+                ),
+
+                text=text,
+
+                reply_markup=keyboard
+
+            )
+
+        except Exception as e:
+
+            print(
+                "PAYMENT ADMIN SEND ERROR:",
+                repr(e)
+            )
+
+
+def send_payment_request_from_http(
+    payment
+):
+
+    global TELEGRAM_APPLICATION
+
+    if not TELEGRAM_APPLICATION:
+
+        print(
+            "PAYMENT ERROR: Telegram Application not ready"
+        )
+
+        return
+
+    try:
+
+        loop = TELEGRAM_APPLICATION.bot_data.get(
+            "main_loop"
+        )
+
+        if not loop:
+
+            print(
+                "PAYMENT ERROR: main loop not found"
+            )
+
+            return
+
+        future = asyncio.run_coroutine_threadsafe(
+            send_payment_request(
+                TELEGRAM_APPLICATION,
+                payment
+            ),
+            loop
+        )
+
+        future.add_done_callback(
+            lambda f: (
+                print(
+                    "PAYMENT SEND ERROR:",
+                    repr(f.exception())
+                )
+                if f.exception()
+                else None
+            )
+        )
+
+    except Exception as e:
+
+        print(
+            "PAYMENT THREAD ERROR:",
+            repr(e)
+        )
+
+
+# =========================================================
 # TRANSACTIONS
 # =========================================================
 
@@ -1223,11 +1564,6 @@ def verify_qr_token(
         with conn.cursor(
             cursor_factory=RealDictCursor
         ) as cur:
-
-            # =================================================
-            # ИСПРАВЛЕНИЕ:
-            # добавили u.id AS user_id
-            # =================================================
 
             cur.execute("""
                 SELECT
@@ -2606,6 +2942,70 @@ def handle_post(
         )
 
     # =====================================================
+    # SUBSCRIPTION PAYMENT REQUEST
+    # =====================================================
+
+    if path == "/api/subscription/request":
+
+        _, telegram_id = authenticate(
+            handler,
+            body
+        )
+
+        if not telegram_id:
+
+            return error_response(
+                handler,
+                "Откройте BIZDE через Telegram",
+                401
+            )
+
+        user = get_user(
+            telegram_id
+        )
+
+        if not user:
+
+            return error_response(
+                handler,
+                "Пользователь не найден"
+            )
+
+        if user["subscription_active"]:
+
+            return json_response(
+                handler,
+                {
+                    "success": False,
+                    "error":
+                        "Подписка уже активна"
+                }
+            )
+
+        payment = create_subscription_payment(
+            telegram_id
+        )
+
+        send_payment_request_from_http(
+            payment
+        )
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "payment_id":
+                    payment["id"],
+                "amount":
+                    SUBSCRIPTION_PRICE,
+                "status":
+                    payment["status"],
+                "payment_details":
+                    PAYMENT_DETAILS
+            }
+        )
+
+    # =====================================================
     # QR CREATE
     # =====================================================
 
@@ -2622,6 +3022,25 @@ def handle_post(
                 handler,
                 "Неавторизовано",
                 401
+            )
+
+        user = get_user(
+            telegram_id
+        )
+
+        if not user:
+
+            return error_response(
+                handler,
+                "Пользователь не найден"
+            )
+
+        if not user["subscription_active"]:
+
+            return error_response(
+                handler,
+                "Для использования QR необходима активная подписка",
+                403
             )
 
         partner_id = body.get(
@@ -2725,11 +3144,6 @@ def handle_post(
                 "valid": True,
 
                 "user": {
-
-                    # =================================================
-                    # ИСПРАВЛЕНИЕ:
-                    # partner.html проверяет user.id
-                    # =================================================
 
                     "id":
                         qr["user_id"],
@@ -3368,7 +3782,7 @@ def handle_post(
         )
 
     # =====================================================
-    # SUBSCRIPTION
+    # SUBSCRIPTION ADMIN
     # =====================================================
 
     if path == "/api/admin/subscription":
@@ -4182,6 +4596,247 @@ async def callback_handler(
 
     await query.answer()
 
+    # =====================================================
+    # PAYMENT APPROVE
+    # =====================================================
+
+    if query.data.startswith(
+        "payment_approve_"
+    ):
+
+        if not is_admin(
+            query.from_user.id
+        ):
+
+            await query.answer(
+                "Нет доступа",
+                show_alert=True
+            )
+
+            return
+
+        try:
+
+            payment_id = int(
+                query.data.replace(
+                    "payment_approve_",
+                    ""
+                )
+            )
+
+        except ValueError:
+
+            await query.answer(
+                "Некорректная заявка",
+                show_alert=True
+            )
+
+            return
+
+        result = process_subscription_payment(
+            payment_id,
+            query.from_user.id,
+            True
+        )
+
+        if not result["success"]:
+
+            await query.answer(
+                result["error"],
+                show_alert=True
+            )
+
+            return
+
+        target_id = result[
+            "telegram_id"
+        ]
+
+        try:
+
+            await context.bot.send_message(
+
+                chat_id=target_id,
+
+                text=(
+                    "✅ Оплата подтверждена!\n\n"
+                    "Ваша подписка BIZDE.KZ "
+                    "активирована.\n\n"
+                    f"Стоимость подписки: "
+                    f"{SUBSCRIPTION_PRICE} ₸\n\n"
+                    "Теперь вам доступны "
+                    "привилегии клуба."
+                )
+
+            )
+
+        except Exception as e:
+
+            print(
+                "USER PAYMENT MESSAGE ERROR:",
+                repr(e)
+            )
+
+        await query.edit_message_text(
+            query.message.text
+            + "\n\n"
+            "✅ ОПЛАТА ПОДТВЕРЖДЕНА"
+        )
+
+        await query.answer(
+            "Оплата подтверждена"
+        )
+
+        return
+
+    # =====================================================
+    # PAYMENT REJECT
+    # =====================================================
+
+    if query.data.startswith(
+        "payment_reject_"
+    ):
+
+        if not is_admin(
+            query.from_user.id
+        ):
+
+            await query.answer(
+                "Нет доступа",
+                show_alert=True
+            )
+
+            return
+
+        try:
+
+            payment_id = int(
+                query.data.replace(
+                    "payment_reject_",
+                    ""
+                )
+            )
+
+        except ValueError:
+
+            await query.answer(
+                "Некорректная заявка",
+                show_alert=True
+            )
+
+            return
+
+        result = process_subscription_payment(
+            payment_id,
+            query.from_user.id,
+            False
+        )
+
+        if not result["success"]:
+
+            await query.answer(
+                result["error"],
+                show_alert=True
+            )
+
+            return
+
+        target_id = result[
+            "telegram_id"
+        ]
+
+        try:
+
+            await context.bot.send_message(
+
+                chat_id=target_id,
+
+                text=(
+                    "❌ Оплата подписки "
+                    "не подтверждена.\n\n"
+                    "Пожалуйста, проверьте "
+                    "оплату и обратитесь "
+                    "к администратору BIZDE.KZ."
+                )
+
+            )
+
+        except Exception as e:
+
+            print(
+                "USER REJECT MESSAGE ERROR:",
+                repr(e)
+            )
+
+        await query.edit_message_text(
+            query.message.text
+            + "\n\n"
+            "❌ ОПЛАТА ОТКЛОНЕНА"
+        )
+
+        await query.answer(
+            "Заявка отклонена"
+        )
+
+        return
+
+    # =====================================================
+    # USER PAID
+    # =====================================================
+
+    if query.data == "payment_user_paid":
+
+        user = get_user(
+            query.from_user.id
+        )
+
+        if not user:
+
+            await query.answer(
+                "Пользователь не найден",
+                show_alert=True
+            )
+
+            return
+
+        if user["subscription_active"]:
+
+            await query.answer(
+                "Подписка уже активна",
+                show_alert=True
+            )
+
+            return
+
+        payment = create_subscription_payment(
+            query.from_user.id
+        )
+
+        await send_payment_request(
+            context,
+            payment
+        )
+
+        await query.message.reply_text(
+
+            "✅ Заявка отправлена!\n\n"
+            "Администратор получил уведомление "
+            "и проверит оплату.\n\n"
+            "После подтверждения подписка "
+            "активируется автоматически."
+
+        )
+
+        await query.answer(
+            "Заявка отправлена"
+        )
+
+        return
+
+    # =====================================================
+    # CATEGORIES
+    # =====================================================
+
     if query.data == "categories":
 
         partners = get_partners()
@@ -4214,6 +4869,10 @@ async def callback_handler(
             text
         )
 
+    # =====================================================
+    # PARTNERS
+    # =====================================================
+
     elif query.data == "partners":
 
         partners = get_partners()
@@ -4241,6 +4900,10 @@ async def callback_handler(
             text
         )
 
+    # =====================================================
+    # SUBSCRIPTION
+    # =====================================================
+
     elif query.data == "subscription":
 
         user = get_user(
@@ -4255,31 +4918,121 @@ async def callback_handler(
 
             return
 
-        status = (
+        active = user[
+            "subscription_active"
+        ]
 
-            "🟢 Активна"
+        if active:
 
-            if user[
-                "subscription_active"
+            status = "🟢 Активна"
+
+            keyboard = InlineKeyboardMarkup([
+
+                [
+                    InlineKeyboardButton(
+                        "🔄 Обновить статус",
+                        callback_data="subscription"
+                    )
+                ]
+
+            ])
+
+            await query.message.reply_text(
+
+                "🎟 Моя подписка BIZDE.KZ\n\n"
+
+                f"Статус: {status}\n"
+
+                f"Код участника: "
+                f"{user['member_code']}\n\n"
+
+                f"Накоплено: "
+                f"{float(user['total_savings'] or 0):.2f} ₸",
+
+                reply_markup=keyboard
+            )
+
+            return
+
+        keyboard = InlineKeyboardMarkup([
+
+            [
+                InlineKeyboardButton(
+                    "💳 Оплатить — 2 990 ₸",
+                    callback_data="pay_subscription"
+                )
             ]
 
-            else
-
-            "🔴 Неактивна"
-
-        )
+        ])
 
         await query.message.reply_text(
 
-            "🎟 Моя подписка BIZDE.KZ\n\n"
+            "🎟 ПОДПИСКА BIZDE.KZ\n\n"
 
-            f"Статус: {status}\n"
+            "Статус: 🔴 Неактивна\n\n"
 
-            f"Код участника: "
-            f"{user['member_code']}\n"
+            "Стоимость подписки:\n"
+            "💰 2 990 ₸\n\n"
 
-            f"Накоплено: "
-            f"{float(user['total_savings'] or 0):.2f} ₸"
+            "После оплаты отправьте заявку "
+            "администратору. Администратор "
+            "проверит поступление денег и "
+            "активирует вашу подписку.",
+
+            reply_markup=keyboard
+        )
+
+    # =====================================================
+    # PAY SUBSCRIPTION
+    # =====================================================
+
+    elif query.data == "pay_subscription":
+
+        user = get_user(
+            query.from_user.id
+        )
+
+        if not user:
+
+            await query.message.reply_text(
+                "Пользователь не найден."
+            )
+
+            return
+
+        if user["subscription_active"]:
+
+            await query.answer(
+                "Подписка уже активна",
+                show_alert=True
+            )
+
+            return
+
+        await query.message.reply_text(
+
+            "💳 ОПЛАТА ПОДПИСКИ BIZDE.KZ\n\n"
+
+            "Стоимость: "
+            f"2 990 ₸\n\n"
+
+            "📌 Реквизиты для оплаты:\n"
+            f"{PAYMENT_DETAILS}\n\n"
+
+            "После оплаты нажмите "
+            "«Я оплатил».",
+
+            reply_markup=InlineKeyboardMarkup([
+
+                [
+                    InlineKeyboardButton(
+                        "✅ Я оплатил",
+                        callback_data=
+                            "payment_user_paid"
+                    )
+                ]
+
+            ])
 
         )
 
@@ -4311,6 +5064,8 @@ def run_http_server():
 
 def main():
 
+    global TELEGRAM_APPLICATION
+
     if not TOKEN:
 
         raise RuntimeError(
@@ -4334,6 +5089,33 @@ def main():
     init_db()
 
     # =====================================================
+    # TELEGRAM
+    # =====================================================
+
+    application = (
+        Application
+        .builder()
+        .token(TOKEN)
+        .build()
+    )
+
+    TELEGRAM_APPLICATION = application
+
+    # =====================================================
+    # MAIN LOOP
+    # =====================================================
+
+    try:
+
+        application.bot_data["main_loop"] = (
+            asyncio.get_running_loop()
+        )
+
+    except RuntimeError:
+
+        pass
+
+    # =====================================================
     # HTTP API
     # =====================================================
 
@@ -4345,15 +5127,8 @@ def main():
     server_thread.start()
 
     # =====================================================
-    # TELEGRAM
+    # HANDLERS
     # =====================================================
-
-    application = (
-        Application
-        .builder()
-        .token(TOKEN)
-        .build()
-    )
 
     application.add_handler(
         CommandHandler(
