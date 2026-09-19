@@ -69,7 +69,6 @@ PAYMENT_URL = os.environ.get(
     "https://pay.kaspi.kz/pay/gpq72hur"
 )
 
-
 TELEGRAM_APPLICATION = None
 
 
@@ -80,7 +79,6 @@ TELEGRAM_APPLICATION = None
 def db():
 
     if not DATABASE_URL:
-
         raise RuntimeError(
             "DATABASE_URL не настроен"
         )
@@ -95,10 +93,6 @@ def init_db():
     with db() as conn:
 
         with conn.cursor() as cur:
-
-            # =================================================
-            # USERS
-            # =================================================
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -117,10 +111,6 @@ def init_db():
                 )
             """)
 
-            # =================================================
-            # SUBSCRIPTION DATES
-            # =================================================
-
             cur.execute("""
                 ALTER TABLE users
                 ADD COLUMN IF NOT EXISTS subscription_started_at TIMESTAMP
@@ -130,10 +120,6 @@ def init_db():
                 ALTER TABLE users
                 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP
             """)
-
-            # =================================================
-            # PARTNERS
-            # =================================================
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS partners (
@@ -176,10 +162,6 @@ def init_db():
                 WHERE telegram_id IS NOT NULL
             """)
 
-            # =================================================
-            # TRANSACTIONS
-            # =================================================
-
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS transactions (
                     id SERIAL PRIMARY KEY,
@@ -193,10 +175,6 @@ def init_db():
                 )
             """)
 
-            # =================================================
-            # ADMINS
-            # =================================================
-
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS admins (
                     id SERIAL PRIMARY KEY,
@@ -205,10 +183,6 @@ def init_db():
                     created_at TIMESTAMP DEFAULT NOW()
                 )
             """)
-
-            # =================================================
-            # QR TOKENS
-            # =================================================
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS qr_tokens (
@@ -223,10 +197,6 @@ def init_db():
                     used_by_partner BIGINT
                 )
             """)
-
-            # =================================================
-            # SUBSCRIPTION PAYMENTS
-            # =================================================
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS subscription_payments (
@@ -251,10 +221,6 @@ def init_db():
                 subscription_payments_status_idx
                 ON subscription_payments(status)
             """)
-
-            # =================================================
-            # OWNER
-            # =================================================
 
             cur.execute("""
                 INSERT INTO admins (
@@ -381,15 +347,12 @@ def add_one_month(dt):
         year += 1
 
     if month == 12:
-
         next_month = datetime(
             year + 1,
             1,
             1
         )
-
     else:
-
         next_month = datetime(
             year,
             month + 1,
@@ -435,7 +398,6 @@ def subscription_expiration_worker():
     while True:
 
         try:
-
             expire_subscriptions()
 
         except Exception as e:
@@ -480,7 +442,6 @@ def generate_member_code():
                 )
 
                 if not cur.fetchone():
-
                     return code
 
 
@@ -503,7 +464,6 @@ def get_user(telegram_id):
             user = cur.fetchone()
 
             if not user:
-
                 return None
 
             if (
@@ -602,54 +562,24 @@ def upsert_user(
     values = []
 
     if name:
-
-        fields.append(
-            "name=%s"
-        )
-
-        values.append(
-            name
-        )
+        fields.append("name=%s")
+        values.append(name)
 
     if username is not None:
-
-        fields.append(
-            "username=%s"
-        )
-
-        values.append(
-            username or ""
-        )
+        fields.append("username=%s")
+        values.append(username or "")
 
     if phone is not None:
-
-        fields.append(
-            "phone=%s"
-        )
-
-        values.append(
-            phone
-        )
+        fields.append("phone=%s")
+        values.append(phone)
 
     if terms_accepted is not None:
+        fields.append("terms_accepted=%s")
+        values.append(bool(terms_accepted))
 
-        fields.append(
-            "terms_accepted=%s"
-        )
+    fields.append("updated_at=NOW()")
 
-        values.append(
-            bool(
-                terms_accepted
-            )
-        )
-
-    fields.append(
-        "updated_at=NOW()"
-    )
-
-    values.append(
-        telegram_id
-    )
+    values.append(telegram_id)
 
     with db() as conn:
 
@@ -678,24 +608,18 @@ def upsert_user(
 def is_owner(telegram_id):
 
     try:
-
-        return (
-            int(telegram_id)
-            == OWNER_ID
-        )
+        return int(telegram_id) == OWNER_ID
 
     except (
         TypeError,
         ValueError
     ):
-
         return False
 
 
 def is_admin(telegram_id):
 
     if is_owner(telegram_id):
-
         return True
 
     with db() as conn:
@@ -711,10 +635,7 @@ def is_admin(telegram_id):
                 (telegram_id,)
             )
 
-            return (
-                cur.fetchone()
-                is not None
-            )
+            return cur.fetchone() is not None
 
 
 def add_admin(
@@ -742,12 +663,9 @@ def add_admin(
         conn.commit()
 
 
-def remove_admin(
-    telegram_id
-):
+def remove_admin(telegram_id):
 
     if int(telegram_id) == OWNER_ID:
-
         return False
 
     with db() as conn:
@@ -762,9 +680,7 @@ def remove_admin(
                 (telegram_id,)
             )
 
-            result = (
-                cur.rowcount > 0
-            )
+            result = cur.rowcount > 0
 
         conn.commit()
 
@@ -827,9 +743,7 @@ def get_all_partners_admin():
             return cur.fetchall()
 
 
-def get_partner_by_id(
-    partner_id
-):
+def get_partner_by_id(partner_id):
 
     with db() as conn:
 
@@ -848,9 +762,7 @@ def get_partner_by_id(
             return cur.fetchone()
 
 
-def get_partner_by_telegram_id(
-    telegram_id
-):
+def get_partner_by_telegram_id(telegram_id):
 
     with db() as conn:
 
@@ -877,16 +789,10 @@ def get_partner_by_telegram_id(
 
 def get_role(telegram_id):
 
-    if is_owner(
-        telegram_id
-    ):
-
+    if is_owner(telegram_id):
         return "owner"
 
-    if is_admin(
-        telegram_id
-    ):
-
+    if is_admin(telegram_id):
         return "admin"
 
     partner = get_partner_by_telegram_id(
@@ -894,7 +800,6 @@ def get_role(telegram_id):
     )
 
     if partner:
-
         return "partner"
 
     return "user"
@@ -1005,14 +910,11 @@ def update_partner(
             )
 
     if not fields:
-
         return get_partner_by_id(
             partner_id
         )
 
-    values.append(
-        partner_id
-    )
+    values.append(partner_id)
 
     with db() as conn:
 
@@ -1038,9 +940,7 @@ def update_partner(
 # DELETE PARTNER
 # =========================================================
 
-def delete_partner(
-    partner_id
-):
+def delete_partner(partner_id):
 
     with db() as conn:
 
@@ -1054,9 +954,7 @@ def delete_partner(
                 (partner_id,)
             )
 
-            result = (
-                cur.rowcount > 0
-            )
+            result = cur.rowcount > 0
 
         conn.commit()
 
@@ -1093,22 +991,14 @@ def assign_partner(
                 partner_id
             ))
 
-            result = (
-                cur.rowcount > 0
-            )
+            result = cur.rowcount > 0
 
         conn.commit()
 
     return result
 
 
-# =========================================================
-# UNASSIGN PARTNER
-# =========================================================
-
-def unassign_partner(
-    partner_id
-):
+def unassign_partner(partner_id):
 
     with db() as conn:
 
@@ -1122,9 +1012,7 @@ def unassign_partner(
                 partner_id,
             ))
 
-            result = (
-                cur.rowcount > 0
-            )
+            result = cur.rowcount > 0
 
         conn.commit()
 
@@ -1191,9 +1079,7 @@ def set_subscription(
 
             if active:
 
-                expires_at = add_one_month(
-                    now
-                )
+                expires_at = add_one_month(now)
 
                 cur.execute("""
                     UPDATE users
@@ -1232,9 +1118,7 @@ def set_subscription(
 # SUBSCRIPTION PAYMENTS
 # =========================================================
 
-def get_pending_payment(
-    telegram_id
-):
+def get_pending_payment(telegram_id):
 
     with db() as conn:
 
@@ -1256,16 +1140,13 @@ def get_pending_payment(
             return cur.fetchone()
 
 
-def create_subscription_payment(
-    telegram_id
-):
+def create_subscription_payment(telegram_id):
 
     existing = get_pending_payment(
         telegram_id
     )
 
     if existing:
-
         return existing
 
     with db() as conn:
@@ -1298,9 +1179,7 @@ def create_subscription_payment(
     return payment
 
 
-def get_payment_by_id(
-    payment_id
-):
+def get_payment_by_id(payment_id):
 
     with db() as conn:
 
@@ -1346,16 +1225,14 @@ def process_subscription_payment(
 
                 return {
                     "success": False,
-                    "error":
-                        "Заявка не найдена"
+                    "error": "Заявка не найдена"
                 }
 
             if payment["status"] != "pending":
 
                 return {
                     "success": False,
-                    "error":
-                        "Заявка уже обработана"
+                    "error": "Заявка уже обработана"
                 }
 
             new_status = (
@@ -1404,8 +1281,7 @@ def process_subscription_payment(
     return {
         "success": True,
         "status": new_status,
-        "telegram_id":
-            payment["telegram_id"],
+        "telegram_id": payment["telegram_id"],
         "subscription_expires_at":
             subscription_expires_at
     }
@@ -1421,7 +1297,6 @@ async def send_payment_request(
     )
 
     if not user:
-
         return
 
     username = (
@@ -1488,9 +1363,7 @@ async def send_payment_request(
             )
 
 
-def send_payment_request_from_http(
-    payment
-):
+def send_payment_request_from_http(payment):
 
     global TELEGRAM_APPLICATION
 
@@ -1547,9 +1420,7 @@ def send_payment_request_from_http(
 # TRANSACTIONS
 # =========================================================
 
-def get_history(
-    telegram_id
-):
+def get_history(telegram_id):
 
     with db() as conn:
 
@@ -1635,9 +1506,7 @@ def create_qr_token(
     partner_id=None
 ):
 
-    token = secrets.token_urlsafe(
-        32
-    )
+    token = secrets.token_urlsafe(32)
 
     now = datetime.utcnow()
 
@@ -1689,10 +1558,6 @@ def create_qr_token(
     }
 
 
-# =========================================================
-# VERIFY QR
-# =========================================================
-
 def verify_qr_token(
     token,
     partner_telegram_id=None
@@ -1731,24 +1596,21 @@ def verify_qr_token(
 
         return {
             "valid": False,
-            "error":
-                "QR-код не найден"
+            "error": "QR-код не найден"
         }
 
     if row["used"]:
 
         return {
             "valid": False,
-            "error":
-                "QR-код уже использован"
+            "error": "QR-код уже использован"
         }
 
     if row["expires_at"] < datetime.utcnow():
 
         return {
             "valid": False,
-            "error":
-                "QR-код истёк"
+            "error": "QR-код истёк"
         }
 
     if (
@@ -1761,8 +1623,7 @@ def verify_qr_token(
 
         return {
             "valid": False,
-            "error":
-                "Подписка пользователя неактивна"
+            "error": "Подписка пользователя неактивна"
         }
 
     if partner_telegram_id is not None:
@@ -1775,17 +1636,12 @@ def verify_qr_token(
 
             return {
                 "valid": False,
-                "error":
-                    "Доступ только для партнёра"
+                "error": "Доступ только для партнёра"
             }
 
         if row["partner_id"] is not None:
 
-            if int(
-                row["partner_id"]
-            ) != int(
-                partner["id"]
-            ):
+            if int(row["partner_id"]) != int(partner["id"]):
 
                 return {
                     "valid": False,
@@ -1800,10 +1656,6 @@ def verify_qr_token(
     }
 
 
-# =========================================================
-# CONFIRM QR TRANSACTION
-# =========================================================
-
 def confirm_qr_transaction(
     token,
     partner_telegram_id,
@@ -1816,7 +1668,6 @@ def confirm_qr_transaction(
     )
 
     if not result["valid"]:
-
         return result
 
     qr = result["qr"]
@@ -1831,8 +1682,7 @@ def confirm_qr_transaction(
 
         return {
             "valid": False,
-            "error":
-                "Подписка пользователя неактивна"
+            "error": "Подписка пользователя неактивна"
         }
 
     partner = get_partner_by_telegram_id(
@@ -1843,15 +1693,12 @@ def confirm_qr_transaction(
 
         return {
             "valid": False,
-            "error":
-                "Партнёр не найден"
+            "error": "Партнёр не найден"
         }
 
     try:
 
-        amount = float(
-            receipt_amount
-        )
+        amount = float(receipt_amount)
 
     except (
         TypeError,
@@ -1860,30 +1707,25 @@ def confirm_qr_transaction(
 
         return {
             "valid": False,
-            "error":
-                "Некорректная сумма чека"
+            "error": "Некорректная сумма чека"
         }
 
     if amount <= 0:
 
         return {
             "valid": False,
-            "error":
-                "Сумма должна быть больше 0"
+            "error": "Сумма должна быть больше 0"
         }
 
     if amount > 100000000:
 
         return {
             "valid": False,
-            "error":
-                "Слишком большая сумма"
+            "error": "Слишком большая сумма"
         }
 
     discount = float(
-        partner[
-            "discount_percent"
-        ] or 0
+        partner["discount_percent"] or 0
     )
 
     savings = round(
@@ -1912,24 +1754,21 @@ def confirm_qr_transaction(
 
                 return {
                     "valid": False,
-                    "error":
-                        "QR-код не найден"
+                    "error": "QR-код не найден"
                 }
 
             if locked[0]:
 
                 return {
                     "valid": False,
-                    "error":
-                        "QR-код уже использован"
+                    "error": "QR-код уже использован"
                 }
 
             if locked[1] < datetime.utcnow():
 
                 return {
                     "valid": False,
-                    "error":
-                        "QR-код истёк"
+                    "error": "QR-код истёк"
                 }
 
             cur.execute("""
@@ -1949,8 +1788,7 @@ def confirm_qr_transaction(
 
                 return {
                     "valid": False,
-                    "error":
-                        "Пользователь не найден"
+                    "error": "Пользователь не найден"
                 }
 
             if (
@@ -1963,8 +1801,7 @@ def confirm_qr_transaction(
 
                 return {
                     "valid": False,
-                    "error":
-                        "Подписка пользователя неактивна"
+                    "error": "Подписка пользователя неактивна"
                 }
 
             cur.execute("""
@@ -1981,9 +1818,7 @@ def confirm_qr_transaction(
                     %s, %s, %s
                 )
             """, (
-                qr[
-                    "user_telegram_id"
-                ],
+                qr["user_telegram_id"],
                 partner["id"],
                 partner["name"],
                 amount,
@@ -1999,9 +1834,7 @@ def confirm_qr_transaction(
                 WHERE telegram_id=%s
             """, (
                 savings,
-                qr[
-                    "user_telegram_id"
-                ]
+                qr["user_telegram_id"]
             ))
 
             cur.execute("""
@@ -2037,9 +1870,7 @@ def confirm_qr_transaction(
 # MEMBER
 # =========================================================
 
-def verify_member(
-    member_code
-):
+def verify_member(member_code):
 
     user = get_user_by_member_code(
         member_code
@@ -2049,8 +1880,7 @@ def verify_member(
 
         return {
             "valid": False,
-            "error":
-                "Участник не найден"
+            "error": "Участник не найден"
         }
 
     return {
@@ -2063,18 +1893,14 @@ def verify_member(
 # TELEGRAM INIT DATA
 # =========================================================
 
-def validate_init_data(
-    init_data
-):
+def validate_init_data(init_data):
 
     if not init_data:
-
         raise ValueError(
             "Telegram initData отсутствует"
         )
 
     if not TOKEN:
-
         raise ValueError(
             "BOT_TOKEN не настроен"
         )
@@ -2092,16 +1918,13 @@ def validate_init_data(
     )
 
     if not received_hash:
-
         raise ValueError(
             "В initData отсутствует hash"
         )
 
     data_check_string = "\n".join(
         f"{key}={data[key]}"
-        for key in sorted(
-            data.keys()
-        )
+        for key in sorted(data.keys())
     )
 
     secret_key = hmac.new(
@@ -2145,10 +1968,7 @@ def validate_init_data(
             ).timestamp()
         )
 
-        if (
-            current - auth_date
-            > 86400
-        ):
+        if current - auth_date > 86400:
 
             raise ValueError(
                 "Telegram initData устарел"
@@ -2173,10 +1993,6 @@ def validate_init_data(
         )
 
 
-# =========================================================
-# REQUEST USER
-# =========================================================
-
 def get_request_user(
     headers,
     body=None
@@ -2191,19 +2007,13 @@ def get_request_user(
         )
     )
 
-    if (
-        not init_data
-        and body
-    ):
+    if not init_data and body:
 
         init_data = body.get(
             "initData"
         )
 
-    if (
-        not init_data
-        and body
-    ):
+    if not init_data and body:
 
         init_data = body.get(
             "init_data"
@@ -2228,9 +2038,7 @@ def authenticate(
 
         return (
             tg_user,
-            int(
-                tg_user["id"]
-            )
+            int(tg_user["id"])
         )
 
     except Exception as e:
@@ -2247,54 +2055,32 @@ def authenticate(
 # JSON
 # =========================================================
 
-def json_safe(
-    value
-):
+def json_safe(value):
 
-    if isinstance(
-        value,
-        datetime
-    ):
-
+    if isinstance(value, datetime):
         return value.isoformat()
 
-    if isinstance(
-        value,
-        Decimal
-    ):
+    if isinstance(value, Decimal):
+        return float(value)
 
-        return float(
-            value
-        )
-
-    if isinstance(
-        value,
-        list
-    ):
+    if isinstance(value, list):
 
         return [
             json_safe(item)
             for item in value
         ]
 
-    if isinstance(
-        value,
-        tuple
-    ):
+    if isinstance(value, tuple):
 
         return [
             json_safe(item)
             for item in value
         ]
 
-    if isinstance(
-        value,
-        dict
-    ):
+    if isinstance(value, dict):
 
         return {
-            str(key):
-                json_safe(val)
+            str(key): json_safe(val)
             for key, val in value.items()
         }
 
@@ -2310,13 +2096,9 @@ def json_response(
     payload = json.dumps(
         json_safe(data),
         ensure_ascii=False
-    ).encode(
-        "utf-8"
-    )
+    ).encode("utf-8")
 
-    handler.send_response(
-        status
-    )
+    handler.send_response(status)
 
     handler.send_header(
         "Content-Type",
@@ -2345,14 +2127,10 @@ def json_response(
 
     handler.end_headers()
 
-    handler.wfile.write(
-        payload
-    )
+    handler.wfile.write(payload)
 
 
-def read_json(
-    handler
-):
+def read_json(handler):
 
     try:
 
@@ -2364,17 +2142,12 @@ def read_json(
         )
 
         if length <= 0:
-
             return {}
 
-        raw = handler.rfile.read(
-            length
-        )
+        raw = handler.rfile.read(length)
 
         return json.loads(
-            raw.decode(
-                "utf-8"
-            )
+            raw.decode("utf-8")
         )
 
     except Exception as e:
@@ -2425,13 +2198,9 @@ class RequestHandler(
             )
         )
 
-    def do_OPTIONS(
-        self
-    ):
+    def do_OPTIONS(self):
 
-        self.send_response(
-            204
-        )
+        self.send_response(204)
 
         self.send_header(
             "Access-Control-Allow-Origin",
@@ -2455,15 +2224,11 @@ class RequestHandler(
 
         self.end_headers()
 
-    def do_GET(
-        self
-    ):
+    def do_GET(self):
 
         try:
 
-            handle_get(
-                self
-            )
+            handle_get(self)
 
         except Exception as e:
 
@@ -2478,15 +2243,11 @@ class RequestHandler(
                 500
             )
 
-    def do_POST(
-        self
-    ):
+    def do_POST(self):
 
         try:
 
-            handle_post(
-                self
-            )
+            handle_post(self)
 
         except Exception as e:
 
@@ -2506,9 +2267,7 @@ class RequestHandler(
 # GET ROUTES
 # =========================================================
 
-def handle_get(
-    handler
-):
+def handle_get(handler):
 
     path = urlparse(
         handler.path
@@ -2531,8 +2290,7 @@ def handle_get(
             handler,
             {
                 "success": True,
-                "partners":
-                    get_partners()
+                "partners": get_partners()
             }
         )
 
@@ -2545,46 +2303,27 @@ def handle_get(
         for partner in partners:
 
             if (
-                partner.get(
-                    "latitude"
-                ) is not None
+                partner.get("latitude") is not None
                 and
-                partner.get(
-                    "longitude"
-                ) is not None
+                partner.get("longitude") is not None
             ):
 
                 map_partners.append({
 
-                    "id":
-                        partner["id"],
-
-                    "name":
-                        partner["name"],
-
-                    "category":
-                        partner["category"],
-
-                    "description":
-                        partner["description"],
-
+                    "id": partner["id"],
+                    "name": partner["name"],
+                    "category": partner["category"],
+                    "description": partner["description"],
                     "discount_percent":
-                        partner[
-                            "discount_percent"
-                        ],
-
+                        partner["discount_percent"],
                     "conditions":
                         partner["conditions"],
-
                     "photo_url":
                         partner["photo_url"],
-
                     "address":
                         partner["address"],
-
                     "latitude":
                         partner["latitude"],
-
                     "longitude":
                         partner["longitude"]
 
@@ -2594,8 +2333,7 @@ def handle_get(
             handler,
             {
                 "success": True,
-                "partners":
-                    map_partners
+                "partners": map_partners
             }
         )
 
@@ -2624,15 +2362,11 @@ def handle_get(
                 ""
             )
 
-            if tg_user.get(
-                "last_name"
-            ):
+            if tg_user.get("last_name"):
 
                 name += (
                     " "
-                    + tg_user[
-                        "last_name"
-                    ]
+                    + tg_user["last_name"]
                 )
 
             user = upsert_user(
@@ -2650,9 +2384,7 @@ def handle_get(
                 "success": True,
                 "user": user,
                 "role":
-                    get_role(
-                        telegram_id
-                    )
+                    get_role(telegram_id)
             }
         )
 
@@ -2678,20 +2410,14 @@ def handle_get(
             telegram_id
         )
 
-        partner_status = (
-            partner is not None
-        )
-
-        role = get_role(
-            telegram_id
-        )
+        partner_status = partner is not None
 
         return json_response(
             handler,
             {
                 "success": True,
                 "role":
-                    role,
+                    get_role(telegram_id),
                 "is_admin":
                     admin_status,
                 "is_partner":
@@ -2720,9 +2446,7 @@ def handle_get(
             {
                 "success": True,
                 "history":
-                    get_history(
-                        telegram_id
-                    )
+                    get_history(telegram_id)
             }
         )
 
@@ -2775,9 +2499,7 @@ def handle_get(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -2808,9 +2530,7 @@ def handle_get(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -2841,9 +2561,7 @@ def handle_get(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -2871,17 +2589,13 @@ def handle_get(
 # POST ROUTES
 # =========================================================
 
-def handle_post(
-    handler
-):
+def handle_post(handler):
 
     path = urlparse(
         handler.path
     ).path
 
-    body = read_json(
-        handler
-    )
+    body = read_json(handler)
 
     if path == "/api/auth":
 
@@ -2903,15 +2617,11 @@ def handle_post(
             ""
         )
 
-        if tg_user.get(
-            "last_name"
-        ):
+        if tg_user.get("last_name"):
 
             name += (
                 " "
-                + tg_user[
-                    "last_name"
-                ]
+                + tg_user["last_name"]
             )
 
         user = upsert_user(
@@ -2929,9 +2639,7 @@ def handle_post(
                 "success": True,
                 "user": user,
                 "role":
-                    get_role(
-                        telegram_id
-                    )
+                    get_role(telegram_id)
             }
         )
 
@@ -2951,17 +2659,11 @@ def handle_post(
             )
 
         name = str(
-            body.get(
-                "name",
-                ""
-            )
+            body.get("name", "")
         ).strip()
 
         phone = str(
-            body.get(
-                "phone",
-                ""
-            )
+            body.get("phone", "")
         ).strip()
 
         terms = bool(
@@ -3010,9 +2712,7 @@ def handle_post(
                 "registered": True,
                 "user": user,
                 "role":
-                    get_role(
-                        telegram_id
-                    )
+                    get_role(telegram_id)
             }
         )
 
@@ -3117,8 +2817,6 @@ def handle_post(
                     SUBSCRIPTION_PRICE,
                 "status":
                     payment["status"],
-                "payment_details":
-                    PAYMENT_DETAILS,
                 "payment_url":
                     PAYMENT_URL
             }
@@ -3268,9 +2966,7 @@ def handle_post(
                         qr["user_id"],
 
                     "telegram_id":
-                        qr[
-                            "user_telegram_id"
-                        ],
+                        qr["user_telegram_id"],
 
                     "name":
                         qr["name"],
@@ -3285,24 +2981,16 @@ def handle_post(
                         qr["member_code"],
 
                     "subscription_active":
-                        qr[
-                            "subscription_active"
-                        ],
+                        qr["subscription_active"],
 
                     "subscription_started_at":
-                        qr[
-                            "subscription_started_at"
-                        ],
+                        qr["subscription_started_at"],
 
                     "subscription_expires_at":
-                        qr[
-                            "subscription_expires_at"
-                        ],
+                        qr["subscription_expires_at"],
 
                     "total_savings":
-                        qr[
-                            "total_savings"
-                        ]
+                        qr["total_savings"]
 
                 },
 
@@ -3408,9 +3096,7 @@ def handle_post(
         return json_response(
             handler,
             result,
-            200
-            if result["valid"]
-            else 404
+            200 if result["valid"] else 404
         )
 
     # =====================================================
@@ -3432,9 +3118,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3483,10 +3167,7 @@ def handle_post(
         try:
 
             if latitude is not None:
-
-                latitude = float(
-                    latitude
-                )
+                latitude = float(latitude)
 
         except (
             TypeError,
@@ -3498,10 +3179,7 @@ def handle_post(
         try:
 
             if longitude is not None:
-
-                longitude = float(
-                    longitude
-                )
+                longitude = float(longitude)
 
         except (
             TypeError,
@@ -3584,9 +3262,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3597,9 +3273,7 @@ def handle_post(
         try:
 
             partner_id = int(
-                body.get(
-                    "id"
-                )
+                body.get("id")
             )
 
         except (
@@ -3645,10 +3319,7 @@ def handle_post(
         if latitude is not None:
 
             try:
-
-                latitude = float(
-                    latitude
-                )
+                latitude = float(latitude)
 
             except (
                 TypeError,
@@ -3663,10 +3334,7 @@ def handle_post(
         if longitude is not None:
 
             try:
-
-                longitude = float(
-                    longitude
-                )
+                longitude = float(longitude)
 
             except (
                 TypeError,
@@ -3682,35 +3350,21 @@ def handle_post(
 
             partner_id,
 
-            body.get(
-                "name"
-            ),
+            body.get("name"),
 
-            body.get(
-                "category"
-            ),
+            body.get("category"),
 
-            body.get(
-                "description"
-            ),
+            body.get("description"),
 
             discount,
 
-            body.get(
-                "conditions"
-            ),
+            body.get("conditions"),
 
-            body.get(
-                "photo_url"
-            ),
+            body.get("photo_url"),
 
-            body.get(
-                "active"
-            ),
+            body.get("active"),
 
-            body.get(
-                "address"
-            ),
+            body.get("address"),
 
             latitude,
 
@@ -3745,9 +3399,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3758,9 +3410,7 @@ def handle_post(
         try:
 
             partner_id = int(
-                body.get(
-                    "id"
-                )
+                body.get("id")
             )
 
         except (
@@ -3802,9 +3452,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3815,15 +3463,11 @@ def handle_post(
         try:
 
             partner_id = int(
-                body.get(
-                    "partner_id"
-                )
+                body.get("partner_id")
             )
 
             target_id = int(
-                body.get(
-                    "telegram_id"
-                )
+                body.get("telegram_id")
             )
 
         except (
@@ -3845,7 +3489,6 @@ def handle_post(
             handler,
             {
                 "success": result,
-
                 "partner":
                     get_partner_by_id(
                         partner_id
@@ -3872,9 +3515,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3885,9 +3526,7 @@ def handle_post(
         try:
 
             partner_id = int(
-                body.get(
-                    "partner_id"
-                )
+                body.get("partner_id")
             )
 
         except (
@@ -3929,9 +3568,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -3942,9 +3579,7 @@ def handle_post(
         try:
 
             target_id = int(
-                body.get(
-                    "telegram_id"
-                )
+                body.get("telegram_id")
             )
 
         except (
@@ -3958,16 +3593,13 @@ def handle_post(
             )
 
         user = set_subscription(
-
             target_id,
-
             bool(
                 body.get(
                     "active",
                     False
                 )
             )
-
         )
 
         return json_response(
@@ -3997,9 +3629,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -4010,9 +3640,7 @@ def handle_post(
         try:
 
             target_id = int(
-                body.get(
-                    "telegram_id"
-                )
+                body.get("telegram_id")
             )
 
         except (
@@ -4058,9 +3686,7 @@ def handle_post(
                 401
             )
 
-        if not is_admin(
-            telegram_id
-        ):
+        if not is_admin(telegram_id):
 
             return error_response(
                 handler,
@@ -4071,9 +3697,7 @@ def handle_post(
         try:
 
             target_id = int(
-                body.get(
-                    "telegram_id"
-                )
+                body.get("telegram_id")
             )
 
         except (
@@ -4100,7 +3724,6 @@ def handle_post(
                     remove_admin(
                         target_id
                     ),
-
                 "admins":
                     get_admins()
             }
@@ -4127,10 +3750,7 @@ async def start(
     if not user:
         return
 
-    name = (
-        user.first_name
-        or ""
-    )
+    name = user.first_name or ""
 
     if user.last_name:
 
@@ -4186,9 +3806,7 @@ async def start(
 
     ]
 
-    if is_admin(
-        user.id
-    ):
+    if is_admin(user.id):
 
         keyboard.append([
 
@@ -4227,9 +3845,7 @@ async def admin_command(
     if not user:
         return
 
-    if not is_admin(
-        user.id
-    ):
+    if not is_admin(user.id):
 
         await update.message.reply_text(
             "⛔ Доступ к админ-панели закрыт."
@@ -4320,9 +3936,7 @@ async def addadmin_command(
 
     if (
         not user
-        or not is_owner(
-            user.id
-        )
+        or not is_owner(user.id)
     ):
 
         await update.message.reply_text(
@@ -4376,9 +3990,7 @@ async def removeadmin_command(
 
     if (
         not user
-        or not is_owner(
-            user.id
-        )
+        or not is_owner(user.id)
     ):
 
         await update.message.reply_text(
@@ -4439,9 +4051,7 @@ async def admins_command(
 
     if (
         not user
-        or not is_admin(
-            user.id
-        )
+        or not is_admin(user.id)
     ):
 
         await update.message.reply_text(
@@ -4452,9 +4062,7 @@ async def admins_command(
 
     admins = get_admins()
 
-    text = (
-        "⚙️ Администраторы:\n\n"
-    )
+    text = "⚙️ Администраторы:\n\n"
 
     for admin in admins:
 
@@ -4488,9 +4096,7 @@ async def setpartner_command(
 
     if (
         not user
-        or not is_admin(
-            user.id
-        )
+        or not is_admin(user.id)
     ):
 
         await update.message.reply_text(
@@ -4499,9 +4105,7 @@ async def setpartner_command(
 
         return
 
-    if len(
-        context.args
-    ) < 2:
+    if len(context.args) < 2:
 
         await update.message.reply_text(
             "Использование:\n"
@@ -4557,9 +4161,7 @@ async def unsetpartner_command(
 
     if (
         not user
-        or not is_admin(
-            user.id
-        )
+        or not is_admin(user.id)
     ):
 
         await update.message.reply_text(
@@ -4586,7 +4188,7 @@ async def unsetpartner_command(
     except ValueError:
 
         await update.message.reply_text(
-            "Некорректный ID."
+            "Некорректный Telegram ID."
         )
 
         return
@@ -4613,9 +4215,7 @@ async def activate_command(
 
     if (
         not user
-        or not is_admin(
-            user.id
-        )
+        or not is_admin(user.id)
     ):
 
         await update.message.reply_text(
@@ -4690,9 +4290,7 @@ async def deactivate_command(
 
     if (
         not user
-        or not is_admin(
-            user.id
-        )
+        or not is_admin(user.id)
     ):
 
         await update.message.reply_text(
@@ -4752,8 +4350,6 @@ async def callback_handler(
 
     query = update.callback_query
 
-    await query.answer()
-
     # =====================================================
     # PAYMENT APPROVE
     # =====================================================
@@ -4761,6 +4357,8 @@ async def callback_handler(
     if query.data.startswith(
         "payment_approve_"
     ):
+
+        await query.answer()
 
         if not is_admin(
             query.from_user.id
@@ -4806,9 +4404,7 @@ async def callback_handler(
 
             return
 
-        target_id = result[
-            "telegram_id"
-        ]
+        target_id = result["telegram_id"]
 
         expires_at = result[
             "subscription_expires_at"
@@ -4865,6 +4461,8 @@ async def callback_handler(
         "payment_reject_"
     ):
 
+        await query.answer()
+
         if not is_admin(
             query.from_user.id
         ):
@@ -4909,9 +4507,7 @@ async def callback_handler(
 
             return
 
-        target_id = result[
-            "telegram_id"
-        ]
+        target_id = result["telegram_id"]
 
         try:
 
@@ -4949,6 +4545,8 @@ async def callback_handler(
     # =====================================================
 
     if query.data == "payment_user_paid":
+
+        await query.answer()
 
         user = get_user(
             query.from_user.id
@@ -5012,6 +4610,8 @@ async def callback_handler(
 
     if query.data == "categories":
 
+        await query.answer()
+
         partners = get_partners()
 
         categories = sorted(
@@ -5034,19 +4634,21 @@ async def callback_handler(
 
         else:
 
-            text = (
-                "Категорий пока нет."
-            )
+            text = "Категорий пока нет."
 
         await query.message.reply_text(
             text
         )
 
+        return
+
     # =====================================================
     # PARTNERS
     # =====================================================
 
-    elif query.data == "partners":
+    if query.data == "partners":
+
+        await query.answer()
 
         partners = get_partners()
 
@@ -5058,9 +4660,7 @@ async def callback_handler(
 
             return
 
-        text = (
-            "🏪 Партнёры BIZDE.KZ:\n\n"
-        )
+        text = "🏪 Партнёры BIZDE.KZ:\n\n"
 
         for partner in partners:
 
@@ -5073,11 +4673,15 @@ async def callback_handler(
             text
         )
 
+        return
+
     # =====================================================
     # SUBSCRIPTION
     # =====================================================
 
-    elif query.data == "subscription":
+    if query.data == "subscription":
+
+        await query.answer()
 
         user = get_user(
             query.from_user.id
@@ -5109,8 +4713,6 @@ async def callback_handler(
                 else "не указано"
             )
 
-            status = "🟢 Активна"
-
             keyboard = InlineKeyboardMarkup([
 
                 [
@@ -5126,7 +4728,7 @@ async def callback_handler(
 
                 "🎟 Моя подписка BIZDE.KZ\n\n"
 
-                f"Статус: {status}\n"
+                "Статус: 🟢 Активна\n"
 
                 f"Действует до: "
                 f"{expires_text}\n\n"
@@ -5174,11 +4776,15 @@ async def callback_handler(
             reply_markup=keyboard
         )
 
+        return
+
     # =====================================================
     # PAY SUBSCRIPTION
     # =====================================================
 
-    elif query.data == "pay_subscription":
+    if query.data == "pay_subscription":
+
+        await query.answer()
 
         user = get_user(
             query.from_user.id
@@ -5237,6 +4843,8 @@ async def callback_handler(
             ])
 
         )
+
+        return
 
 
 # =========================================================
