@@ -1326,6 +1326,17 @@ let scanner = null;
 
 
 /* =========================
+   SUBSCRIPTION PAYMENT STATE
+========================= */
+
+let subscriptionPaymentId = null;
+
+let subscriptionStatusTimer = null;
+
+let subscriptionPaymentPending = false;
+
+
+/* =========================
    TELEGRAM INIT
 ========================= */
 
@@ -1517,7 +1528,34 @@ ru:{
     qrInfo:
         "QR-код действует ограниченное время и может быть использован только один раз.",
 
-    creatingQr:"Создаём защищённый QR-код..."
+    creatingQr:"Создаём защищённый QR-код...",
+
+    subscriptionPrice:"2 990 ₸ / месяц",
+
+    paySubscription:"Оплатить подписку",
+
+    iPaid:"Я оплатил",
+
+    paymentPending:"Оплата отправлена на проверку",
+
+    paymentSent:
+        "Заявка на оплату отправлена администратору. Дождитесь подтверждения.",
+
+    paymentDetails:"Реквизиты для оплаты",
+
+    subscriptionAlreadyActive:
+        "Подписка уже активна.",
+
+    paymentError:
+        "Не удалось создать заявку на оплату.",
+
+    refreshStatus:"Обновить статус",
+
+    checkingPayment:
+        "Проверяем статус оплаты...",
+
+    paymentWaiting:
+        "Ожидаем подтверждение администратора."
 
 },
 
@@ -1635,7 +1673,34 @@ kk:{
     qrInfo:
         "QR коды шектеулі уақыт жұмыс істейді және тек бір рет қолданылады.",
 
-    creatingQr:"Қорғалған QR коды жасалуда..."
+    creatingQr:"Қорғалған QR коды жасалуда...",
+
+    subscriptionPrice:"2 990 ₸ / ай",
+
+    paySubscription:"Жазылымды төлеу",
+
+    iPaid:"Мен төледім",
+
+    paymentPending:"Төлем тексеруге жіберілді",
+
+    paymentSent:
+        "Төлем туралы өтініш әкімшіге жіберілді. Растауды күтіңіз.",
+
+    paymentDetails:"Төлем реквизиттері",
+
+    subscriptionAlreadyActive:
+        "Жазылым қазірдің өзінде белсенді.",
+
+    paymentError:
+        "Төлем жасау өтінішін құру мүмкін болмады.",
+
+    refreshStatus:"Мәртебені жаңарту",
+
+    checkingPayment:
+        "Төлем мәртебесі тексерілуде...",
+
+    paymentWaiting:
+        "Әкімшінің растауын күтіңіз."
 
 }
 
@@ -1941,15 +2006,6 @@ async function authWithBackend(){
                     bizdeUser
                 )
             );
-
-            /*
-             * ВАЖНО:
-             * пользователь может уже существовать
-             * в БД, но ещё не пройти регистрацию.
-             *
-             * В таком случае обязательно
-             * показываем форму имени и телефона.
-             */
 
             const hasName =
                 String(
@@ -3537,6 +3593,57 @@ function openSubscription(){
     ).textContent =
         t.subscription;
 
+    if(active){
+
+        stopSubscriptionStatusCheck();
+
+        document.getElementById(
+            "modalContent"
+        ).innerHTML = `
+
+            <div style="
+                text-align:center;
+                padding:15px 5px;
+            ">
+
+                <div style="
+                    font-size:48px;
+                    margin-bottom:10px;
+                ">
+                    ✦
+                </div>
+
+                <div style="
+                    font-size:22px;
+                    font-weight:900;
+                    color:var(--green);
+                ">
+
+                    ${escapeHTML(t.active)}
+
+                </div>
+
+                <p style="
+                    color:var(--muted);
+                    font-size:13px;
+                    line-height:1.5;
+                    margin-top:9px;
+                ">
+
+                    ${escapeHTML(t.activeText)}
+
+                </p>
+
+            </div>
+
+        `;
+
+        showModal();
+
+        return;
+
+    }
+
     document.getElementById(
         "modalContent"
     ).innerHTML = `
@@ -3550,30 +3657,16 @@ function openSubscription(){
                 font-size:48px;
                 margin-bottom:10px;
             ">
-
-                ${
-                    active
-                    ? "✦"
-                    : "○"
-                }
-
+                ○
             </div>
 
             <div style="
                 font-size:22px;
                 font-weight:900;
-                color:${
-                    active
-                    ? "var(--green)"
-                    : "var(--text)"
-                };
+                color:var(--text);
             ">
 
-                ${
-                    active
-                    ? t.active
-                    : t.inactive
-                }
+                ${escapeHTML(t.inactive)}
 
             </div>
 
@@ -3584,19 +3677,732 @@ function openSubscription(){
                 margin-top:9px;
             ">
 
-                ${
-                    active
-                    ? t.activeText
-                    : t.inactiveText
-                }
+                ${escapeHTML(t.inactiveText)}
 
             </p>
+
+            <div style="
+                margin-top:18px;
+                font-size:22px;
+                font-weight:900;
+                color:var(--green);
+            ">
+
+                ${escapeHTML(t.subscriptionPrice)}
+
+            </div>
+
+            <button
+                class="modal-button"
+                id="paySubscriptionButton"
+                onclick="requestSubscriptionPayment()">
+
+                ${escapeHTML(t.paySubscription)}
+
+            </button>
 
         </div>
 
     `;
 
     showModal();
+
+    if(subscriptionPaymentPending){
+
+        showPaymentPending();
+
+        startSubscriptionStatusCheck();
+
+    }
+
+}
+
+
+/* =========================
+   SUBSCRIPTION PAYMENT
+========================= */
+
+async function requestSubscriptionPayment(){
+
+    if(
+        bizdeUser &&
+        bizdeUser.subscription_active
+    ){
+
+        openSubscription();
+
+        return;
+
+    }
+
+    const button =
+        document.getElementById(
+            "paySubscriptionButton"
+        );
+
+    if(button){
+
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+        button.textContent =
+            currentLanguage === "ru"
+            ? "Создаём заявку..."
+            : "Өтініш жасалуда...";
+
+    }
+
+    const telegramReady =
+        await initTelegram();
+
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
+
+        if(button){
+
+            button.disabled = false;
+
+            button.style.opacity = "1";
+
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].paySubscription;
+
+        }
+
+        alert(
+            currentLanguage === "ru"
+            ? "Откройте BIZDE через Telegram."
+            : "BIZDE қолданбасын Telegram арқылы ашыңыз."
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const data =
+            await apiFetch(
+                "/api/subscription/request",
+                {
+
+                    method:"POST",
+
+                    body:JSON.stringify({
+
+                        initData:
+                            tg.initData,
+
+                        init_data:
+                            tg.initData,
+
+                        telegram_id:
+                            bizdeUser?.telegram_id ||
+                            tg.initDataUnsafe?.user?.id
+
+                    })
+
+                }
+            );
+
+        console.log(
+            "SUBSCRIPTION REQUEST:",
+            data
+        );
+
+        if(
+            data.subscription_active ||
+            data.user?.subscription_active
+        ){
+
+            if(data.user){
+
+                bizdeUser =
+                    data.user;
+
+            }else{
+
+                bizdeUser.subscription_active =
+                    true;
+
+            }
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(
+                    bizdeUser
+                )
+            );
+
+            updateUI();
+
+            openSubscription();
+
+            return;
+
+        }
+
+        if(
+            !(data.success || data.ok)
+        ){
+
+            if(button){
+
+                button.disabled = false;
+
+                button.style.opacity = "1";
+
+                button.textContent =
+                    translations[
+                        currentLanguage
+                    ].paySubscription;
+
+            }
+
+            alert(
+                data.error ||
+                translations[
+                    currentLanguage
+                ].paymentError
+            );
+
+            return;
+
+        }
+
+        subscriptionPaymentId =
+            data.payment_id ||
+            data.id ||
+            data.payment?.id ||
+            null;
+
+        if(subscriptionPaymentId){
+
+            localStorage.setItem(
+                "bizdePaymentId",
+                String(
+                    subscriptionPaymentId
+                )
+            );
+
+        }
+
+        subscriptionPaymentPending = true;
+
+        showPaymentDetails(
+            data
+        );
+
+        startSubscriptionStatusCheck();
+
+    }catch(error){
+
+        console.error(
+            "SUBSCRIPTION PAYMENT ERROR:",
+            error
+        );
+
+        if(button){
+
+            button.disabled = false;
+
+            button.style.opacity = "1";
+
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].paySubscription;
+
+        }
+
+        alert(
+            currentLanguage === "ru"
+            ? "Ошибка соединения с сервером."
+            : "Серверге қосылу қатесі."
+        );
+
+    }
+
+}
+
+
+/* =========================
+   PAYMENT DETAILS
+========================= */
+
+function showPaymentDetails(data){
+
+    const t =
+        translations[currentLanguage];
+
+    let details =
+        data.payment_details ||
+        data.paymentDetails ||
+        data.details ||
+        data.payment ||
+        "";
+
+    if(
+        typeof details === "object" &&
+        details !== null
+    ){
+
+        details =
+            Object.entries(details)
+                .map(
+                    ([key,value]) =>
+                        `<div style="
+                            margin-top:6px;
+                        ">
+                            <strong>
+                                ${escapeHTML(key)}
+                            </strong>:
+                            ${escapeHTML(value)}
+                        </div>`
+                )
+                .join("");
+
+    }else{
+
+        details =
+            escapeHTML(
+                String(details || "")
+            )
+            .replace(
+                /\n/g,
+                "<br>"
+            );
+
+    }
+
+    if(!details){
+
+        details = `
+            <div style="
+                margin-top:8px;
+                color:var(--muted);
+            ">
+                ${
+                    currentLanguage === "ru"
+                    ? "Реквизиты для оплаты будут предоставлены администратором."
+                    : "Төлем реквизиттерін әкімші береді."
+                }
+            </div>
+        `;
+
+    }
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.paymentDetails;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            background:var(--surface2);
+            border-radius:20px;
+            padding:17px;
+            line-height:1.6;
+            font-size:13px;
+        ">
+
+            ${details}
+
+        </div>
+
+        <div style="
+            text-align:center;
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.5;
+            margin-top:12px;
+        ">
+
+            ${escapeHTML(t.paymentWaiting)}
+
+        </div>
+
+        <button
+            class="modal-button"
+            id="paidSubscriptionButton"
+            onclick="confirmSubscriptionPayment()">
+
+            ${escapeHTML(t.iPaid)}
+
+        </button>
+
+        <button
+            class="secondary-button"
+            onclick="checkSubscriptionStatus()">
+
+            ${escapeHTML(t.refreshStatus)}
+
+        </button>
+
+    `;
+
+}
+
+
+/* =========================
+   I PAID
+========================= */
+
+async function confirmSubscriptionPayment(){
+
+    const button =
+        document.getElementById(
+            "paidSubscriptionButton"
+        );
+
+    if(button){
+
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+        button.textContent =
+            currentLanguage === "ru"
+            ? "Отправляем..."
+            : "Жіберілуде...";
+
+    }
+
+    const telegramReady =
+        await initTelegram();
+
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
+
+        if(button){
+
+            button.disabled = false;
+
+            button.style.opacity = "1";
+
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].iPaid;
+
+        }
+
+        return;
+
+    }
+
+    try{
+
+        const data =
+            await apiFetch(
+                "/api/subscription/request",
+                {
+
+                    method:"POST",
+
+                    body:JSON.stringify({
+
+                        initData:
+                            tg.initData,
+
+                        init_data:
+                            tg.initData,
+
+                        telegram_id:
+                            bizdeUser?.telegram_id ||
+                            tg.initDataUnsafe?.user?.id,
+
+                        payment_id:
+                            subscriptionPaymentId ||
+                            localStorage.getItem(
+                                "bizdePaymentId"
+                            ),
+
+                        paid:
+                            true
+
+                    })
+
+                }
+            );
+
+        console.log(
+            "PAYMENT CONFIRM:",
+            data
+        );
+
+        if(
+            data.subscription_active ||
+            data.user?.subscription_active
+        ){
+
+            if(data.user){
+
+                bizdeUser =
+                    data.user;
+
+            }else{
+
+                bizdeUser.subscription_active =
+                    true;
+
+            }
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(
+                    bizdeUser
+                )
+            );
+
+            subscriptionPaymentPending = false;
+
+            stopSubscriptionStatusCheck();
+
+            updateUI();
+
+            openSubscription();
+
+            return;
+
+        }
+
+        if(
+            data.payment_id ||
+            data.id
+        ){
+
+            subscriptionPaymentId =
+                data.payment_id ||
+                data.id;
+
+            localStorage.setItem(
+                "bizdePaymentId",
+                String(
+                    subscriptionPaymentId
+                )
+            );
+
+        }
+
+        subscriptionPaymentPending = true;
+
+        showPaymentPending();
+
+        startSubscriptionStatusCheck();
+
+    }catch(error){
+
+        console.error(
+            "PAYMENT CONFIRM ERROR:",
+            error
+        );
+
+        if(button){
+
+            button.disabled = false;
+
+            button.style.opacity = "1";
+
+            button.textContent =
+                translations[
+                    currentLanguage
+                ].iPaid;
+
+        }
+
+    }
+
+}
+
+
+/* =========================
+   PAYMENT PENDING
+========================= */
+
+function showPaymentPending(){
+
+    const t =
+        translations[currentLanguage];
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        t.subscription;
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML = `
+
+        <div style="
+            text-align:center;
+            padding:15px 5px;
+        ">
+
+            <div style="
+                font-size:48px;
+                margin-bottom:10px;
+            ">
+                ◷
+            </div>
+
+            <div style="
+                font-size:21px;
+                font-weight:900;
+                color:var(--green);
+            ">
+
+                ${escapeHTML(t.paymentPending)}
+
+            </div>
+
+            <p style="
+                color:var(--muted);
+                font-size:13px;
+                line-height:1.5;
+                margin-top:10px;
+            ">
+
+                ${escapeHTML(t.paymentSent)}
+
+            </p>
+
+            <button
+                class="secondary-button"
+                onclick="checkSubscriptionStatus()">
+
+                ${escapeHTML(t.refreshStatus)}
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================
+   SUBSCRIPTION STATUS CHECK
+========================= */
+
+function startSubscriptionStatusCheck(){
+
+    stopSubscriptionStatusCheck();
+
+    subscriptionStatusTimer =
+        setInterval(
+            checkSubscriptionStatus,
+            5000
+        );
+
+}
+
+
+function stopSubscriptionStatusCheck(){
+
+    if(subscriptionStatusTimer){
+
+        clearInterval(
+            subscriptionStatusTimer
+        );
+
+        subscriptionStatusTimer = null;
+
+    }
+
+}
+
+
+async function checkSubscriptionStatus(){
+
+    const telegramReady =
+        await initTelegram();
+
+    if(
+        !telegramReady ||
+        !tg?.initData
+    ){
+
+        return;
+
+    }
+
+    try{
+
+        const data =
+            await apiFetch(
+                "/api/user?init_data=" +
+                encodeURIComponent(
+                    tg.initData
+                )
+            );
+
+        console.log(
+            "SUBSCRIPTION STATUS:",
+            data
+        );
+
+        const user =
+            data.user ||
+            data.data?.user ||
+            null;
+
+        if(user){
+
+            bizdeUser = {
+
+                ...bizdeUser,
+
+                ...user
+
+            };
+
+            localStorage.setItem(
+                "bizdeUser",
+                JSON.stringify(
+                    bizdeUser
+                )
+            );
+
+        }
+
+        const active =
+            !!(
+                user?.subscription_active ??
+                bizdeUser?.subscription_active
+            );
+
+        updateUI();
+
+        if(active){
+
+            subscriptionPaymentPending = false;
+
+            stopSubscriptionStatusCheck();
+
+            openSubscription();
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "STATUS CHECK ERROR:",
+            error
+        );
+
+    }
 
 }
 
@@ -3831,6 +4637,8 @@ function showModal(){
 function hideModal(){
 
     clearQrTimer();
+
+    stopSubscriptionStatusCheck();
 
     if(scanner){
 
