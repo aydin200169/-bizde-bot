@@ -56,15 +56,22 @@ PORT = int(
 
 QR_LIFETIME_SECONDS = 60
 
+
 # =========================================================
 # ПОДПИСКА
 # =========================================================
 
 SUBSCRIPTION_PRICE = 2990
 
+# Kaspi Pay
+PAYMENT_URL = os.environ.get(
+    "PAYMENT_URL",
+    "https://pay.kaspi.kz/pay/gpq72hur"
+)
+
 PAYMENT_DETAILS = os.environ.get(
     "PAYMENT_DETAILS",
-    "Реквизиты для оплаты пока не указаны. Обратитесь к администратору BIZDE.KZ."
+    "Оплата через Kaspi Pay."
 )
 
 TELEGRAM_APPLICATION = None
@@ -3115,7 +3122,9 @@ def handle_post(
                 "status":
                     payment["status"],
                 "payment_details":
-                    PAYMENT_DETAILS
+                    PAYMENT_DETAILS,
+                "payment_url":
+                    PAYMENT_URL
             }
         )
 
@@ -5201,23 +5210,31 @@ async def callback_handler(
             "💳 ОПЛАТА ПОДПИСКИ BIZDE.KZ\n\n"
 
             "Стоимость: "
-            f"2 990 ₸\n\n"
+            f"{SUBSCRIPTION_PRICE:,} ₸\n\n"
 
             "Срок: 1 календарный месяц\n\n"
 
-            "📌 Реквизиты для оплаты:\n"
-            f"{PAYMENT_DETAILS}\n\n"
+            "1️⃣ Нажмите «Оплатить 2 990 ₸»\n"
+            "2️⃣ Оплатите через Kaspi Pay\n"
+            "3️⃣ Вернитесь в BIZDE.KZ\n"
+            "4️⃣ Нажмите «Я оплатил»\n\n"
 
-            "После оплаты нажмите "
-            "«Я оплатил».",
+            "После этого заявка поступит "
+            "администратору на проверку.",
 
             reply_markup=InlineKeyboardMarkup([
 
                 [
                     InlineKeyboardButton(
+                        "💳 Оплатить 2 990 ₸",
+                        url=PAYMENT_URL
+                    )
+                ],
+
+                [
+                    InlineKeyboardButton(
                         "✅ Я оплатил",
-                        callback_data=
-                            "payment_user_paid"
+                        callback_data="payment_user_paid"
                     )
                 ]
 
