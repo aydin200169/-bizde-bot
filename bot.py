@@ -69,10 +69,6 @@ PAYMENT_URL = os.environ.get(
     "https://pay.kaspi.kz/pay/gpq72hur"
 )
 
-PAYMENT_DETAILS = os.environ.get(
-    "PAYMENT_DETAILS",
-    "Оплата через Kaspi Pay."
-)
 
 TELEGRAM_APPLICATION = None
 
