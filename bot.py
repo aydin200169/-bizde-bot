@@ -6,6 +6,7 @@ import secrets
 import threading
 import urllib.parse
 import asyncio
+import time
 
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
@@ -41,19 +42,10 @@ OWNER_ID = 1882252883
 
 WEB_APP_URL = "https://aydin200169.github.io/-bizde-bot/"
 
-PARTNER_PAGE = (
-    WEB_APP_URL.rstrip("/")
-    + "/partner.html"
-)
+PARTNER_PAGE = WEB_APP_URL.rstrip("/") + "/partner.html"
+ADMIN_PAGE = WEB_APP_URL.rstrip("/") + "/admin.html"
 
-ADMIN_PAGE = (
-    WEB_APP_URL.rstrip("/")
-    + "/admin.html"
-)
-
-ALLOWED_ORIGIN = (
-    "https://aydin200169.github.io"
-)
+ALLOWED_ORIGIN = "https://aydin200169.github.io"
 
 PORT = int(
     os.environ.get(
@@ -75,8 +67,6 @@ PAYMENT_DETAILS = os.environ.get(
     "Реквизиты для оплаты пока не указаны. Обратитесь к администратору BIZDE.KZ."
 )
 
-# Глобальная ссылка на Telegram Application.
-# Нужна HTTP API для отправки заявки администраторам.
 TELEGRAM_APPLICATION = None
 
 
@@ -122,6 +112,20 @@ def init_db():
                     registered_at TIMESTAMP DEFAULT NOW(),
                     updated_at TIMESTAMP DEFAULT NOW()
                 )
+            """)
+
+            # =================================================
+            # SUBSCRIPTION DATES
+            # =================================================
+
+            cur.execute("""
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS subscription_started_at TIMESTAMP
+            """)
+
+            cur.execute("""
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP
             """)
 
             # =================================================
@@ -361,6 +365,87 @@ def seed_partners():
 
 
 # =========================================================
+# SUBSCRIPTION DATE
+# =========================================================
+
+def add_one_month(dt):
+
+    year = dt.year
+    month = dt.month + 1
+
+    if month > 12:
+        month = 1
+        year += 1
+
+    if month == 12:
+
+        next_month = datetime(
+            year + 1,
+            1,
+            1
+        )
+
+    else:
+
+        next_month = datetime(
+            year,
+            month + 1,
+            1
+        )
+
+    last_day = (
+        next_month - timedelta(days=1)
+    ).day
+
+    day = min(
+        dt.day,
+        last_day
+    )
+
+    return dt.replace(
+        year=year,
+        month=month,
+        day=day
+    )
+
+
+def expire_subscriptions():
+
+    with db() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                UPDATE users
+                SET subscription_active=FALSE,
+                    updated_at=NOW()
+                WHERE subscription_active=TRUE
+                  AND subscription_expires_at IS NOT NULL
+                  AND subscription_expires_at <= NOW()
+            """)
+
+        conn.commit()
+
+
+def subscription_expiration_worker():
+
+    while True:
+
+        try:
+
+            expire_subscriptions()
+
+        except Exception as e:
+
+            print(
+                "SUBSCRIPTION EXPIRATION ERROR:",
+                repr(e)
+            )
+
+        time.sleep(60)
+
+
+# =========================================================
 # USERS
 # =========================================================
 
@@ -412,7 +497,32 @@ def get_user(telegram_id):
                 telegram_id,
             ))
 
-            return cur.fetchone()
+            user = cur.fetchone()
+
+            if not user:
+
+                return None
+
+            if (
+                user["subscription_active"]
+                and user["subscription_expires_at"]
+                and user["subscription_expires_at"] <= datetime.utcnow()
+            ):
+
+                cur.execute("""
+                    UPDATE users
+                    SET subscription_active=FALSE,
+                        updated_at=NOW()
+                    WHERE telegram_id=%s
+                """, (
+                    telegram_id,
+                ))
+
+                conn.commit()
+
+                user["subscription_active"] = False
+
+            return user
 
 
 def get_user_by_member_code(code):
@@ -867,7 +977,6 @@ def update_partner(
     values = []
 
     data = {
-
         "name": name,
         "category": category,
         "description": description,
@@ -878,7 +987,6 @@ def update_partner(
         "address": address,
         "latitude": latitude,
         "longitude": longitude
-
     }
 
     for field, value in data.items():
@@ -1072,19 +1180,43 @@ def set_subscription(
     active
 ):
 
+    now = datetime.utcnow()
+
     with db() as conn:
 
         with conn.cursor() as cur:
 
-            cur.execute("""
-                UPDATE users
-                SET subscription_active=%s,
-                    updated_at=NOW()
-                WHERE telegram_id=%s
-            """, (
-                bool(active),
-                telegram_id
-            ))
+            if active:
+
+                expires_at = add_one_month(
+                    now
+                )
+
+                cur.execute("""
+                    UPDATE users
+                    SET subscription_active=TRUE,
+                        subscription_started_at=%s,
+                        subscription_expires_at=%s,
+                        updated_at=NOW()
+                    WHERE telegram_id=%s
+                """, (
+                    now,
+                    expires_at,
+                    telegram_id
+                ))
+
+            else:
+
+                cur.execute("""
+                    UPDATE users
+                    SET subscription_active=FALSE,
+                        subscription_started_at=NULL,
+                        subscription_expires_at=NULL,
+                        updated_at=NOW()
+                    WHERE telegram_id=%s
+                """, (
+                    telegram_id
+                ))
 
         conn.commit()
 
@@ -1241,14 +1373,26 @@ def process_subscription_payment(
                 payment_id
             ))
 
+            subscription_expires_at = None
+
             if approved:
+
+                now = datetime.utcnow()
+
+                subscription_expires_at = add_one_month(
+                    now
+                )
 
                 cur.execute("""
                     UPDATE users
                     SET subscription_active=TRUE,
+                        subscription_started_at=%s,
+                        subscription_expires_at=%s,
                         updated_at=NOW()
                     WHERE telegram_id=%s
                 """, (
+                    now,
+                    subscription_expires_at,
                     payment["telegram_id"],
                 ))
 
@@ -1258,7 +1402,9 @@ def process_subscription_payment(
         "success": True,
         "status": new_status,
         "telegram_id":
-            payment["telegram_id"]
+            payment["telegram_id"],
+        "subscription_expires_at":
+            subscription_expires_at
     }
 
 
@@ -1324,15 +1470,11 @@ async def send_payment_request(
         try:
 
             await context.bot.send_message(
-
                 chat_id=int(
                     admin["telegram_id"]
                 ),
-
                 text=text,
-
                 reply_markup=keyboard
-
             )
 
         except Exception as e:
@@ -1538,15 +1680,9 @@ def create_qr_token(
     )
 
     return {
-
         "token": token,
-
-        "expires_at":
-            expires_at_ms,
-
-        "expires_in":
-            QR_LIFETIME_SECONDS
-
+        "expires_at": expires_at_ms,
+        "expires_in": QR_LIFETIME_SECONDS
     }
 
 
@@ -1574,6 +1710,8 @@ def verify_qr_token(
                     u.phone,
                     u.member_code,
                     u.subscription_active,
+                    u.subscription_started_at,
+                    u.subscription_expires_at,
                     u.total_savings
                 FROM qr_tokens q
                 JOIN users u
@@ -1608,6 +1746,20 @@ def verify_qr_token(
             "valid": False,
             "error":
                 "QR-код истёк"
+        }
+
+    if (
+        not row["subscription_active"]
+        or (
+            row["subscription_expires_at"]
+            and row["subscription_expires_at"] <= datetime.utcnow()
+        )
+    ):
+
+        return {
+            "valid": False,
+            "error":
+                "Подписка пользователя неактивна"
         }
 
     if partner_telegram_id is not None:
@@ -1666,9 +1818,13 @@ def confirm_qr_transaction(
 
     qr = result["qr"]
 
-    if not qr[
-        "subscription_active"
-    ]:
+    if (
+        not qr["subscription_active"]
+        or (
+            qr["subscription_expires_at"]
+            and qr["subscription_expires_at"] <= datetime.utcnow()
+        )
+    ):
 
         return {
             "valid": False,
@@ -1774,6 +1930,41 @@ def confirm_qr_transaction(
                 }
 
             cur.execute("""
+                SELECT
+                    subscription_active,
+                    subscription_expires_at
+                FROM users
+                WHERE telegram_id=%s
+                FOR UPDATE
+            """, (
+                qr["user_telegram_id"],
+            ))
+
+            current_user = cur.fetchone()
+
+            if not current_user:
+
+                return {
+                    "valid": False,
+                    "error":
+                        "Пользователь не найден"
+                }
+
+            if (
+                not current_user[0]
+                or (
+                    current_user[1]
+                    and current_user[1] <= datetime.utcnow()
+                )
+            ):
+
+                return {
+                    "valid": False,
+                    "error":
+                        "Подписка пользователя неактивна"
+                }
+
+            cur.execute("""
                 INSERT INTO transactions (
                     telegram_id,
                     partner_id,
@@ -1824,39 +2015,18 @@ def confirm_qr_transaction(
         conn.commit()
 
     return {
-
         "valid": True,
-
         "success": True,
-
-        "receipt_amount":
-            amount,
-
-        "discount_percent":
-            discount,
-
-        "savings":
-            savings,
-
-        "partner":
-            partner["name"],
-
+        "receipt_amount": amount,
+        "discount_percent": discount,
+        "savings": savings,
+        "partner": partner["name"],
         "user": {
-
-            "id":
-                qr["user_id"],
-
-            "telegram_id":
-                qr["user_telegram_id"],
-
-            "name":
-                qr["name"],
-
-            "member_code":
-                qr["member_code"]
-
+            "id": qr["user_id"],
+            "telegram_id": qr["user_telegram_id"],
+            "name": qr["name"],
+            "member_code": qr["member_code"]
         }
-
     }
 
 
@@ -2341,10 +2511,6 @@ def handle_get(
         handler.path
     ).path
 
-    # =====================================================
-    # HEALTH
-    # =====================================================
-
     if path == "/":
 
         return json_response(
@@ -2356,10 +2522,6 @@ def handle_get(
             }
         )
 
-    # =====================================================
-    # PUBLIC PARTNERS
-    # =====================================================
-
     if path == "/api/partners":
 
         return json_response(
@@ -2370,10 +2532,6 @@ def handle_get(
                     get_partners()
             }
         )
-
-    # =====================================================
-    # MAP
-    # =====================================================
 
     if path == "/api/map":
 
@@ -2438,10 +2596,6 @@ def handle_get(
             }
         )
 
-    # =====================================================
-    # USER
-    # =====================================================
-
     if path == "/api/user":
 
         tg_user, telegram_id = authenticate(
@@ -2499,10 +2653,6 @@ def handle_get(
             }
         )
 
-    # =====================================================
-    # ROLE
-    # =====================================================
-
     if path == "/api/role":
 
         _, telegram_id = authenticate(
@@ -2537,24 +2687,16 @@ def handle_get(
             handler,
             {
                 "success": True,
-
                 "role":
                     role,
-
                 "is_admin":
                     admin_status,
-
                 "is_partner":
                     partner_status,
-
                 "partner":
                     partner
             }
         )
-
-    # =====================================================
-    # HISTORY
-    # =====================================================
 
     if path == "/api/history":
 
@@ -2580,10 +2722,6 @@ def handle_get(
                     )
             }
         )
-
-    # =====================================================
-    # PARTNER ME
-    # =====================================================
 
     if path == "/api/partner/me":
 
@@ -2620,10 +2758,6 @@ def handle_get(
             }
         )
 
-    # =====================================================
-    # ADMIN PARTNERS
-    # =====================================================
-
     if path == "/api/admin/partners":
 
         _, telegram_id = authenticate(
@@ -2657,10 +2791,6 @@ def handle_get(
             }
         )
 
-    # =====================================================
-    # ADMIN USERS
-    # =====================================================
-
     if path == "/api/admin/users":
 
         _, telegram_id = authenticate(
@@ -2693,10 +2823,6 @@ def handle_get(
                     get_all_users_admin()
             }
         )
-
-    # =====================================================
-    # ADMINS
-    # =====================================================
 
     if path == "/api/admin/admins":
 
@@ -2754,10 +2880,6 @@ def handle_post(
         handler
     )
 
-    # =====================================================
-    # AUTH
-    # =====================================================
-
     if path == "/api/auth":
 
         tg_user, telegram_id = authenticate(
@@ -2809,10 +2931,6 @@ def handle_post(
                     )
             }
         )
-
-    # =====================================================
-    # REGISTRATION
-    # =====================================================
 
     if path == "/api/register":
 
@@ -2894,10 +3012,6 @@ def handle_post(
                     )
             }
         )
-
-    # =====================================================
-    # LANGUAGE
-    # =====================================================
 
     if path == "/api/language":
 
@@ -3168,6 +3282,16 @@ def handle_post(
                     "subscription_active":
                         qr[
                             "subscription_active"
+                        ],
+
+                    "subscription_started_at":
+                        qr[
+                            "subscription_started_at"
+                        ],
+
+                    "subscription_expires_at":
+                        qr[
+                            "subscription_expires_at"
                         ],
 
                     "total_savings":
@@ -4517,14 +4641,35 @@ async def activate_command(
 
         return
 
-    set_subscription(
+    result = set_subscription(
         target_id,
         True
     )
 
-    await update.message.reply_text(
-        f"✅ Подписка {target_id} активирована."
-    )
+    if result:
+
+        expires = result[
+            "subscription_expires_at"
+        ]
+
+        expires_text = (
+            expires.strftime(
+                "%d.%m.%Y %H:%M"
+            )
+            if expires
+            else "неизвестно"
+        )
+
+        await update.message.reply_text(
+            f"✅ Подписка {target_id} активирована.\n\n"
+            f"Действует до: {expires_text}"
+        )
+
+    else:
+
+        await update.message.reply_text(
+            "❌ Пользователь не найден."
+        )
 
 
 # =========================================================
@@ -4573,14 +4718,22 @@ async def deactivate_command(
 
         return
 
-    set_subscription(
+    result = set_subscription(
         target_id,
         False
     )
 
-    await update.message.reply_text(
-        f"✅ Подписка {target_id} отключена."
-    )
+    if result:
+
+        await update.message.reply_text(
+            f"✅ Подписка {target_id} отключена."
+        )
+
+    else:
+
+        await update.message.reply_text(
+            "❌ Пользователь не найден."
+        )
 
 
 # =========================================================
@@ -4652,6 +4805,18 @@ async def callback_handler(
             "telegram_id"
         ]
 
+        expires_at = result[
+            "subscription_expires_at"
+        ]
+
+        expires_text = (
+            expires_at.strftime(
+                "%d.%m.%Y %H:%M"
+            )
+            if expires_at
+            else "неизвестно"
+        )
+
         try:
 
             await context.bot.send_message(
@@ -4663,7 +4828,9 @@ async def callback_handler(
                     "Ваша подписка BIZDE.KZ "
                     "активирована.\n\n"
                     f"Стоимость подписки: "
-                    f"{SUBSCRIPTION_PRICE} ₸\n\n"
+                    f"{SUBSCRIPTION_PRICE} ₸\n"
+                    f"Действует до: "
+                    f"{expires_text}\n\n"
                     "Теперь вам доступны "
                     "привилегии клуба."
                 )
@@ -4681,10 +4848,6 @@ async def callback_handler(
             query.message.text
             + "\n\n"
             "✅ ОПЛАТА ПОДТВЕРЖДЕНА"
-        )
-
-        await query.answer(
-            "Оплата подтверждена"
         )
 
         return
@@ -4774,10 +4937,6 @@ async def callback_handler(
             "❌ ОПЛАТА ОТКЛОНЕНА"
         )
 
-        await query.answer(
-            "Заявка отклонена"
-        )
-
         return
 
     # =====================================================
@@ -4817,6 +4976,19 @@ async def callback_handler(
             payment
         )
 
+        try:
+
+            await query.edit_message_reply_markup(
+                reply_markup=None
+            )
+
+        except Exception as e:
+
+            print(
+                "PAYMENT BUTTON REMOVE ERROR:",
+                repr(e)
+            )
+
         await query.message.reply_text(
 
             "✅ Заявка отправлена!\n\n"
@@ -4825,10 +4997,6 @@ async def callback_handler(
             "После подтверждения подписка "
             "активируется автоматически."
 
-        )
-
-        await query.answer(
-            "Заявка отправлена"
         )
 
         return
@@ -4924,6 +5092,18 @@ async def callback_handler(
 
         if active:
 
+            expires = user[
+                "subscription_expires_at"
+            ]
+
+            expires_text = (
+                expires.strftime(
+                    "%d.%m.%Y %H:%M"
+                )
+                if expires
+                else "не указано"
+            )
+
             status = "🟢 Активна"
 
             keyboard = InlineKeyboardMarkup([
@@ -4942,6 +5122,9 @@ async def callback_handler(
                 "🎟 Моя подписка BIZDE.KZ\n\n"
 
                 f"Статус: {status}\n"
+
+                f"Действует до: "
+                f"{expires_text}\n\n"
 
                 f"Код участника: "
                 f"{user['member_code']}\n\n"
@@ -4973,6 +5156,10 @@ async def callback_handler(
 
             "Стоимость подписки:\n"
             "💰 2 990 ₸\n\n"
+
+            "Подписка действует "
+            "1 календарный месяц "
+            "после подтверждения оплаты.\n\n"
 
             "После оплаты отправьте заявку "
             "администратору. Администратор "
@@ -5015,6 +5202,8 @@ async def callback_handler(
 
             "Стоимость: "
             f"2 990 ₸\n\n"
+
+            "Срок: 1 календарный месяц\n\n"
 
             "📌 Реквизиты для оплаты:\n"
             f"{PAYMENT_DETAILS}\n\n"
@@ -5087,6 +5276,17 @@ def main():
     # =====================================================
 
     init_db()
+
+    # =====================================================
+    # SUBSCRIPTION WORKER
+    # =====================================================
+
+    subscription_thread = threading.Thread(
+        target=subscription_expiration_worker,
+        daemon=True
+    )
+
+    subscription_thread.start()
 
     # =====================================================
     # TELEGRAM
