@@ -63,7 +63,6 @@ QR_LIFETIME_SECONDS = 60
 
 SUBSCRIPTION_PRICE = 2990
 
-# Kaspi Pay
 PAYMENT_URL = os.environ.get(
     "PAYMENT_URL",
     "https://pay.kaspi.kz/pay/gpq72hur"
@@ -208,6 +207,20 @@ def init_db():
                     processed_at TIMESTAMP,
                     processed_by BIGINT
                 )
+            """)
+
+            # =================================================
+            # НОВЫЕ ПОЛЯ ДЛЯ ПОДТВЕРЖДЕНИЯ ОПЛАТЫ
+            # =================================================
+
+            cur.execute("""
+                ALTER TABLE subscription_payments
+                ADD COLUMN IF NOT EXISTS paid_reported BOOLEAN DEFAULT FALSE
+            """)
+
+            cur.execute("""
+                ALTER TABLE subscription_payments
+                ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP
             """)
 
             cur.execute("""
@@ -1159,12 +1172,14 @@ def create_subscription_payment(telegram_id):
                 INSERT INTO subscription_payments (
                     telegram_id,
                     amount,
-                    status
+                    status,
+                    paid_reported
                 )
                 VALUES (
                     %s,
                     %s,
-                    'pending'
+                    'pending',
+                    FALSE
                 )
                 RETURNING *
             """, (
@@ -1197,6 +1212,77 @@ def get_payment_by_id(payment_id):
 
             return cur.fetchone()
 
+
+# =========================================================
+# ОТМЕТИТЬ "Я ОПЛАТИЛ"
+# =========================================================
+
+def report_subscription_payment(payment_id):
+
+    with db() as conn:
+
+        with conn.cursor(
+            cursor_factory=RealDictCursor
+        ) as cur:
+
+            cur.execute("""
+                SELECT *
+                FROM subscription_payments
+                WHERE id=%s
+                FOR UPDATE
+            """, (
+                payment_id,
+            ))
+
+            payment = cur.fetchone()
+
+            if not payment:
+
+                return {
+                    "success": False,
+                    "error": "Заявка не найдена"
+                }
+
+            if payment["status"] != "pending":
+
+                return {
+                    "success": False,
+                    "error": "Заявка уже обработана",
+                    "payment": payment
+                }
+
+            if payment.get("paid_reported"):
+
+                return {
+                    "success": True,
+                    "already_reported": True,
+                    "payment": payment
+                }
+
+            cur.execute("""
+                UPDATE subscription_payments
+                SET paid_reported=TRUE,
+                    paid_at=NOW()
+                WHERE id=%s
+            """, (
+                payment_id,
+            ))
+
+            payment["paid_reported"] = True
+            payment["paid_at"] = datetime.utcnow()
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "already_reported": False,
+        "payment": payment
+    }
+
+
+# =========================================================
+# ОБРАБОТКА ОПЛАТЫ АДМИНОМ
+# =========================================================
 
 def process_subscription_payment(
     payment_id,
@@ -1287,6 +1373,10 @@ def process_subscription_payment(
     }
 
 
+# =========================================================
+# УВЕДОМЛЕНИЕ АДМИНА
+# =========================================================
+
 async def send_payment_request(
     context,
     payment
@@ -1317,8 +1407,9 @@ async def send_payment_request(
         f"{SUBSCRIPTION_PRICE:,} ₸\n"
         f"🧾 Заявка №{payment['id']}\n\n"
         "Пользователь сообщил, что оплатил "
-        "подписку.\n"
-        "Проверьте поступление денег."
+        "подписку.\n\n"
+        "Проверьте поступление денег в Kaspi "
+        "и подтвердите или отклоните оплату."
     ).replace(",", " ")
 
     keyboard = InlineKeyboardMarkup([
@@ -2799,13 +2890,63 @@ def handle_post(handler):
                 }
             )
 
+        # =================================================
+        # СОЗДАЁМ ИЛИ ПОЛУЧАЕМ ОДНУ ЗАЯВКУ
+        # =================================================
+
         payment = create_subscription_payment(
             telegram_id
         )
 
-        send_payment_request_from_http(
-            payment
+        # =================================================
+        # ВАЖНО:
+        #
+        # Просто нажатие "Оплатить подписку"
+        # НЕ отправляет сообщение админу.
+        #
+        # Уведомление админу отправляется ТОЛЬКО
+        # если frontend передал paid=true.
+        # =================================================
+
+        paid = bool(
+            body.get(
+                "paid",
+                False
+            )
         )
+
+        paid_reported = bool(
+            payment.get(
+                "paid_reported",
+                False
+            )
+        )
+
+        if paid:
+
+            report_result = report_subscription_payment(
+                payment["id"]
+            )
+
+            if not report_result["success"]:
+
+                return error_response(
+                    handler,
+                    report_result["error"]
+                )
+
+            payment = report_result["payment"]
+
+            if not report_result.get(
+                "already_reported",
+                False
+            ):
+
+                send_payment_request_from_http(
+                    payment
+                )
+
+            paid_reported = True
 
         return json_response(
             handler,
@@ -2818,7 +2959,11 @@ def handle_post(handler):
                 "status":
                     payment["status"],
                 "payment_url":
-                    PAYMENT_URL
+                    PAYMENT_URL,
+                "payment_details":
+                    PAYMENT_URL,
+                "paid_reported":
+                    paid_reported
             }
         )
 
@@ -3334,6 +3479,7 @@ def handle_post(handler):
         if longitude is not None:
 
             try:
+
                 longitude = float(longitude)
 
             except (
@@ -4188,7 +4334,7 @@ async def unsetpartner_command(
     except ValueError:
 
         await update.message.reply_text(
-            "Некорректный Telegram ID."
+            "Некорректный ID."
         )
 
         return
@@ -4358,8 +4504,6 @@ async def callback_handler(
         "payment_approve_"
     ):
 
-        await query.answer()
-
         if not is_admin(
             query.from_user.id
         ):
@@ -4370,6 +4514,8 @@ async def callback_handler(
             )
 
             return
+
+        await query.answer()
 
         try:
 
@@ -4445,11 +4591,20 @@ async def callback_handler(
                 repr(e)
             )
 
-        await query.edit_message_text(
-            query.message.text
-            + "\n\n"
-            "✅ ОПЛАТА ПОДТВЕРЖДЕНА"
-        )
+        try:
+
+            await query.edit_message_text(
+                query.message.text
+                + "\n\n"
+                "✅ ОПЛАТА ПОДТВЕРЖДЕНА"
+            )
+
+        except Exception as e:
+
+            print(
+                "PAYMENT EDIT ERROR:",
+                repr(e)
+            )
 
         return
 
@@ -4461,8 +4616,6 @@ async def callback_handler(
         "payment_reject_"
     ):
 
-        await query.answer()
-
         if not is_admin(
             query.from_user.id
         ):
@@ -4473,6 +4626,8 @@ async def callback_handler(
             )
 
             return
+
+        await query.answer()
 
         try:
 
@@ -4532,11 +4687,20 @@ async def callback_handler(
                 repr(e)
             )
 
-        await query.edit_message_text(
-            query.message.text
-            + "\n\n"
-            "❌ ОПЛАТА ОТКЛОНЕНА"
-        )
+        try:
+
+            await query.edit_message_text(
+                query.message.text
+                + "\n\n"
+                "❌ ОПЛАТА ОТКЛОНЕНА"
+            )
+
+        except Exception as e:
+
+            print(
+                "PAYMENT EDIT ERROR:",
+                repr(e)
+            )
 
         return
 
@@ -4545,8 +4709,6 @@ async def callback_handler(
     # =====================================================
 
     if query.data == "payment_user_paid":
-
-        await query.answer()
 
         user = get_user(
             query.from_user.id
@@ -4574,10 +4736,44 @@ async def callback_handler(
             query.from_user.id
         )
 
-        await send_payment_request(
-            context,
-            payment
+        report_result = report_subscription_payment(
+            payment["id"]
         )
+
+        if not report_result["success"]:
+
+            await query.answer(
+                report_result["error"],
+                show_alert=True
+            )
+
+            return
+
+        payment = report_result["payment"]
+
+        # =================================================
+        # ОТПРАВЛЯЕМ АДМИНУ ТОЛЬКО ПЕРВЫЙ РАЗ
+        # =================================================
+
+        if not report_result.get(
+            "already_reported",
+            False
+        ):
+
+            await query.answer(
+                "Заявка отправлена администратору"
+            )
+
+            await send_payment_request(
+                context,
+                payment
+            )
+
+        else:
+
+            await query.answer(
+                "Заявка уже отправлена администратору"
+            )
 
         try:
 
@@ -4592,15 +4788,31 @@ async def callback_handler(
                 repr(e)
             )
 
-        await query.message.reply_text(
+        if report_result.get(
+            "already_reported",
+            False
+        ):
 
-            "✅ Заявка отправлена!\n\n"
-            "Администратор получил уведомление "
-            "и проверит оплату.\n\n"
-            "После подтверждения подписка "
-            "активируется автоматически."
+            await query.message.reply_text(
 
-        )
+                "ℹ️ Вы уже отправляли заявку "
+                "на проверку оплаты.\n\n"
+                "Дождитесь подтверждения "
+                "администратора."
+
+            )
+
+        else:
+
+            await query.message.reply_text(
+
+                "✅ Заявка отправлена!\n\n"
+                "Администратор получил уведомление "
+                "и проверит оплату.\n\n"
+                "После подтверждения подписка "
+                "активируется автоматически."
+
+            )
 
         return
 
@@ -4768,10 +4980,10 @@ async def callback_handler(
             "1 календарный месяц "
             "после подтверждения оплаты.\n\n"
 
-            "После оплаты отправьте заявку "
-            "администратору. Администратор "
-            "проверит поступление денег и "
-            "активирует вашу подписку.",
+            "После оплаты нажмите "
+            "«Я оплатил». Администратор "
+            "проверит поступление денег "
+            "и активирует вашу подписку.",
 
             reply_markup=keyboard
         )
@@ -4807,6 +5019,10 @@ async def callback_handler(
 
             return
 
+        # =================================================
+        # ЗДЕСЬ АДМИНУ НИЧЕГО НЕ ОТПРАВЛЯЕМ
+        # =================================================
+
         await query.message.reply_text(
 
             "💳 ОПЛАТА ПОДПИСКИ BIZDE.KZ\n\n"
@@ -4821,7 +5037,8 @@ async def callback_handler(
             "3️⃣ Вернитесь в BIZDE.KZ\n"
             "4️⃣ Нажмите «Я оплатил»\n\n"
 
-            "После этого заявка поступит "
+            "Только после нажатия "
+            "«Я оплатил» заявка поступит "
             "администратору на проверку.",
 
             reply_markup=InlineKeyboardMarkup([
@@ -4866,6 +5083,27 @@ def run_http_server():
     )
 
     server.serve_forever()
+
+
+# =========================================================
+# TELEGRAM POST INIT
+# =========================================================
+
+async def post_init(
+    application: Application
+):
+
+    global TELEGRAM_APPLICATION
+
+    TELEGRAM_APPLICATION = application
+
+    application.bot_data["main_loop"] = (
+        asyncio.get_running_loop()
+    )
+
+    print(
+        "Telegram main loop сохранён."
+    )
 
 
 # =========================================================
@@ -4917,24 +5155,11 @@ def main():
         Application
         .builder()
         .token(TOKEN)
+        .post_init(post_init)
         .build()
     )
 
     TELEGRAM_APPLICATION = application
-
-    # =====================================================
-    # MAIN LOOP
-    # =====================================================
-
-    try:
-
-        application.bot_data["main_loop"] = (
-            asyncio.get_running_loop()
-        )
-
-    except RuntimeError:
-
-        pass
 
     # =====================================================
     # HTTP API
