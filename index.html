@@ -1541,7 +1541,7 @@ ru:{
     paymentSent:
         "Заявка на оплату отправлена администратору. Дождитесь подтверждения.",
 
-    paymentDetails:"Реквизиты для оплаты",
+    paymentDetails:"Оплата подписки",
 
     subscriptionAlreadyActive:
         "Подписка уже активна.",
@@ -1555,7 +1555,7 @@ ru:{
         "Проверяем статус оплаты...",
 
     paymentWaiting:
-        "Ожидаем подтверждение администратора."
+        "После оплаты нажмите «Я оплатил»."
 
 },
 
@@ -1686,7 +1686,7 @@ kk:{
     paymentSent:
         "Төлем туралы өтініш әкімшіге жіберілді. Растауды күтіңіз.",
 
-    paymentDetails:"Төлем реквизиттері",
+    paymentDetails:"Жазылым төлемі",
 
     subscriptionAlreadyActive:
         "Жазылым қазірдің өзінде белсенді.",
@@ -1700,7 +1700,7 @@ kk:{
         "Төлем мәртебесі тексерілуде...",
 
     paymentWaiting:
-        "Әкімшінің растауын күтіңіз."
+        "Төлем жасағаннан кейін «Мен төледім» батырмасын басыңыз."
 
 }
 
@@ -1754,6 +1754,7 @@ function applyLanguage(){
     }
 
     updateStatus();
+
 
 }
 
@@ -3803,7 +3804,10 @@ async function requestSubscriptionPayment(){
 
                         telegram_id:
                             bizdeUser?.telegram_id ||
-                            tg.initDataUnsafe?.user?.id
+                            tg.initDataUnsafe?.user?.id,
+
+                        paid:
+                            false
 
                     })
 
@@ -3898,8 +3902,6 @@ async function requestSubscriptionPayment(){
             data
         );
 
-        startSubscriptionStatusCheck();
-
     }catch(error){
 
         console.error(
@@ -3944,7 +3946,6 @@ function showPaymentDetails(data){
         data.payment_details ||
         data.paymentDetails ||
         data.details ||
-        data.payment ||
         "";
 
     if(
@@ -3980,17 +3981,22 @@ function showPaymentDetails(data){
 
     }
 
+    const paymentUrl =
+        data.payment_url ||
+        data.paymentUrl ||
+        "https://pay.kaspi.kz/pay/gpq72hur";
+
     if(!details){
 
         details = `
             <div style="
-                margin-top:8px;
                 color:var(--muted);
+                line-height:1.5;
             ">
                 ${
                     currentLanguage === "ru"
-                    ? "Реквизиты для оплаты будут предоставлены администратором."
-                    : "Төлем реквизиттерін әкімші береді."
+                    ? "Перейдите по кнопке ниже и оплатите подписку."
+                    : "Төмендегі батырма арқылы жазылымды төлеңіз."
                 }
             </div>
         `;
@@ -4017,6 +4023,27 @@ function showPaymentDetails(data){
             ${details}
 
         </div>
+
+        <a
+            href="${escapeHTML(paymentUrl)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="modal-button"
+            style="
+                display:block;
+                width:100%;
+                text-align:center;
+                text-decoration:none;
+                margin-top:12px;
+            ">
+
+            ${
+                currentLanguage === "ru"
+                ? "💳 Оплатить 2 990 ₸"
+                : "💳 2 990 ₸ төлеу"
+            }
+
+        </a>
 
         <div style="
             text-align:center;
