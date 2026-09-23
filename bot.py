@@ -209,10 +209,6 @@ def init_db():
                 )
             """)
 
-            # =================================================
-            # НОВЫЕ ПОЛЯ ДЛЯ ПОДТВЕРЖДЕНИЯ ОПЛАТЫ
-            # =================================================
-
             cur.execute("""
                 ALTER TABLE subscription_payments
                 ADD COLUMN IF NOT EXISTS paid_reported BOOLEAN DEFAULT FALSE
@@ -2197,6 +2193,11 @@ def json_response(
     )
 
     handler.send_header(
+        "Content-Length",
+        str(len(payload))
+    )
+
+    handler.send_header(
         "Access-Control-Allow-Origin",
         ALLOWED_ORIGIN
     )
@@ -2208,7 +2209,7 @@ def json_response(
 
     handler.send_header(
         "Access-Control-Allow-Methods",
-        "GET, POST, OPTIONS"
+        "GET, POST, OPTIONS, HEAD"
     )
 
     handler.send_header(
@@ -2305,7 +2306,7 @@ class RequestHandler(
 
         self.send_header(
             "Access-Control-Allow-Methods",
-            "GET, POST, OPTIONS"
+            "GET, POST, OPTIONS, HEAD"
         )
 
         self.send_header(
@@ -2314,6 +2315,88 @@ class RequestHandler(
         )
 
         self.end_headers()
+
+    # =====================================================
+    # HEAD
+    # =====================================================
+
+    def do_HEAD(self):
+
+        try:
+
+            path = urlparse(
+                self.path
+            ).path
+
+            if path == "/" or path == "/health":
+
+                payload = json.dumps(
+                    {
+                        "success": True,
+                        "service": "BIZDE.KZ",
+                        "status": "online"
+                    }
+                ).encode("utf-8")
+
+                self.send_response(200)
+
+                self.send_header(
+                    "Content-Type",
+                    "application/json; charset=utf-8"
+                )
+
+                self.send_header(
+                    "Content-Length",
+                    str(len(payload))
+                )
+
+                self.send_header(
+                    "Access-Control-Allow-Origin",
+                    ALLOWED_ORIGIN
+                )
+
+                self.send_header(
+                    "Access-Control-Allow-Headers",
+                    "Content-Type, X-Telegram-Init-Data, X-Telegram-Web-App-Init-Data"
+                )
+
+                self.send_header(
+                    "Access-Control-Allow-Methods",
+                    "GET, POST, OPTIONS, HEAD"
+                )
+
+                self.send_header(
+                    "Access-Control-Allow-Credentials",
+                    "true"
+                )
+
+                self.end_headers()
+
+                return
+
+            self.send_response(404)
+
+            self.send_header(
+                "Access-Control-Allow-Origin",
+                ALLOWED_ORIGIN
+            )
+
+            self.end_headers()
+
+        except Exception as e:
+
+            print(
+                "HEAD ERROR:",
+                repr(e)
+            )
+
+            try:
+
+                self.send_response(500)
+                self.end_headers()
+
+            except Exception:
+                pass
 
     def do_GET(self):
 
@@ -2364,7 +2447,26 @@ def handle_get(handler):
         handler.path
     ).path
 
+    # =====================================================
+    # ROOT
+    # =====================================================
+
     if path == "/":
+
+        return json_response(
+            handler,
+            {
+                "success": True,
+                "service": "BIZDE.KZ",
+                "status": "online"
+            }
+        )
+
+    # =====================================================
+    # HEALTH CHECK
+    # =====================================================
+
+    if path == "/health":
 
         return json_response(
             handler,
@@ -2890,23 +2992,9 @@ def handle_post(handler):
                 }
             )
 
-        # =================================================
-        # СОЗДАЁМ ИЛИ ПОЛУЧАЕМ ОДНУ ЗАЯВКУ
-        # =================================================
-
         payment = create_subscription_payment(
             telegram_id
         )
-
-        # =================================================
-        # ВАЖНО:
-        #
-        # Просто нажатие "Оплатить подписку"
-        # НЕ отправляет сообщение админу.
-        #
-        # Уведомление админу отправляется ТОЛЬКО
-        # если frontend передал paid=true.
-        # =================================================
 
         paid = bool(
             body.get(
@@ -4496,10 +4584,6 @@ async def callback_handler(
 
     query = update.callback_query
 
-    # =====================================================
-    # PAYMENT APPROVE
-    # =====================================================
-
     if query.data.startswith(
         "payment_approve_"
     ):
@@ -4608,10 +4692,6 @@ async def callback_handler(
 
         return
 
-    # =====================================================
-    # PAYMENT REJECT
-    # =====================================================
-
     if query.data.startswith(
         "payment_reject_"
     ):
@@ -4704,10 +4784,6 @@ async def callback_handler(
 
         return
 
-    # =====================================================
-    # USER PAID
-    # =====================================================
-
     if query.data == "payment_user_paid":
 
         user = get_user(
@@ -4750,10 +4826,6 @@ async def callback_handler(
             return
 
         payment = report_result["payment"]
-
-        # =================================================
-        # ОТПРАВЛЯЕМ АДМИНУ ТОЛЬКО ПЕРВЫЙ РАЗ
-        # =================================================
 
         if not report_result.get(
             "already_reported",
@@ -4816,10 +4888,6 @@ async def callback_handler(
 
         return
 
-    # =====================================================
-    # CATEGORIES
-    # =====================================================
-
     if query.data == "categories":
 
         await query.answer()
@@ -4854,10 +4922,6 @@ async def callback_handler(
 
         return
 
-    # =====================================================
-    # PARTNERS
-    # =====================================================
-
     if query.data == "partners":
 
         await query.answer()
@@ -4886,10 +4950,6 @@ async def callback_handler(
         )
 
         return
-
-    # =====================================================
-    # SUBSCRIPTION
-    # =====================================================
 
     if query.data == "subscription":
 
@@ -4990,10 +5050,6 @@ async def callback_handler(
 
         return
 
-    # =====================================================
-    # PAY SUBSCRIPTION
-    # =====================================================
-
     if query.data == "pay_subscription":
 
         await query.answer()
@@ -5018,10 +5074,6 @@ async def callback_handler(
             )
 
             return
-
-        # =================================================
-        # ЗДЕСЬ АДМИНУ НИЧЕГО НЕ ОТПРАВЛЯЕМ
-        # =================================================
 
         await query.message.reply_text(
 
